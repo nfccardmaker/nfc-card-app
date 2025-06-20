@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>名刺</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      margin: 0;
+      background-image: url("data:image/jpeg;base64,{{ bg_data }}");
+      background-size: cover;
+      background-position: center;
+      font-family: 'Helvetica Neue', sans-serif;
+    }
+    .card {
+      width: 90%;
+      max-width: 700px;
+      margin: 50px auto;
+      padding: 30px;
+      background-color: rgba(255, 255, 255, 0.85);
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    .profile-img {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-bottom: 15px;
+    }
+    .description {
+      font-size: 16px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    {% if profile_data %}
+      <img src="data:image/jpeg;base64,{{ profile_data }}" class="profile-img">
+    {% endif %}
+    <div class="description">{{ description|safe }}</div>
+  </div>
+</body>
+</html>
