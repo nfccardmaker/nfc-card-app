@@ -11,7 +11,7 @@
       height: 100%;
       font-family: 'Helvetica Neue', sans-serif;
       background-color: #ffffff;
-      overflow: hidden;
+      overflow: auto;
     }
 
     body {
@@ -19,8 +19,13 @@
   background-position: center;
   background-repeat: no-repeat;
   overflow-x: hidden; /* 👈 横スクロール禁止！ */
+  padding-bottom: 0px; 
 }
-
+    .main-wrapper {
+      min-height: 100vh;
+      padding-bottom: 140px; /* ツールバーを考慮 */
+      box-sizing: border-box;
+    }
     .card {
       width: 90%;
       max-width: 700px;
@@ -28,7 +33,7 @@
       border: 2px solid #ccc;
       border-radius: 10px;
       background-color: white;
-      overflow: hidden;
+      overflow-y: auto;
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
       display: flex;
       flex-direction: column;
@@ -78,10 +83,14 @@
       font-size: 14px;
       width: 100%;
     }
+body {
+  padding-bottom: 10px;
+  box-sizing: border-box;
+}
 
     .toolbar {
       position: fixed;
-      bottom: 10px;
+      bottom: 5px;
       left: 50%;
       transform: translateX(-50%);
       background: white;
@@ -92,6 +101,7 @@
       gap: 16px;
       z-index: 1000;
       align-items: center;
+      
     }
 
     .toolbar img {
@@ -117,9 +127,8 @@
 
 
     .sns-bar {
-      position: absolute;
-      top: 260px;
-      left: 20px;
+      margin: 20px auto;
+      padding-left: 20px;
       display: flex;
       flex-direction: column;
       gap: 16px;
@@ -208,6 +217,40 @@
 #bg-template-list::-webkit-scrollbar {
   display: none;
 }
+.youtube-section {
+  margin-top: 10px;
+  margin-bottom: 60px; /* ← 追加！ */
+  text-align: center;
+}
+#youtube-url {
+  width: 70%;
+  max-width: 500px;
+  padding: 5px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  margin-top: 5px;
+}
+#youtube-player {
+  margin: 0;
+  padding: 0;
+  line-height: 0;
+}
+iframe {
+  width: 100%;
+  height: 200px; /* ← aspect-ratioと併用せず明示指定で高さ固定 */
+  border: none;
+  margin: 0 auto;
+  padding: 0;
+}
+body {
+  box-sizing: border-box;
+}
+body {
+  overscroll-behavior: contain; /* ← iOSスクロール跳ね返りを抑制 */
+  padding-bottom: 80px;
+}
+
   </style>
 </head>
 <body>
@@ -228,44 +271,45 @@
     </div>
   </div>
 
-  <div class="sns-bar">
-    <div class="sns-wrapper">
-      <div class="sns-item">
-        <img src="/static/instagram_icon.jpeg" alt="Instagram" onclick="handleIconClick('instagram')">
-        Instagram
-      </div>
-      <input id="input-instagram" class="sns-input" placeholder="https://www.instagram.com/yourid" onblur="handleBlur('instagram')">
+  <!-- ▼ SNSアイコンと入力欄 -->
+<div class="sns-bar">
+  <div class="sns-wrapper">
+    <div class="sns-item">
+      <img src="/static/instagram_icon.jpeg" alt="Instagram" onclick="handleIconClick('instagram')">
+      Instagram
     </div>
-    <div class="sns-wrapper">
-      <div class="sns-item">
-        <img src="/static/X_icon.jpeg" alt="X" onclick="handleIconClick('x')">
-        X（旧Twitter）
-      </div>
-      <input id="input-x" class="sns-input" placeholder="https://twitter.com/yourid" onblur="handleBlur('x')">
-    </div>
-    <div class="sns-wrapper">
-      <div class="sns-item">
-        <img src="/static/tiktok_icon.jpeg" alt="TikTok" onclick="handleIconClick('tiktok')">
-        TikTok
-      </div>
-      <input id="input-tiktok" class="sns-input" placeholder="https://www.tiktok.com/@yourid" onblur="handleBlur('tiktok')">
-    </div>
+    <input id="input-instagram" class="sns-input" placeholder="https://www.instagram.com/yourid" onblur="handleBlur('instagram')">
   </div>
-  
-<!-- 自由記述欄（バツボタン付き） -->
-<div id="extra-text-wrapper" class="sns-wrapper" style="position: absolute; top: 410px; left: 20px;">
-  <img src="/static/batu.jpeg" alt="削除" id="extra-text-close" onclick="hideExtraText()" style="
+  <div class="sns-wrapper">
+    <div class="sns-item">
+      <img src="/static/X_icon.jpeg" alt="X" onclick="handleIconClick('x')">
+      X（旧Twitter）
+    </div>
+    <input id="input-x" class="sns-input" placeholder="https://twitter.com/yourid" onblur="handleBlur('x')">
+  </div>
+  <div class="sns-wrapper">
+    <div class="sns-item">
+      <img src="/static/tiktok_icon.jpeg" alt="TikTok" onclick="handleIconClick('tiktok')">
+      TikTok
+    </div>
+    <input id="input-tiktok" class="sns-input" placeholder="https://www.tiktok.com/@yourid" onblur="handleBlur('tiktok')">
+  </div>
+</div>
+
+<!-- ▼ 自由記入欄（バツ付き） -->
+<div id="extra-text-wrapper" class="sns-wrapper" style="margin-top: 20px; position: relative;">
+  <img src="/static/batu.jpeg" alt="削除" class="sns-delete-btn" onclick="hideExtraText()" style="
     position: absolute;
-    top: 12px;
-    right: 1px;
-    width: 20px;
-    height: 20px;
+    top: 0px;
+    right: 30px;
+    width: 18px;
+    height: 18px;
     cursor: pointer;
     z-index: 10;
   ">
   <textarea id="extra-text" placeholder="記入欄" style="
-    margin-top: 24px;
-    margin-left: 10px;
+    margin-top: 3px;
+    margin-left: 20px;
     padding: 14px 18px;
     border-radius: 14px;
     border: 1px solid #ccc;
@@ -281,11 +325,42 @@
   "></textarea>
 </div>
 
+
+
+
+<!-- ▼ YouTube入力欄 -->
+<div class="youtube-section" style="position: relative; margin-top: 20px;">
+  <img src="/static/batu.jpeg" alt="削除" class="sns-delete-btn" onclick="hideYouTubeSection()" style="
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    z-index: 10;
+  ">
+
+  <!-- ここを先に -->
+  <div id="youtube-player" style="padding: 0; text-align: center;"></div>
+
+  <!-- 見出し -->
+  <div style="font-weight: bold; font-size: 14px; margin-bottom: 6px; text-align: left; padding-left: 5vw;">
+    URL<br><span style="font-size: 12px; color: #555;">YouTube</span>
+  </div>
+
+  <!-- 入力欄とボタン -->
+  <input type="text" id="youtube-url" placeholder="YouTubeのURLを入力"
+    style="width: 84vw; max-width: 500px; padding: 10px; border: 1px solid #ccc; border-radius: 10px; font-size: 14px;">
+  <button onclick="embedYouTubeVideo()"
+    style="margin-left: 20px; padding: 8px 12px; font-size: 14px; border-radius: 8px; background: #f0f0f0;">反映</button>
+</div>
+
+
   <canvas id="draw-canvas"></canvas>
   <input type="file" id="background-input" class="hidden-input" accept="image/*" onchange="loadBackgroundImage(event)">
   <input type="file" id="deco-input" class="hidden-input" accept="image/*" onchange="addDecoImage(event)">
   <input type="color" id="color-picker" class="hidden-input" onchange="changeBarColor(event)">
-<button id="final-button" onclick="downloadCard()" style="
+<button id="finish-button" style="
   position: fixed;
   bottom: 20px;
   left: 50%;
@@ -323,7 +398,7 @@
     const ctx = canvas.getContext('2d');
   function togglePreview() {
   const toolbar = document.getElementById('toolbar');
-  const finalBtn = document.getElementById('final-button');
+  const finalBtn = document.getElementById('finish-button');
 
   toolbar.style.display = 'none';
   finalBtn.style.display = 'block';
@@ -650,12 +725,82 @@ function hideAddLink(event) {
   if (addBtn) addBtn.style.display = 'flex';
   const extraTextWrapper = document.getElementById('extra-text-wrapper');
   if (extraTextWrapper) extraTextWrapper.style.display = 'block';
+  const youtubeSection = document.querySelector('.youtube-section');
+  if (youtubeSection) youtubeSection.style.display = 'block';
 }
 function hideExtraText() {
   const wrapper = document.getElementById('extra-text-wrapper');
   if (wrapper) wrapper.style.display = 'none';
 }
+document.getElementById('finish-button').addEventListener('click', async () => {
+  const finishBtn = document.getElementById('finish-button');
+  finishBtn.disabled = true;
+  finishBtn.textContent = '生成中...';
 
+  const html = document.documentElement.outerHTML;
+  const formData = new FormData();
+  formData.append('html', html);
+
+  const res = await fetch('/generate_url', {
+    method: 'POST',
+    body: formData
+  });
+
+  const data = await res.json();
+  if (data.url) {
+    finishBtn.textContent = '生成完了';  // ← ここね！
+    const fullUrl = data.url;
+    const output = document.createElement('div');
+    output.innerHTML = `<p>このURLを共有できます👇</p><a href="${fullUrl}" target="_blank">${fullUrl}</a>`;
+    output.style.cssText = `
+      position: fixed;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      padding: 12px 20px;
+      border-radius: 14px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      z-index: 9999;
+      text-align: center;
+      font-size: 14px;
+    `;
+    document.body.appendChild(output);
+  } else {
+    alert('URLの発行に失敗しました');
+    finishBtn.disabled = false;
+    finishBtn.textContent = '完成';
+  }
+});
+function embedYouTubeVideo() {
+  const input = document.getElementById('youtube-url');
+  const player = document.getElementById('youtube-player');
+  let url = input.value.trim();
+
+  // m.youtube → www.youtube に変換
+  url = url.replace("m.youtube.com", "www.youtube.com");
+
+  const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/);
+  if (match && match[1]) {
+    const videoId = match[1];
+    player.innerHTML = `
+      <iframe width="100%" height="200" 
+      style="max-width: 90vw;"  
+        src="https://www.youtube.com/embed/${videoId}" 
+        frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+        allowfullscreen>
+      </iframe>
+    `;
+  } else {
+    player.innerHTML = "<p style='color:red;'>正しいYouTubeのURLを入力してください。</p>";
+  }
+}
+function hideYouTubeSection() {
+    const section = document.querySelector('.youtube-section');
+    if (section) {
+      section.style.display = 'none';
+    }
+  }
   </script>
 <!-- 横スクロール可能な背景テンプレ一覧 -->
 <div id="bg-template-list" style="
@@ -675,12 +820,22 @@ function hideExtraText() {
   scrollbar-width: none; /* Firefox用 */
   -ms-overflow-style: none; /* IE用 */
 ">
+<!-- ▼ カメラアイコン付きテンプレ追加ここから -->
+<img src="/static/camera.jpeg" onclick="document.getElementById('background-input').click()" 
+     style="width:50px; height:50px; cursor:pointer; border-radius:8px; flex-shrink:0;">
+<!-- ▼ カメラアイコン付きテンプレ追加ここまで -->
   <img src="/static/haikei_1.jpeg" onclick="setBackground('/static/haikei_1.jpeg')" style="width:50px; height:50px; cursor:pointer; border-radius:8px; flex-shrink:0;">
-  <img src="/static/haikei_2.jpeg" onclick="setBackground('/static/haikei_2.jpeg')" style="width:50px; height:50px; cursor:pointer; border-radius:8px; flex-shrink:0;">
-  <img src="/static/haikei_3.jpeg" onclick="setBackground('/static/haikei_3.jpeg')" style="width:50px; height:50px; cursor:pointer; border-radius:8px; flex-shrink:0;">
-  <img src="/static/haikei_4.jpeg" onclick="setBackground('/static/haikei_4.jpeg')" style="width:50px; height:50px; cursor:pointer; border-radius:8px; flex-shrink:0;">
-  <img src="/static/haikei_5.jpeg" onclick="setBackground('/static/haikei_5.jpeg')" style="width:50px; height:50px; cursor:pointer; border-radius:8px; flex-shrink:0;">
-  <!-- さらに追加してもOK！ -->
+<img src="/static/haikei_2.jpeg" onclick="setBackground('/static/haikei_2.jpeg')" style="width:50px; height:50px; cursor:pointer; border-radius:8px; flex-shrink:0;">
+<img src="/static/haikei_3.jpeg" onclick="setBackground('/static/haikei_3.jpeg')" style="width:50px; height:50px; cursor:pointer; border-radius:8px; flex-shrink:0;">
+<img src="/static/haikei_4.jpeg" onclick="setBackground('/static/haikei_4.jpeg')" style="width:50px; height:50px; cursor:pointer; border-radius:8px; flex-shrink:0;">
+<img src="/static/haikei_5.jpeg" onclick="setBackground('/static/haikei_5.jpeg')" style="width:50px; height:50px; cursor:pointer; border-radius:8px; flex-shrink:0;">
+<img src="/static/haikei_6.jpeg" onclick="setBackground('/static/haikei_6.jpeg')" style="width:50px; height:50px; cursor:pointer; border-radius:8px; flex-shrink:0;">
+<img src="/static/haikei_7.jpeg" onclick="setBackground('/static/haikei_7.jpeg')" style="width:50px; height:50px; cursor:pointer; border-radius:8px; flex-shrink:0;">
+<img src="/static/haikei_8.jpeg" onclick="setBackground('/static/haikei_8.jpeg')" style="width:50px; height:50px; cursor:pointer; border-radius:8px; flex-shrink:0;">
+<img src="/static/haikei_9.jpeg" onclick="setBackground('/static/haikei_9.jpeg')" style="width:50px; height:50px; cursor:pointer; border-radius:8px; flex-shrink:0;">
+<img src="/static/haikei_10.jpeg" onclick="setBackground('/static/haikei_10.jpeg')" style="width:50px; height:50px; cursor:pointer; border-radius:8px; flex-shrink:0;">
+<!-- さらに追加してもOK！ -->
+
 </div>
 </body>
 </html> 
