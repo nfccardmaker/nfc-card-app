@@ -8,8 +8,8 @@ import subprocess
 
 app = Flask(__name__)
 
-# ✅ Firebaseのpublicフォルダに合わせて保存先変更
-SAVE_DIR = 'C:/Users/PC1/my-firebase-project/public/generated_cards'
+# ✅ 保存先をGit管理対象の user_cards ディレクトリに変更（Firebase publicに相当）
+SAVE_DIR = 'user_cards'
 os.makedirs(SAVE_DIR, exist_ok=True)
 
 @app.route('/')
@@ -71,7 +71,7 @@ def download():
         download_name='business_card.zip'
     )
 
-# ✅ FirebaseのHosting公開URLで返すよう変更 + deploy自動化付き
+# ✅ Firebase Hosting を GitHub Actions で自動デプロイする構成に対応
 @app.route('/generate_url', methods=['POST'])
 def generate_url():
     html_data = request.form.get('html')
@@ -85,19 +85,18 @@ def generate_url():
     with open(filepath, 'w', encoding='utf-8') as f:
         f.write(html_data)
 
-    firebase_project_id = 'nfc-card-app-79464'
-    firebase_url = f"https://{firebase_project_id}.web.app/generated_cards/{filename}"
-
-    # ✅ firebase.cmd のフルパスを使用して実行
+    # ✅ Git操作を行って GitHub に push
     try:
-        subprocess.run(
-            ["C:/Users/PC1/AppData/Roaming/npm/firebase.cmd", "deploy", "--only", "hosting"],
-            cwd="C:/Users/PC1/my-firebase-project",
-            check=True
-        )
+        subprocess.run(['git', 'config', '--global', 'user.name', 'github-actions'], check=True)
+        subprocess.run(['git', 'config', '--global', 'user.email', 'noreply@github.com'], check=True)
+        subprocess.run(['git', 'add', filepath], check=True)
+        subprocess.run(['git', 'commit', '-m', f'Add {filename}'], check=True)
+        subprocess.run(['git', 'push'], check=True)
     except subprocess.CalledProcessError:
-        return jsonify({'error': 'Firebaseへのデプロイに失敗しました'}), 500
+        return jsonify({'error': 'GitHubへのPushに失敗しました'}), 500
 
+    firebase_project_id = 'nfc-card-app-79464'
+    firebase_url = f"https://{firebase_project_id}.web.app/user_cards/{filename}"
     return jsonify({'url': firebase_url})
 
 if __name__ == '__main__':
