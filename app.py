@@ -94,7 +94,7 @@ def generate_url():
     run_cmd(['git', 'config', '--global', 'user.email', 'noreply@github.com'])
     run_cmd(['git', 'add', filepath])
     run_cmd(['git', 'commit', '-m', f'Add {filename}'])
-    run_cmd(['git', 'push'])
+    run_cmd(['git', 'push', 'origin', 'main'])
 
     firebase_project_id = 'nfc-card-app-79464'
     firebase_url = f"https://{firebase_project_id}.web.app/user_cards/{filename}"
