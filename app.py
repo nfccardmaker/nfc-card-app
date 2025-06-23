@@ -4,7 +4,6 @@ import os
 import zipfile
 import uuid
 from io import BytesIO
-import subprocess
 
 app = Flask(__name__)
 
@@ -79,22 +78,13 @@ def generate_url():
     filename = f"{unique_id}.html"
     filepath = os.path.join(SAVE_DIR, filename)
 
-    with open(filepath, 'w', encoding='utf-8') as f:
-        f.write(html_data)
-
-    # ✅ GitHub へ push（GitHub Actions による Firebase デプロイ用）
-    def run_cmd(command):
-        try:
-            result = subprocess.run(command, check=True, capture_output=True, text=True)
-            print("✅ SUCCESS:", result.stdout)
-        except subprocess.CalledProcessError as e:
-            print("❌ ERROR:", e.stderr)
-
-    run_cmd(['git', 'config', '--global', 'user.name', 'github-actions'])
-    run_cmd(['git', 'config', '--global', 'user.email', 'noreply@github.com'])
-    run_cmd(['git', 'add', filepath])
-    run_cmd(['git', 'commit', '-m', f'Add {filename}'])
-    run_cmd(['git', 'push', 'origin', 'main'])
+    try:
+        with open(filepath, 'w', encoding='utf-8') as f:
+            f.write(html_data)
+        print(f"✅ HTMLファイルを保存しました: {filepath}")
+    except Exception as e:
+        print(f"❌ 保存エラー: {e}")
+        return jsonify({'error': '保存に失敗しました'}), 500
 
     firebase_project_id = 'nfc-card-app-79464'
     firebase_url = f"https://{firebase_project_id}.web.app/user_cards/{filename}"
