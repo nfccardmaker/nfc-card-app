@@ -736,6 +736,29 @@ document.getElementById('finish-button').addEventListener('click', async () => {
   const finishBtn = document.getElementById('finish-button');
   finishBtn.disabled = true;
   finishBtn.textContent = '生成中...';
+  // ✅ ▼ 不要なUI要素を物理的に削除・変換
+  document.querySelectorAll('.sns-delete-btn').forEach(btn => btn.remove());
+
+  document.querySelectorAll('input.editable-text').forEach(input => {
+    const div = document.createElement('div');
+    div.textContent = input.value;
+    div.style.padding = '6px 0';
+    div.style.fontSize = '14px';
+    input.parentNode.replaceChild(div, input);
+  });
+
+  const extraText = document.getElementById('extra-text');
+  if (extraText) {
+    const div = document.createElement('div');
+    div.innerHTML = extraText.value.replace(/\n/g, '<br>');
+    div.style.margin = '20px';
+    div.style.fontSize = '16px';
+    div.style.lineHeight = '1.6';
+    div.style.whiteSpace = 'pre-wrap';
+    extraText.parentNode.replaceChild(div, extraText);
+  }
+
+  finishBtn.remove(); // ← 完成ボタンも削除
 
   const html = document.documentElement.outerHTML;
   const formData = new FormData();
