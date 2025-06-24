@@ -5,7 +5,6 @@ import zipfile
 import uuid
 from io import BytesIO
 import requests
-import subprocess  # ← ✅ 追加：Firebase CLI実行用
 
 app = Flask(__name__)
 
@@ -114,22 +113,7 @@ def generate_url():
         print("❌ GitHub Upload Failed:", response.json())
         return jsonify({'error': 'GitHubアップロード失敗'}), 500
 
-    # ✅ Firebase Hosting にデプロイ実行
-    firebase_token = os.environ.get("FIREBASE_TOKEN")
-    if firebase_token:
-        try:
-            subprocess.run(
-                ["firebase", "deploy", "--only", "hosting", "--token", firebase_token],
-                check=True,
-                env={**os.environ}  # ← ✅ 追加した唯一の修正！
-            )
-            print("✅ Firebase にデプロイ完了")
-        except subprocess.CalledProcessError as e:
-            print("❌ Firebase デプロイ失敗:", e)
-            return jsonify({'error': 'Firebaseデプロイ失敗'}), 500
-    else:
-        print("⚠️ 環境変数 FIREBASE_TOKEN が未設定です")
-
+    # ✅ GitHubにpush後、Actionsが自動でFirebaseデプロイを実行
     firebase_project_id = 'nfc-card-app-79464'
     firebase_url = f"https://{firebase_project_id}.web.app/user_cards/{filename}"
     return jsonify({'url': firebase_url})
