@@ -120,7 +120,8 @@ def generate_url():
         try:
             subprocess.run(
                 ["firebase", "deploy", "--only", "hosting", "--token", firebase_token],
-                check=True
+                check=True,
+                env={**os.environ}  # ← ✅ 追加した唯一の修正！
             )
             print("✅ Firebase にデプロイ完了")
         except subprocess.CalledProcessError as e:
