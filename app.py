@@ -4,6 +4,7 @@ import os
 import zipfile
 import uuid
 from io import BytesIO
+import requests  # ← 追加：GitHub API用
 
 app = Flask(__name__)
 
@@ -85,6 +86,34 @@ def generate_url():
     except Exception as e:
         print(f"❌ 保存エラー: {e}")
         return jsonify({'error': '保存に失敗しました'}), 500
+
+    # ✅ GitHub にアップロード
+    github_token = os.getenv('GITHUB_TOKEN')
+    if not github_token:
+        return jsonify({'error': 'GitHubトークンが未設定です'}), 500
+
+    repo_owner = 'nfccardmaker'  # あなたのGitHubユーザー名
+    repo_name = 'nfc-card-app'
+    github_api_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/contents/user_cards/{filename}"
+
+    with open(filepath, "rb") as f:
+        content = f.read()
+    encoded_content = base64.b64encode(content).decode('utf-8')
+
+    headers = {
+        "Authorization": f"token {github_token}",
+        "Accept": "application/vnd.github+json"
+    }
+    data = {
+        "message": f"Add {filename}",
+        "content": encoded_content,
+        "branch": "main"
+    }
+
+    response = requests.put(github_api_url, headers=headers, json=data)
+    if response.status_code >= 400:
+        print("❌ GitHub Upload Failed:", response.json())
+        return jsonify({'error': 'GitHubアップロード失敗'}), 500
 
     firebase_project_id = 'nfc-card-app-79464'
     firebase_url = f"https://{firebase_project_id}.web.app/user_cards/{filename}"
