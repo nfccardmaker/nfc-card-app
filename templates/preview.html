@@ -808,29 +808,6 @@ document.getElementById('finish-button').addEventListener('click', async () => {
     finishBtn.textContent = '完成';
   }
 });
-    const fullUrl = data.url;
-    const output = document.createElement('div');
-    output.innerHTML = `<p>このURLを共有できます👇</p><a href="${fullUrl}" target="_blank">${fullUrl}</a>`;
-    output.style.cssText = `
-      position: fixed;
-      bottom: 80px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: white;
-      padding: 12px 20px;
-      border-radius: 14px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.2);
-      z-index: 9999;
-      text-align: center;
-      font-size: 14px;
-    `;
-    document.body.appendChild(output);
-  } else {
-    alert('URLの発行に失敗しました');
-    finishBtn.disabled = false;
-    finishBtn.textContent = '完成';
-  }
-});
 function embedYouTubeVideo() {
   const input = document.getElementById('youtube-url');
   const player = document.getElementById('youtube-player');
