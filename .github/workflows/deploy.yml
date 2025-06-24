@@ -2,8 +2,10 @@ name: Deploy to Firebase Hosting
 
 on:
   push:
+    branches:
+      - main
     paths:
-      - 'user_cards/**'
+      - 'user_cards/*.html'
 
 jobs:
   deploy:
