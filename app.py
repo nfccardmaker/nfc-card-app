@@ -114,16 +114,7 @@ def generate_url():
         print("❌ GitHub Upload Failed:", response.json())
         return jsonify({'error': 'GitHubアップロード失敗'}), 500
 
-    # ✅ Firebase CLIを叩いて即デプロイ（ここが追加！）
-    try:
-        subprocess.run(
-            ["firebase", "deploy", "--only", "hosting", "--project", "nfc-card-app-79464"],
-            check=True
-        )
-        print("✅ Firebaseデプロイ成功")
-    except subprocess.CalledProcessError as e:
-        print("❌ Firebaseデプロイ失敗:", e)
-        return jsonify({'error': 'Firebaseデプロイ失敗'}), 500
+    
 
     firebase_project_id = 'nfc-card-app-79464'
     firebase_url = f"https://{firebase_project_id}.web.app/user_cards/{filename}"
