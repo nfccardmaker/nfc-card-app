@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "public": ".",
+    "public": "user_cards",
     "ignore": [
       "firebase.json",
       "**/.*",
