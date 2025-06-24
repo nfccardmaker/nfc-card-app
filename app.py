@@ -4,11 +4,11 @@ import os
 import zipfile
 import uuid
 from io import BytesIO
-import requests  # ← 追加：GitHub API用
+import requests
+import subprocess  # ← ✅ 追加：Firebase CLI実行用
 
 app = Flask(__name__)
 
-# ✅ user_cards フォルダに保存（GitHub Actionsが検知する）
 SAVE_DIR = 'user_cards'
 os.makedirs(SAVE_DIR, exist_ok=True)
 
@@ -87,12 +87,11 @@ def generate_url():
         print(f"❌ 保存エラー: {e}")
         return jsonify({'error': '保存に失敗しました'}), 500
 
-    # ✅ GitHub にアップロード
     github_token = os.getenv('GITHUB_TOKEN')
     if not github_token:
         return jsonify({'error': 'GitHubトークンが未設定です'}), 500
 
-    repo_owner = 'nfccardmaker'  # あなたのGitHubユーザー名
+    repo_owner = 'nfccardmaker'
     repo_name = 'nfc-card-app'
     github_api_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/contents/user_cards/{filename}"
 
@@ -114,6 +113,17 @@ def generate_url():
     if response.status_code >= 400:
         print("❌ GitHub Upload Failed:", response.json())
         return jsonify({'error': 'GitHubアップロード失敗'}), 500
+
+    # ✅ Firebase CLIを叩いて即デプロイ（ここが追加！）
+    try:
+        subprocess.run(
+            ["firebase", "deploy", "--only", "hosting", "--project", "nfc-card-app-79464"],
+            check=True
+        )
+        print("✅ Firebaseデプロイ成功")
+    except subprocess.CalledProcessError as e:
+        print("❌ Firebaseデプロイ失敗:", e)
+        return jsonify({'error': 'Firebaseデプロイ失敗'}), 500
 
     firebase_project_id = 'nfc-card-app-79464'
     firebase_url = f"https://{firebase_project_id}.web.app/user_cards/{filename}"
