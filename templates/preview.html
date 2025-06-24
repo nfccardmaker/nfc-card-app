@@ -736,8 +736,9 @@ document.getElementById('finish-button').addEventListener('click', async () => {
   const finishBtn = document.getElementById('finish-button');
   finishBtn.disabled = true;
   finishBtn.textContent = '生成中...';
+  // ✅ ▼ 不要なUI要素を物理的に削除・変換
+  document.querySelectorAll('.sns-delete-btn').forEach(btn => btn.remove());
 
-  // ✅ 不要なUI要素を削除・変換（削除は後回し）
   document.querySelectorAll('input.editable-text').forEach(input => {
     const div = document.createElement('div');
     div.textContent = input.value;
@@ -757,9 +758,9 @@ document.getElementById('finish-button').addEventListener('click', async () => {
     extraText.parentNode.replaceChild(div, extraText);
   }
 
-  // ✅ HTML取得（このタイミングで取得する！）
-  const html = document.documentElement.outerHTML;
+  finishBtn.remove(); // ← 完成ボタンも削除
 
+  const html = document.documentElement.outerHTML;
   const formData = new FormData();
   formData.append('html', html);
 
@@ -769,11 +770,25 @@ document.getElementById('finish-button').addEventListener('click', async () => {
   });
 
   const data = await res.json();
-
   if (data.url) {
-    const fullUrl = data.url;
+    finishBtn.textContent = '生成完了';  // ← ここね！
 
-    // ✅ URL表示
+    finishBtn.style.display = 'none';
+document.querySelectorAll('.sns-delete-btn').forEach(btn => {
+  btn.style.display = 'none';
+});
+document.querySelectorAll('.sns-delete-btn').forEach(btn => {
+  btn.style.display = 'none';
+});
+
+// ▼ 追記して対応する
+const youtubeBatsu = document.querySelector('.youtube-section .sns-delete-btn');
+if (youtubeBatsu) youtubeBatsu.style.display = 'none';
+
+const extraBatsu = document.querySelector('#extra-text-wrapper .sns-delete-btn');
+if (extraBatsu) extraBatsu.style.display = 'none';
+
+    const fullUrl = data.url;
     const output = document.createElement('div');
     output.innerHTML = `<p>このURLを共有できます👇</p><a href="${fullUrl}" target="_blank">${fullUrl}</a>`;
     output.style.cssText = `
@@ -790,18 +805,6 @@ document.getElementById('finish-button').addEventListener('click', async () => {
       font-size: 14px;
     `;
     document.body.appendChild(output);
-
-    // ✅ 成功したあとにUIを非表示にする処理
-    finishBtn.style.display = 'none';
-
-    document.querySelectorAll('.sns-delete-btn').forEach(btn => btn.style.display = 'none');
-
-    const youtubeBatsu = document.querySelector('.youtube-section .sns-delete-btn');
-    if (youtubeBatsu) youtubeBatsu.style.display = 'none';
-
-    const extraBatsu = document.querySelector('#extra-text-wrapper .sns-delete-btn');
-    if (extraBatsu) extraBatsu.style.display = 'none';
-
   } else {
     alert('URLの発行に失敗しました');
     finishBtn.disabled = false;
