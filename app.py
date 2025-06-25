@@ -133,7 +133,7 @@ def generate_url():
         "branch": "main"
     }
 
-      response = requests.put(github_api_url, headers=headers, json=data)
+    response = requests.put(github_api_url, headers=headers, json=data)
     if response.status_code >= 400:
         print("❌ GitHub Upload Failed:", response.json())
         return jsonify({'error': 'GitHubアップロード失敗'}), 500
