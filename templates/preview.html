@@ -732,17 +732,12 @@ function hideExtraText() {
   const wrapper = document.getElementById('extra-text-wrapper');
   if (wrapper) wrapper.style.display = 'none';
 }
-
-  // ✅ UI部品を非表示（ただし finishBtn はまだ非表示にしない！）
-  const toolbar = document.getElementById('toolbar');
-  if (toolbar) toolbar.style.display = 'none';
-
-  document.getElementById('finish-button').addEventListener('click', async () => {
+document.getElementById('finish-button').addEventListener('click', async () => {
   const finishBtn = document.getElementById('finish-button');
   finishBtn.disabled = true;
   finishBtn.textContent = '生成中...';
 
-  // ✅ UI部品を非表示
+  // ✅ UI部品を非表示（ただし finishBtn はまだ非表示にしない！）
   const toolbar = document.getElementById('toolbar');
   if (toolbar) toolbar.style.display = 'none';
 
@@ -756,27 +751,17 @@ function hideExtraText() {
   const extraBatsu = document.querySelector('#extra-text-wrapper .sns-delete-btn');
   if (extraBatsu) extraBatsu.style.display = 'none';
 
-  // ✅ base64 / blob の画像を実際に置き換える（この1行が肝）
-  document.querySelectorAll('img').forEach(img => {
-    if (img.src.startsWith('data:image') || img.src.startsWith('blob:')) {
-      img.setAttribute('src', '/static/deleted_image.jpeg');
-    }
-  });
-
-  // ✅ outerHTML を取得（この時点で img.src は差し替わってる）
   const html = document.documentElement.outerHTML;
+const cleanedHTML = html
+  .replace(/src="data:image\/[^"]+"/g, 'src="/static/deleted_image.jpeg"')
+  .replace(/src="blob:[^"]+"/g, 'src="/static/deleted_image.jpeg"');
 
-  const formData = new FormData();
-  formData.append('html', html);
-
+const formData = new FormData();
+formData.append('html', cleanedHTML);
   const res = await fetch('/generate_url', {
     method: 'POST',
     body: formData
   });
-
-  // （この後の URL 表示などは今まで通り）
-});
-
 
   const data = await res.json();
   if (data.url) {
