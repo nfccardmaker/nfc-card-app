@@ -737,8 +737,7 @@ document.getElementById('finish-button').addEventListener('click', async () => {
   finishBtn.disabled = true;
   finishBtn.textContent = '生成中...';
 
-  // ✅ UI部品を非表示に
-  finishBtn.style.display = 'none';
+  // ✅ UI部品を非表示（ただし finishBtn はまだ非表示にしない！）
   const toolbar = document.getElementById('toolbar');
   if (toolbar) toolbar.style.display = 'none';
 
@@ -752,7 +751,7 @@ document.getElementById('finish-button').addEventListener('click', async () => {
   const extraBatsu = document.querySelector('#extra-text-wrapper .sns-delete-btn');
   if (extraBatsu) extraBatsu.style.display = 'none';
 
-  // 🔽 HTML送信処理
+  // 🔽 HTML送信処理（finishBtnはまだ表示中のまま）
   const html = document.documentElement.outerHTML;
   const formData = new FormData();
   formData.append('html', html);
@@ -764,18 +763,17 @@ document.getElementById('finish-button').addEventListener('click', async () => {
 
   const data = await res.json();
   if (data.url) {
-    // ✅ 成功時処理
+    // ✅ 成功時処理：ここでようやく「生成完了」と表示し、10分後に非表示にする
     finishBtn.textContent = '生成完了';
-    finishBtn.style.display = 'block'; // ここで一度復活させる
+    finishBtn.style.display = 'block';
 
-    // 10分後に非表示にする
     setTimeout(() => {
       finishBtn.style.display = 'none';
-    }, 600000); // 600,000ms = 10分
+    }, 600000); // 10分
 
     const fullUrl = data.url;
     const output = document.createElement('div');
-    output.id = 'shared-url-box'; // ← 後で削除しやすく
+    output.id = 'shared-url-box';
     output.innerHTML = `<p>このURLを共有できます👇</p><a href="${fullUrl}" target="_blank">${fullUrl}</a>`;
     output.style.cssText = `
       position: fixed;
@@ -792,7 +790,6 @@ document.getElementById('finish-button').addEventListener('click', async () => {
     `;
     document.body.appendChild(output);
 
-    // 🔽 URLボックスも10分後に自動で消す
     setTimeout(() => {
       const box = document.getElementById('shared-url-box');
       if (box) box.remove();
@@ -801,9 +798,10 @@ document.getElementById('finish-button').addEventListener('click', async () => {
     alert('URLの発行に失敗しました');
     finishBtn.disabled = false;
     finishBtn.textContent = '完成';
-    finishBtn.style.display = 'block'; // 念のため復活
+    finishBtn.style.display = 'block';
   }
 });
+
 
 
 function embedYouTubeVideo() {
