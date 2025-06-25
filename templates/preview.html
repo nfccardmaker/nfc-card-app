@@ -594,17 +594,11 @@ body {
         profileInput.click();
       });
 
-      profileInput.addEventListener("change", (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
+     profileInput.addEventListener("change", () => {
+  // アップロード済みの画像を直接参照（キャッシュ回避付き）
+  profileImg.src = "/static/uploads/profile.jpeg?" + new Date().getTime();
+});
 
-        const reader = new FileReader();
-        reader.onload = () => {
-          profileImg.src = reader.result;
-        };
-        reader.readAsDataURL(file);
-      });
-    };
 let textEnabled = false;
 let textFirstTapDone = false; // ← 追加：初回スキップフラグ
 
