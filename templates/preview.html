@@ -750,6 +750,12 @@ document.getElementById('finish-button').addEventListener('click', async () => {
 
   const extraBatsu = document.querySelector('#extra-text-wrapper .sns-delete-btn');
   if (extraBatsu) extraBatsu.style.display = 'none';
+  // ✅ プロフィール画像が blob: だったら保存済みのURLに書き換える
+const profileImg = document.getElementById("profile-img");
+if (profileImg && profileImg.src.startsWith("blob:")) {
+  profileImg.src = "/static/uploads/profile.jpeg";
+}
+
 
   const html = document.documentElement.outerHTML;
 const cleanedHTML = html
