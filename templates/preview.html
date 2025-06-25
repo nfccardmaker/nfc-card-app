@@ -736,6 +736,23 @@ document.getElementById('finish-button').addEventListener('click', async () => {
   const finishBtn = document.getElementById('finish-button');
   finishBtn.disabled = true;
   finishBtn.textContent = '生成中...';
+
+  // ✅ ここに非表示処理を追加！
+  finishBtn.style.display = 'none';
+  const toolbar = document.getElementById('toolbar');
+  if (toolbar) toolbar.style.display = 'none';
+
+  document.querySelectorAll('.sns-delete-btn').forEach(btn => {
+    btn.style.display = 'none';
+  });
+
+  const youtubeBatsu = document.querySelector('.youtube-section .sns-delete-btn');
+  if (youtubeBatsu) youtubeBatsu.style.display = 'none';
+
+  const extraBatsu = document.querySelector('#extra-text-wrapper .sns-delete-btn');
+  if (extraBatsu) extraBatsu.style.display = 'none';
+
+  // 🔽 URL生成処理
   const html = document.documentElement.outerHTML;
   const formData = new FormData();
   formData.append('html', html);
@@ -748,21 +765,6 @@ document.getElementById('finish-button').addEventListener('click', async () => {
   const data = await res.json();
   if (data.url) {
     finishBtn.textContent = '生成完了';  // ← ここね！
-
-    finishBtn.style.display = 'none';
-document.querySelectorAll('.sns-delete-btn').forEach(btn => {
-  btn.style.display = 'none';
-});
-document.querySelectorAll('.sns-delete-btn').forEach(btn => {
-  btn.style.display = 'none';
-});
-
-// ▼ 追記して対応する
-const youtubeBatsu = document.querySelector('.youtube-section .sns-delete-btn');
-if (youtubeBatsu) youtubeBatsu.style.display = 'none';
-
-const extraBatsu = document.querySelector('#extra-text-wrapper .sns-delete-btn');
-if (extraBatsu) extraBatsu.style.display = 'none';
 
     const fullUrl = data.url;
     const output = document.createElement('div');
@@ -787,6 +789,7 @@ if (extraBatsu) extraBatsu.style.display = 'none';
     finishBtn.textContent = '完成';
   }
 });
+
 function embedYouTubeVideo() {
   const input = document.getElementById('youtube-url');
   const player = document.getElementById('youtube-player');
