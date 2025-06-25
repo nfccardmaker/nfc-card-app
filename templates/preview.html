@@ -758,11 +758,6 @@ const cleanedHTML = html
 
 const formData = new FormData();
 formData.append('html', cleanedHTML);
-// 完成ボタンのイベントリスナーの中（formData作成後〜fetch前）に追加する👇
-const profileInput = document.getElementById('profile-input');
-if (profileInput && profileInput.files.length > 0) {
-  formData.append('photo', profileInput.files[0]);
-}
 
   const res = await fetch('/generate_url', {
     method: 'POST',
