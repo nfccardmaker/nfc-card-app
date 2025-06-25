@@ -142,5 +142,19 @@ def generate_url():
     firebase_url = f"https://{firebase_project_id}.web.app/user_cards/{filename}"
     return jsonify({'url': firebase_url})
 
+# ✅ プロフィール画像をアップロードして保存する専用ルート（ここが追加された唯一の場所）
+@app.route('/upload_profile_image', methods=['POST'])
+def upload_profile_image():
+    photo = request.files.get('photo')
+    if not photo or not photo.filename:
+        return jsonify({'error': '画像がありません'}), 400
+
+    profile_path = os.path.join(UPLOAD_DIR, 'profile.jpeg')
+    try:
+        photo.save(profile_path)
+        return jsonify({'url': '/static/uploads/profile.jpeg'})
+    except Exception as e:
+        return jsonify({'error': '保存に失敗しました'}), 500
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5001)

@@ -590,21 +590,25 @@ body {
       const profileImg = document.getElementById("profile-img");
       const profileInput = document.getElementById("profile-input");
 
-      profileImg.addEventListener("click", () => {
-        profileInput.click();
-      });
-
       profileInput.addEventListener("change", (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
+  const file = e.target.files[0];
+  if (!file) return;
 
-        const reader = new FileReader();
-        reader.onload = () => {
-          profileImg.src = reader.result;
-        };
-        reader.readAsDataURL(file);
-      });
-    };
+  const reader = new FileReader();
+  reader.onload = () => {
+    profileImg.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+
+  // 👇 これが追加するサーバー送信用のコード！
+  const uploadFormData = new FormData();
+  uploadFormData.append("photo", file);
+  fetch("/preview", {
+    method: "POST",
+    body: uploadFormData
+  });
+});
+
 let textEnabled = false;
 let textFirstTapDone = false; // ← 追加：初回スキップフラグ
 
