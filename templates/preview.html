@@ -732,10 +732,6 @@ function hideExtraText() {
   const wrapper = document.getElementById('extra-text-wrapper');
   if (wrapper) wrapper.style.display = 'none';
 }
-document.getElementById('finish-button').addEventListener('click', async () => {
-  const finishBtn = document.getElementById('finish-button');
-  finishBtn.disabled = true;
-  finishBtn.textContent = '生成中...';
 
   // ✅ UI部品を非表示（ただし finishBtn はまだ非表示にしない！）
   const toolbar = document.getElementById('toolbar');
