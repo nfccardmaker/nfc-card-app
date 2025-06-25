@@ -133,10 +133,31 @@ def generate_url():
         "branch": "main"
     }
 
-    response = requests.put(github_api_url, headers=headers, json=data)
+      response = requests.put(github_api_url, headers=headers, json=data)
     if response.status_code >= 400:
         print("❌ GitHub Upload Failed:", response.json())
         return jsonify({'error': 'GitHubアップロード失敗'}), 500
+
+    # ✅ 追記：profile.jpeg も GitHub にアップロードする
+    profile_path = os.path.join(UPLOAD_DIR, 'profile.jpeg')
+    if os.path.exists(profile_path):
+        with open(profile_path, "rb") as pf:
+            profile_content = base64.b64encode(pf.read()).decode('utf-8')
+
+        profile_api_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/contents/static/uploads/profile.jpeg"
+
+        profile_data = {
+            "message": "Update profile.jpeg",
+            "content": profile_content,
+            "branch": "main"
+        }
+
+        profile_response = requests.put(profile_api_url, headers=headers, json=profile_data)
+        if profile_response.status_code >= 400:
+            print("❌ プロフィール画像のアップロード失敗:", profile_response.json())
+            return jsonify({'error': 'プロフィール画像アップロード失敗'}), 500
+        else:
+            print("✅ プロフィール画像をアップロードしました")
 
     firebase_project_id = 'nfc-card-app-79464'
     firebase_url = f"https://{firebase_project_id}.web.app/user_cards/{filename}"
