@@ -31,21 +31,31 @@ def preview():
         bar_color = request.form.get('bar_color', '#4caf50')
         youtube_url = request.form.get('youtube_url', '')
 
+        # プロフィール画像を1つだけ保存
         photo = request.files.get('photo')
         if photo and photo.filename:
-            ext = os.path.splitext(photo.filename)[-1]
-            filename = f"profile_{uuid.uuid4()}{ext}"
-            photo_path = os.path.join(UPLOAD_DIR, filename)
-            photo.save(photo_path)
-            image_data = f"/static/uploads/{filename}"
+            profile_path = os.path.join(UPLOAD_DIR, 'profile.jpeg')
+            photo.save(profile_path)
+            image_data = f"/static/uploads/profile.jpeg"
 
+        # 背景画像（必要なら追加）
         bg = request.files.get('background')
         if bg and bg.filename:
-            ext = os.path.splitext(bg.filename)[-1]
-            filename = f"bg_{uuid.uuid4()}{ext}"
-            bg_path = os.path.join(UPLOAD_DIR, filename)
+            bg_path = os.path.join(UPLOAD_DIR, 'background.jpeg')
             bg.save(bg_path)
-            bg_data = f"/static/uploads/{filename}"
+            bg_data = f"/static/uploads/background.jpeg"
+
+        # デコ画像を保存して5枚制限に
+        deco = request.files.get('deco')
+        if deco and deco.filename:
+            # 既存ファイルを取得して最大5枚に制限
+            existing = sorted([f for f in os.listdir(UPLOAD_DIR) if f.startswith('deco_')])
+            if len(existing) >= 5:
+                oldest = existing[0]
+                os.remove(os.path.join(UPLOAD_DIR, oldest))
+            # 新しいファイル名で保存
+            filename = f"deco_{uuid.uuid4().hex}.jpeg"
+            deco.save(os.path.join(UPLOAD_DIR, filename))
 
     return render_template(
         'preview.html',
@@ -85,8 +95,9 @@ def generate_url():
     if not html_data:
         return jsonify({'error': 'HTMLデータがありません'}), 400
 
-    # ✅ base64画像だけ除去（URLで指定された画像はそのまま残す）
-    html_data = re.sub(r'src="data:image/[^;]+;base64[^"]+"', '', html_data)
+    # ✅ base64画像とblob URLを除去して軽量化
+    html_data = re.sub(r'src="data:image/[^;]+;base64,[^"]+"', 'src="/static/deleted_image.jpeg"', html_data)
+    html_data = re.sub(r'src="blob:[^"]+"', 'src="/static/deleted_image.jpeg"', html_data)
 
     unique_id = str(uuid.uuid4())
     filename = f"{unique_id}.html"
