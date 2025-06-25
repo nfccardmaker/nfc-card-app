@@ -594,11 +594,17 @@ body {
         profileInput.click();
       });
 
-     profileInput.addEventListener("change", () => {
-  // アップロード済みの画像を直接参照（キャッシュ回避付き）
-  profileImg.src = "/static/uploads/profile.jpeg?" + new Date().getTime();
-});
+      profileInput.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
 
+        const reader = new FileReader();
+        reader.onload = () => {
+          profileImg.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    };
 let textEnabled = false;
 let textFirstTapDone = false; // ← 追加：初回スキップフラグ
 
@@ -752,6 +758,12 @@ const cleanedHTML = html
 
 const formData = new FormData();
 formData.append('html', cleanedHTML);
+// 完成ボタンのイベントリスナーの中（formData作成後〜fetch前）に追加する👇
+const profileInput = document.getElementById('profile-input');
+if (profileInput && profileInput.files.length > 0) {
+  formData.append('photo', profileInput.files[0]);
+}
+
   const res = await fetch('/generate_url', {
     method: 'POST',
     body: formData
