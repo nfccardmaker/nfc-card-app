@@ -4,12 +4,16 @@ import os
 import zipfile
 import uuid
 from io import BytesIO
-import requests
+import requests  # ← 追加：GitHub API用
+import re        # ✅ base64削除のために追加
 
 app = Flask(__name__)
 
+# ✅ user_cards フォルダに保存（GitHub Actionsが検知する）
 SAVE_DIR = 'user_cards'
+UPLOAD_DIR = 'static/uploads'
 os.makedirs(SAVE_DIR, exist_ok=True)
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 @app.route('/')
 def index():
@@ -30,11 +34,19 @@ def preview():
 
         photo = request.files.get('photo')
         if photo and photo.filename:
-            image_data = base64.b64encode(photo.read()).decode('utf-8')
+            ext = os.path.splitext(photo.filename)[-1]
+            filename = f"profile_{uuid.uuid4()}{ext}"
+            photo_path = os.path.join(UPLOAD_DIR, filename)
+            photo.save(photo_path)
+            image_data = f"/static/uploads/{filename}"
 
         bg = request.files.get('background')
         if bg and bg.filename:
-            bg_data = base64.b64encode(bg.read()).decode('utf-8')
+            ext = os.path.splitext(bg.filename)[-1]
+            filename = f"bg_{uuid.uuid4()}{ext}"
+            bg_path = os.path.join(UPLOAD_DIR, filename)
+            bg.save(bg_path)
+            bg_data = f"/static/uploads/{filename}"
 
     return render_template(
         'preview.html',
@@ -74,6 +86,9 @@ def generate_url():
     if not html_data:
         return jsonify({'error': 'HTMLデータがありません'}), 400
 
+    # ✅ HTML中の base64画像を除去して軽量化
+    html_data = re.sub(r'src="data:image/[^;]+;base64[^"]+"', 'src="/static/deleted_image.jpeg"', html_data)
+
     unique_id = str(uuid.uuid4())
     filename = f"{unique_id}.html"
     filepath = os.path.join(SAVE_DIR, filename)
@@ -86,11 +101,12 @@ def generate_url():
         print(f"❌ 保存エラー: {e}")
         return jsonify({'error': '保存に失敗しました'}), 500
 
+    # ✅ GitHub にアップロード
     github_token = os.getenv('GITHUB_TOKEN')
     if not github_token:
         return jsonify({'error': 'GitHubトークンが未設定です'}), 500
 
-    repo_owner = 'nfccardmaker'
+    repo_owner = 'nfccardmaker'  # あなたのGitHubユーザー名
     repo_name = 'nfc-card-app'
     github_api_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/contents/user_cards/{filename}"
 
@@ -113,7 +129,6 @@ def generate_url():
         print("❌ GitHub Upload Failed:", response.json())
         return jsonify({'error': 'GitHubアップロード失敗'}), 500
 
-    # ✅ GitHubにpush後、Actionsが自動でFirebaseデプロイを実行
     firebase_project_id = 'nfc-card-app-79464'
     firebase_url = f"https://{firebase_project_id}.web.app/user_cards/{filename}"
     return jsonify({'url': firebase_url})
