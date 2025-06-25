@@ -258,7 +258,7 @@ body {
     <div class="header-bar"></div>
     <div class="student-id">
       <div class="left-section">
-        <img id="profile-img" src="/static/profile_icon.jpeg" alt="プロフィール画像">
+        <img id="profile-img" src="{{ image_data or '/static/profile_icon.jpeg' }}" alt="プロフィール画像">
         <input type="file" accept="image/*" id="profile-input" class="hidden-input">
       </div>
       <div class="info-section">
