@@ -737,7 +737,7 @@ document.getElementById('finish-button').addEventListener('click', async () => {
   finishBtn.disabled = true;
   finishBtn.textContent = '生成中...';
 
-  // ✅ ここに非表示処理を追加！
+  // ✅ UI部品を非表示に
   finishBtn.style.display = 'none';
   const toolbar = document.getElementById('toolbar');
   if (toolbar) toolbar.style.display = 'none';
@@ -752,7 +752,7 @@ document.getElementById('finish-button').addEventListener('click', async () => {
   const extraBatsu = document.querySelector('#extra-text-wrapper .sns-delete-btn');
   if (extraBatsu) extraBatsu.style.display = 'none';
 
-  // 🔽 URL生成処理
+  // 🔽 HTML送信処理
   const html = document.documentElement.outerHTML;
   const formData = new FormData();
   formData.append('html', html);
@@ -764,10 +764,18 @@ document.getElementById('finish-button').addEventListener('click', async () => {
 
   const data = await res.json();
   if (data.url) {
-    finishBtn.textContent = '生成完了';  // ← ここね！
+    // ✅ 成功時処理
+    finishBtn.textContent = '生成完了';
+    finishBtn.style.display = 'block'; // ここで一度復活させる
+
+    // 10分後に非表示にする
+    setTimeout(() => {
+      finishBtn.style.display = 'none';
+    }, 600000); // 600,000ms = 10分
 
     const fullUrl = data.url;
     const output = document.createElement('div');
+    output.id = 'shared-url-box'; // ← 後で削除しやすく
     output.innerHTML = `<p>このURLを共有できます👇</p><a href="${fullUrl}" target="_blank">${fullUrl}</a>`;
     output.style.cssText = `
       position: fixed;
@@ -783,12 +791,20 @@ document.getElementById('finish-button').addEventListener('click', async () => {
       font-size: 14px;
     `;
     document.body.appendChild(output);
+
+    // 🔽 URLボックスも10分後に自動で消す
+    setTimeout(() => {
+      const box = document.getElementById('shared-url-box');
+      if (box) box.remove();
+    }, 600000);
   } else {
     alert('URLの発行に失敗しました');
     finishBtn.disabled = false;
     finishBtn.textContent = '完成';
+    finishBtn.style.display = 'block'; // 念のため復活
   }
 });
+
 
 function embedYouTubeVideo() {
   const input = document.getElementById('youtube-url');
