@@ -752,7 +752,9 @@ document.getElementById('finish-button').addEventListener('click', async () => {
   if (extraBatsu) extraBatsu.style.display = 'none';
 
   const html = document.documentElement.outerHTML;
-const cleanedHTML = html.replace(/src="data:image\/[^"]+"/g, 'src="/static/deleted_image.jpeg"');
+const cleanedHTML = html
+  .replace(/src="data:image\/[^"]+"/g, 'src="/static/deleted_image.jpeg"')
+  .replace(/src="blob:[^"]+"/g, 'src="/static/deleted_image.jpeg"');
 
 const formData = new FormData();
 formData.append('html', cleanedHTML);
