@@ -737,7 +737,6 @@ document.getElementById('finish-button').addEventListener('click', async () => {
   finishBtn.disabled = true;
   finishBtn.textContent = '生成中...';
 
-  // ✅ UI部品を非表示（ただし finishBtn はまだ非表示にしない！）
   const toolbar = document.getElementById('toolbar');
   if (toolbar) toolbar.style.display = 'none';
 
@@ -750,20 +749,21 @@ document.getElementById('finish-button').addEventListener('click', async () => {
 
   const extraBatsu = document.querySelector('#extra-text-wrapper .sns-delete-btn');
   if (extraBatsu) extraBatsu.style.display = 'none';
-  // ✅ プロフィール画像が blob: だったら保存済みのURLに書き換える
-const profileImg = document.getElementById("profile-img");
-if (profileImg && profileImg.src.startsWith("blob:")) {
-  profileImg.src = "/static/uploads/profile.jpeg";
-}
 
+  // ✅ プロフィール画像が blob: だったら保存済みのURLに書き換える
+  const profileImg = document.getElementById("profile-img");
+  if (profileImg && profileImg.src.startsWith("blob:")) {
+    profileImg.src = "/static/uploads/profile.jpeg";
+  }
 
   const html = document.documentElement.outerHTML;
-const cleanedHTML = html
-  .replace(/src="data:image\/[^"]+"/g, 'src="/static/deleted_image.jpeg"')
-  .replace(/src="blob:[^"]+"/g, 'src="/static/deleted_image.jpeg"');
 
-const formData = new FormData();
-formData.append('html', cleanedHTML);
+  // ✅ base64だけを置換。blob:の置換はしない（上で個別処理済み）
+  const cleanedHTML = html.replace(/src="data:image\/[^"]+"/g, 'src="/static/deleted_image.jpeg"');
+
+  const formData = new FormData();
+  formData.append('html', cleanedHTML);
+
   const res = await fetch('/generate_url', {
     method: 'POST',
     body: formData
@@ -771,31 +771,13 @@ formData.append('html', cleanedHTML);
 
   const data = await res.json();
   if (data.url) {
-    // ✅ 成功時処理：ここでようやく「生成完了」と表示し、10分後に非表示にする
     finishBtn.textContent = '生成完了';
     finishBtn.style.display = 'block';
 
-    setTimeout(() => {
-      finishBtn.style.display = 'none';
-    }, 600000); // 10分
-
-    const fullUrl = data.url;
     const output = document.createElement('div');
     output.id = 'shared-url-box';
-    output.innerHTML = `<p>このURLを共有できます👇</p><a href="${fullUrl}" target="_blank">${fullUrl}</a>`;
-    output.style.cssText = `
-      position: fixed;
-      bottom: 80px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: white;
-      padding: 12px 20px;
-      border-radius: 14px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.2);
-      z-index: 9999;
-      text-align: center;
-      font-size: 14px;
-    `;
+    output.innerHTML = `<p>このURLを共有できます👇</p><a href="${data.url}" target="_blank">${data.url}</a>`;
+    output.style.cssText = `...`; // スタイル省略可
     document.body.appendChild(output);
 
     setTimeout(() => {
