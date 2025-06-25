@@ -4,12 +4,11 @@ import os
 import zipfile
 import uuid
 from io import BytesIO
-import requests  # ← 追加：GitHub API用
-import re        # ✅ base64削除のために追加
+import requests
+import re
 
 app = Flask(__name__)
 
-# ✅ user_cards フォルダに保存（GitHub Actionsが検知する）
 SAVE_DIR = 'user_cards'
 UPLOAD_DIR = 'static/uploads'
 os.makedirs(SAVE_DIR, exist_ok=True)
@@ -86,8 +85,8 @@ def generate_url():
     if not html_data:
         return jsonify({'error': 'HTMLデータがありません'}), 400
 
-    # ✅ HTML中の base64画像を除去して軽量化
-    html_data = re.sub(r'src="data:image/[^;]+;base64[^"]+"', 'src="/static/deleted_image.jpeg"', html_data)
+    # ✅ base64画像だけ除去（URLで指定された画像はそのまま残す）
+    html_data = re.sub(r'src="data:image/[^;]+;base64[^"]+"', '', html_data)
 
     unique_id = str(uuid.uuid4())
     filename = f"{unique_id}.html"
@@ -101,12 +100,11 @@ def generate_url():
         print(f"❌ 保存エラー: {e}")
         return jsonify({'error': '保存に失敗しました'}), 500
 
-    # ✅ GitHub にアップロード
     github_token = os.getenv('GITHUB_TOKEN')
     if not github_token:
         return jsonify({'error': 'GitHubトークンが未設定です'}), 500
 
-    repo_owner = 'nfccardmaker'  # あなたのGitHubユーザー名
+    repo_owner = 'nfccardmaker'
     repo_name = 'nfc-card-app'
     github_api_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/contents/user_cards/{filename}"
 
