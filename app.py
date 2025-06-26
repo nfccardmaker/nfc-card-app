@@ -93,7 +93,6 @@ def generate_url():
     if not html_data:
         return jsonify({'error': 'HTMLデータがありません'}), 400
 
-    # base64画像とblob URLを /static/uploads/profile.jpeg に置換
     html_data = re.sub(r'src="data:image/[^;]+;base64,[^"]+"', 'src="/static/uploads/profile.jpeg"', html_data)
     html_data = re.sub(r'src="blob:[^"]+"', 'src="/static/uploads/profile.jpeg"', html_data)
 
@@ -136,7 +135,6 @@ def generate_url():
         print("❌ GitHub Upload Failed:", response.json())
         return jsonify({'error': 'GitHubアップロード失敗'}), 500
 
-    # 🔁 profile.jpegもアップロード (既存のときはshaも送る)
     profile_path = os.path.join(UPLOAD_DIR, 'profile.jpeg')
     if os.path.exists(profile_path):
         with open(profile_path, "rb") as pf:
@@ -144,7 +142,6 @@ def generate_url():
 
         profile_api_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/contents/static/uploads/profile.jpeg"
 
-        # shaを取得（既存ファイルがある場合）
         get_response = requests.get(profile_api_url, headers=headers)
         if get_response.status_code == 200:
             sha = get_response.json()['sha']
@@ -169,6 +166,27 @@ def generate_url():
     firebase_project_id = 'nfc-card-app-79464'
     firebase_url = f"https://{firebase_project_id}.web.app/user_cards/{filename}"
     return jsonify({'url': firebase_url})
+
+# ✅ 🔽 ここが追加部分（base64画像をサーバーに保存するエンドポイント） 🔽
+@app.route('/upload_profile_image', methods=['POST'])
+def upload_profile_image():
+    data = request.get_json()
+    image_data = data.get('image')
+    if not image_data:
+        return jsonify({'status': 'error', 'message': 'No image data'}), 400
+
+    match = re.match(r'data:image/[^;]+;base64,(.*)', image_data)
+    if not match:
+        return jsonify({'status': 'error', 'message': 'Invalid base64 format'}), 400
+
+    img_bytes = base64.b64decode(match.group(1))
+    profile_path = os.path.join(UPLOAD_DIR, 'profile.jpeg')
+    with open(profile_path, 'wb') as f:
+        f.write(img_bytes)
+
+    return jsonify({'status': 'success'})
+
+# ✅ 追加ここまで
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5001)
