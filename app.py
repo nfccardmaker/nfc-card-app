@@ -96,8 +96,9 @@ def generate_url():
         return jsonify({'error': 'HTMLデータがありません'}), 400
 
     # ✅ base64画像とblob URLを除去して軽量化
-    html_data = re.sub(r'src="data:image/[^;]+;base64,[^"]+"', 'src="/static/deleted_image.jpeg"', html_data)
-    html_data = re.sub(r'src="blob:[^"]+"', 'src="/static/deleted_image.jpeg"', html_data)
+   # 修正後（プロフィール画像にちゃんと差し替える）
+    html_data = re.sub(r'src="data:image/[^;]+;base64,[^"]+"', 'src="/static/uploads/profile.jpeg"', html_data)
+    html_data = re.sub(r'src="blob:[^"]+"', 'src="/static/uploads/profile.jpeg"', html_data)
 
     unique_id = str(uuid.uuid4())
     filename = f"{unique_id}.html"
