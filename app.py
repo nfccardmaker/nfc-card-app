@@ -87,14 +87,12 @@ def download():
         download_name='business_card.zip'
     )
 
+# ✅ 修正版 generate_url 関数（base64画像をそのまま保存）
 @app.route('/generate_url', methods=['POST'])
 def generate_url():
     html_data = request.form.get('html')
     if not html_data:
         return jsonify({'error': 'HTMLデータがありません'}), 400
-
-    html_data = re.sub(r'src="data:image/[^;]+;base64,[^"]+"', 'src="/static/uploads/profile.jpeg"', html_data)
-    html_data = re.sub(r'src="blob:[^"]+"', 'src="/static/uploads/profile.jpeg"', html_data)
 
     unique_id = str(uuid.uuid4())
     filename = f"{unique_id}.html"
@@ -135,39 +133,11 @@ def generate_url():
         print("❌ GitHub Upload Failed:", response.json())
         return jsonify({'error': 'GitHubアップロード失敗'}), 500
 
-    profile_path = os.path.join(UPLOAD_DIR, 'profile.jpeg')
-    if os.path.exists(profile_path):
-        with open(profile_path, "rb") as pf:
-            profile_content = base64.b64encode(pf.read()).decode('utf-8')
-
-        profile_api_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/contents/static/uploads/profile.jpeg"
-
-        get_response = requests.get(profile_api_url, headers=headers)
-        if get_response.status_code == 200:
-            sha = get_response.json()['sha']
-        else:
-            sha = None
-
-        profile_data = {
-            "message": "Update profile.jpeg",
-            "content": profile_content,
-            "branch": "main"
-        }
-        if sha:
-            profile_data["sha"] = sha
-
-        profile_response = requests.put(profile_api_url, headers=headers, json=profile_data)
-        if profile_response.status_code >= 400:
-            print("❌ プロフィール画像のアップロード失敗:", profile_response.json())
-            return jsonify({'error': 'プロフィール画像アップロード失敗'}), 500
-        else:
-            print("✅ プロフィール画像をアップロードしました")
-
     firebase_project_id = 'nfc-card-app-79464'
     firebase_url = f"https://{firebase_project_id}.web.app/user_cards/{filename}"
     return jsonify({'url': firebase_url})
 
-# ✅ 🔽 ここが追加部分（base64画像をサーバーに保存するエンドポイント） 🔽
+# ✅ base64画像をアップロードとして保存（使用しない構成でも残しておく）
 @app.route('/upload_profile_image', methods=['POST'])
 def upload_profile_image():
     data = request.get_json()
@@ -185,8 +155,6 @@ def upload_profile_image():
         f.write(img_bytes)
 
     return jsonify({'status': 'success'})
-
-# ✅ 追加ここまで
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5001)
