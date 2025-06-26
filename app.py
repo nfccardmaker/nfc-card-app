@@ -48,12 +48,10 @@ def preview():
         # デコ画像を保存して5枚制限に
         deco = request.files.get('deco')
         if deco and deco.filename:
-            # 既存ファイルを取得して最大5枚に制限
             existing = sorted([f for f in os.listdir(UPLOAD_DIR) if f.startswith('deco_')])
             if len(existing) >= 5:
                 oldest = existing[0]
                 os.remove(os.path.join(UPLOAD_DIR, oldest))
-            # 新しいファイル名で保存
             filename = f"deco_{uuid.uuid4().hex}.jpeg"
             deco.save(os.path.join(UPLOAD_DIR, filename))
 
@@ -95,8 +93,7 @@ def generate_url():
     if not html_data:
         return jsonify({'error': 'HTMLデータがありません'}), 400
 
-    # ✅ base64画像とblob URLを除去して軽量化
-   # 修正後（プロフィール画像にちゃんと差し替える）
+    # base64画像とblob URLを /static/uploads/profile.jpeg に置換
     html_data = re.sub(r'src="data:image/[^;]+;base64,[^"]+"', 'src="/static/uploads/profile.jpeg"', html_data)
     html_data = re.sub(r'src="blob:[^"]+"', 'src="/static/uploads/profile.jpeg"', html_data)
 
@@ -139,7 +136,7 @@ def generate_url():
         print("❌ GitHub Upload Failed:", response.json())
         return jsonify({'error': 'GitHubアップロード失敗'}), 500
 
-    # ✅ 追記：profile.jpeg も GitHub にアップロードする
+    # 🔁 profile.jpegもアップロード (既存のときはshaも送る)
     profile_path = os.path.join(UPLOAD_DIR, 'profile.jpeg')
     if os.path.exists(profile_path):
         with open(profile_path, "rb") as pf:
@@ -147,11 +144,20 @@ def generate_url():
 
         profile_api_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/contents/static/uploads/profile.jpeg"
 
+        # shaを取得（既存ファイルがある場合）
+        get_response = requests.get(profile_api_url, headers=headers)
+        if get_response.status_code == 200:
+            sha = get_response.json()['sha']
+        else:
+            sha = None
+
         profile_data = {
             "message": "Update profile.jpeg",
             "content": profile_content,
             "branch": "main"
         }
+        if sha:
+            profile_data["sha"] = sha
 
         profile_response = requests.put(profile_api_url, headers=headers, json=profile_data)
         if profile_response.status_code >= 400:
