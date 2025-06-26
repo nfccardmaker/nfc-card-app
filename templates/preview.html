@@ -761,10 +761,16 @@ document.getElementById('finish-button').addEventListener('click', async () => {
     profileImg.src = "/static/uploads/profile.jpeg";
   }
 
-  const html = document.documentElement.outerHTML;
+    const html = document.documentElement.outerHTML;
 
-  // ✅ base64だけを置換。blob:の置換はしない（上で個別処理済み）
-  const cleanedHTML = html.replace(/src="data:image\/[^"]+"/g, 'src="/static/deleted_image.jpeg"');
+  // ✅ base64画像のうち、プロフィール画像とデコ画像だけは削除対象から除外！
+  const cleanedHTML = html.replace(/<img[^>]+src="data:image\/[^"]+"[^>]*>/g, (match) => {
+    if (match.includes('id="profile-img"') || match.includes('class="deco-img"')) {
+      return match; // → プロフィール画像 or デコ画像はそのまま残す
+    } else {
+      return match.replace(/src="data:image\/[^"]+"/, 'src="/static/deleted_image.jpeg"');
+    }
+  });
 
   const formData = new FormData();
   formData.append('html', cleanedHTML);
