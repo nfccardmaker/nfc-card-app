@@ -813,29 +813,33 @@ document.querySelectorAll('.sns-wrapper .sns-delete-btn').forEach(btn => {
     finishBtn.style.display = 'none';
 // ▼▼ 入力欄の値をHTMLに反映させる ▼▼
 
-// 1. 名前・誕生日などを info-section に埋め込む
+// 1. 名前・誕生日・年齢などを info-section に1行ずつ反映（ラベルなし）
 const inputs = document.querySelectorAll('.info-section .editable-text');
-const labels = ['名前', '誕生日', '年齢', '出身地', '趣味'];
-const infoHTML = labels.map((label, i) => {
-  const val = inputs[i].value.trim();
-  return `<div>${label}　${val}</div>`;
-}).join('');
+const values = Array.from(inputs).map(input => input.value.trim());
+const infoHTML = values.filter(v => v).map(v => `<div>${v}</div>`).join('');
 document.querySelector('.info-section').innerHTML = infoHTML;
 
-// 2. SNSリンクを埋め込む（Instagram, X, TikTok）
+// 2. SNSリンクを「アイコンのみ表示＆URL埋め込み」に変換（URLは非表示）
 ['instagram', 'x', 'tiktok'].forEach(service => {
   const value = document.getElementById(`input-${service}`).value.trim();
-  if (value) {
-    const wrapper = document.getElementById(`input-${service}`).closest('.sns-wrapper');
-    if (wrapper) {
-      wrapper.innerHTML = `
-        <div class="sns-item">${service}<a href="${value}" target="_blank" style="margin-left:10px; font-size:12px; color:#00f;">${value}</a></div>
-      `;
-    }
+  const wrapper = document.getElementById(`input-${service}`).closest('.sns-wrapper');
+  if (value && wrapper) {
+    const iconSrc = {
+      instagram: '/static/instagram_icon.jpeg',
+      x: '/static/X_icon.jpeg',
+      tiktok: '/static/tiktok_icon.jpeg'
+    }[service];
+    wrapper.innerHTML = `
+      <div class="sns-item" onclick="window.open('${value}', '_blank')" style="cursor: pointer;">
+        <img src="${iconSrc}" style="width: 20px; height: 20px;">
+      </div>
+    `;
+  } else if (wrapper) {
+    wrapper.remove(); // 入力がなければ削除
   }
 });
 
-// 3. 自由記入欄も div に置き換え
+// 3. 自由記入欄もテキストに置き換え
 const memo = document.getElementById('extra-text');
 if (memo) {
   const wrapper = document.getElementById('extra-text-wrapper');
