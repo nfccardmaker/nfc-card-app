@@ -535,7 +535,11 @@ reader.readAsDataURL(file);
   img.style.transform = 'rotate(0deg) scale(1)';
   img.style.touchAction = 'none'; // 👈 重要
   img.draggable = false;
+  const scrollX = window.scrollX;
+  const scrollY = window.scrollY;
   document.body.appendChild(img);
+  window.scrollTo(scrollX, scrollY);
+
 
   let posX = 150, posY = 300, scale = 1, rotation = 0;
   let isDragging = false, offsetX = 0, offsetY = 0;
