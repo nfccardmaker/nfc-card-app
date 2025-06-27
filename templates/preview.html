@@ -760,10 +760,10 @@ document.getElementById('finish-button').addEventListener('click', async () => {
   const toolbar = document.getElementById('toolbar');
   if (toolbar) toolbar.style.display = 'none';
 
- document.querySelectorAll('.sns-delete-btn').forEach(btn => btn.remove());
 
   const youtubeBatsu = document.querySelector('.youtube-section .sns-delete-btn');
   if (youtubeBatsu) youtubeBatsu.style.display = 'none';
+  document.querySelectorAll('.sns-delete-btn').forEach(btn => btn.remove());
 
   const extraBatsu = document.querySelector('#extra-text-wrapper .sns-delete-btn');
   if (extraBatsu) extraBatsu.style.display = 'none';
