@@ -533,9 +533,9 @@ reader.readAsDataURL(file);
 const scrollY = window.scrollY;
 
 img.className = 'deco-img';
-img.style.position = 'absolute'; // ← fixedじゃなくabsolute！
-img.style.left = (150 + scrollX) + 'px';
-img.style.top = (300 + scrollY) + 'px';
+img.style.position = 'fixed';
+img.style.left = '150px';
+img.style.top = '300px';
 img.style.transform = 'rotate(0deg) scale(1)';
 img.style.touchAction = 'none';
 img.draggable = false;
