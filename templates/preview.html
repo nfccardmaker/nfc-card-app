@@ -271,30 +271,60 @@ body {
     </div>
   </div>
 
-  <!-- ▼ SNSアイコンと入力欄 -->
+ <!-- ▼ SNSアイコンと入力欄 -->
 <div class="sns-bar">
   <div class="sns-wrapper">
-    <div class="sns-item">
+    <div class="sns-item" style="position: relative;">
       <img src="/static/instagram_icon.jpeg" alt="Instagram" onclick="handleIconClick('instagram')">
       Instagram
+      <img src="/static/batu.jpeg" alt="削除" class="sns-delete-btn" onclick="hideSNS('instagram')" style="
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        z-index: 10;
+      ">
     </div>
     <input id="input-instagram" class="sns-input" placeholder="https://www.instagram.com/yourid" onblur="handleBlur('instagram')">
   </div>
+
   <div class="sns-wrapper">
-    <div class="sns-item">
+    <div class="sns-item" style="position: relative;">
       <img src="/static/X_icon.jpeg" alt="X" onclick="handleIconClick('x')">
       X（旧Twitter）
+      <img src="/static/batu.jpeg" alt="削除" class="sns-delete-btn" onclick="hideSNS('x')" style="
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        z-index: 10;
+      ">
     </div>
     <input id="input-x" class="sns-input" placeholder="https://twitter.com/yourid" onblur="handleBlur('x')">
   </div>
+
   <div class="sns-wrapper">
-    <div class="sns-item">
+    <div class="sns-item" style="position: relative;">
       <img src="/static/tiktok_icon.jpeg" alt="TikTok" onclick="handleIconClick('tiktok')">
       TikTok
+      <img src="/static/batu.jpeg" alt="削除" class="sns-delete-btn" onclick="hideSNS('tiktok')" style="
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        z-index: 10;
+      ">
     </div>
     <input id="input-tiktok" class="sns-input" placeholder="https://www.tiktok.com/@yourid" onblur="handleBlur('tiktok')">
   </div>
 </div>
+
 
 <!-- ▼ 自由記入欄（バツ付き） -->
 <div id="extra-text-wrapper" class="sns-wrapper" style="margin-top: 20px; position: relative;">
@@ -708,20 +738,7 @@ function showHiddenSNS() {
     }
   });
 }
-// SNS項目に×ボタンを追加する処理
-window.addEventListener('DOMContentLoaded', () => {
-  ['instagram', 'x', 'tiktok'].forEach(service => {
-    const wrapper = document.querySelector(`.sns-wrapper:has(#input-${service})`);
-    if (wrapper) {
-      const btn = document.createElement('img');
-      btn.src = '/static/batu.jpeg'; // ← あなたが用意した「×画像」
-      btn.className = 'sns-delete-btn';
-      btn.alt = '削除';
-      btn.onclick = () => hideSNS(service);
-      wrapper.querySelector('.sns-item').appendChild(btn);
-    }
-  });
-});
+
 function toggleBackgroundList() {
   const list = document.getElementById('bg-template-list');
   list.style.display = (list.style.display === 'none' || list.style.display === '') ? 'flex' : 'none';
