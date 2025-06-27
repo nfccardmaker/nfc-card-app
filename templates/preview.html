@@ -811,6 +811,41 @@ document.querySelectorAll('.sns-wrapper .sns-delete-btn').forEach(btn => {
     }
   }
     finishBtn.style.display = 'none';
+// 名前・誕生日・年齢などの入力値を中身に反映（見た目そのまま）
+document.querySelectorAll('.info-section .editable-text').forEach(input => {
+  const value = input.value.trim();
+  const parent = input.parentNode;
+  input.remove();
+  const span = document.createElement('span');
+  span.textContent = value;
+  parent.appendChild(span);
+});
+
+// SNSリンク：入力があればそのままにしておく（変形しない！）ただしURL部分は消す
+['instagram', 'x', 'tiktok'].forEach(service => {
+  const input = document.getElementById(`input-${service}`);
+  if (input) {
+    const value = input.value.trim();
+    const wrapper = input.closest('.sns-wrapper');
+    if (!value && wrapper) {
+      wrapper.remove(); // 入力なければ削除
+    } else {
+      input.remove(); // 入力がある場合は input を削除（見た目保持）
+    }
+  }
+});
+
+// 自由記入欄：囲い残して中の入力だけ反映
+const memo = document.getElementById('extra-text');
+if (memo) {
+  const wrapper = document.getElementById('extra-text-wrapper');
+  if (wrapper) {
+    const div = document.createElement('div');
+    div.innerHTML = memo.value.trim().replace(/\n/g, '<br>');
+    memo.remove();
+    wrapper.appendChild(div);
+  }
+}
 
     const html = document.documentElement.outerHTML;
 
