@@ -761,11 +761,8 @@ document.getElementById('finish-button').addEventListener('click', async () => {
   if (toolbar) toolbar.style.display = 'none';
 
   setTimeout(() => {
-  document.querySelectorAll('.sns-wrapper .sns-delete-btn').forEach(btn => {
-    btn.style.display = 'none';
-  });
+  document.querySelectorAll('.sns-delete-btn').forEach(btn => btn.remove());
 }, 50);
-
 
   const youtubeBatsu = document.querySelector('.youtube-section .sns-delete-btn');
   if (youtubeBatsu) youtubeBatsu.style.display = 'none';
