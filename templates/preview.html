@@ -763,11 +763,7 @@ document.getElementById('finish-button').addEventListener('click', async () => {
 
   const youtubeBatsu = document.querySelector('.youtube-section .sns-delete-btn');
   if (youtubeBatsu) youtubeBatsu.style.display = 'none';
-  document.querySelectorAll('.sns-delete-btn').forEach(btn => {
-  if (btn.parentNode) {
-    btn.parentNode.removeChild(btn);
-  }
-});
+  document.querySelectorAll('.sns-delete-btn').forEach(btn => btn.remove());
 
   const extraBatsu = document.querySelector('#extra-text-wrapper .sns-delete-btn');
   if (extraBatsu) extraBatsu.style.display = 'none';
