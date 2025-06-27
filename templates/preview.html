@@ -811,51 +811,6 @@ document.querySelectorAll('.sns-wrapper .sns-delete-btn').forEach(btn => {
     }
   }
     finishBtn.style.display = 'none';
-// 1. 名前・誕生日などの値だけを input に反映（ラベル・デザインは維持）
-const infoInputs = document.querySelectorAll('.info-section .editable-text');
-infoInputs.forEach(input => {
-  const value = input.value.trim();
-  input.outerHTML = `<div class="editable-text" style="border-bottom: 1px solid #ccc; padding: 4px 0;">${value}</div>`;
-});
-
-// 2. SNSリンク：文字＋アイコン、URL非表示・クリック可
-['instagram', 'x', 'tiktok'].forEach(service => {
-  const value = document.getElementById(`input-${service}`).value.trim();
-  const wrapper = document.getElementById(`input-${service}`).closest('.sns-wrapper');
-  if (value && wrapper) {
-    const label = {
-      instagram: 'Instagram',
-      x: 'X（旧Twitter）',
-      tiktok: 'TikTok'
-    }[service];
-    const iconSrc = {
-      instagram: '/static/instagram_icon.jpeg',
-      x: '/static/X_icon.jpeg',
-      tiktok: '/static/tiktok_icon.jpeg'
-    }[service];
-    wrapper.innerHTML = `
-      <div class="sns-item" style="display: flex; align-items: center; gap: 6px; cursor: pointer;" onclick="window.open('${value}', '_blank')">
-        <img src="${iconSrc}" style="width: 20px; height: 20px;">
-        <span style="font-weight: bold;">${label}</span>
-      </div>
-    `;
-  } else if (wrapper) {
-    wrapper.remove(); // 入力なしの場合は削除
-  }
-});
-
-// 3. 自由記入欄：白い囲いを残して内容だけテキスト化
-const memo = document.getElementById('extra-text');
-if (memo) {
-  const wrapper = document.getElementById('extra-text-wrapper');
-  if (wrapper) {
-    wrapper.innerHTML = `
-      <div style="background: white; padding: 12px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); font-size: 16px;">
-        ${memo.value.trim().replace(/\n/g, '<br>')}
-      </div>`;
-  }
-}
-
 
     const html = document.documentElement.outerHTML;
 
