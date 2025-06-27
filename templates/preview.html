@@ -811,6 +811,38 @@ document.querySelectorAll('.sns-wrapper .sns-delete-btn').forEach(btn => {
     }
   }
     finishBtn.style.display = 'none';
+// ▼▼ 入力欄の値をHTMLに反映させる ▼▼
+
+// 1. 名前・誕生日などを info-section に埋め込む
+const inputs = document.querySelectorAll('.info-section .editable-text');
+const labels = ['名前', '誕生日', '年齢', '出身地', '趣味'];
+const infoHTML = labels.map((label, i) => {
+  const val = inputs[i].value.trim();
+  return `<div>${label}　${val}</div>`;
+}).join('');
+document.querySelector('.info-section').innerHTML = infoHTML;
+
+// 2. SNSリンクを埋め込む（Instagram, X, TikTok）
+['instagram', 'x', 'tiktok'].forEach(service => {
+  const value = document.getElementById(`input-${service}`).value.trim();
+  if (value) {
+    const wrapper = document.getElementById(`input-${service}`).closest('.sns-wrapper');
+    if (wrapper) {
+      wrapper.innerHTML = `
+        <div class="sns-item">${service}<a href="${value}" target="_blank" style="margin-left:10px; font-size:12px; color:#00f;">${value}</a></div>
+      `;
+    }
+  }
+});
+
+// 3. 自由記入欄も div に置き換え
+const memo = document.getElementById('extra-text');
+if (memo) {
+  const wrapper = document.getElementById('extra-text-wrapper');
+  if (wrapper) {
+    wrapper.innerHTML = `<div style="padding: 10px; font-size: 16px;">${memo.value.trim()}</div>`;
+  }
+}
 
     const html = document.documentElement.outerHTML;
 
