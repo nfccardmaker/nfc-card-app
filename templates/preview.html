@@ -780,7 +780,8 @@ document.getElementById('finish-button').addEventListener('click', async () => {
 
   const youtubeBatsu = document.querySelector('.youtube-section .sns-delete-btn');
   if (youtubeBatsu) youtubeBatsu.style.display = 'none';
-document.querySelectorAll('.sns-delete-btn').forEach(btn => {
+// SNSバツ削除
+document.querySelectorAll('.sns-wrapper .sns-delete-btn').forEach(btn => {
   if (btn.parentNode) {
     btn.parentNode.removeChild(btn);
   }
