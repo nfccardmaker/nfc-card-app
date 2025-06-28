@@ -810,6 +810,12 @@ if (extraInput) {
 
   const youtubeBatsu = document.querySelector('.youtube-section .sns-delete-btn');
   if (youtubeBatsu) youtubeBatsu.style.display = 'none';
+  // ✅ YouTube入力欄と反映ボタンを非表示にする
+const youtubeInput = document.getElementById('youtube-url');
+const youtubeButton = document.querySelector('.youtube-section button');
+if (youtubeInput) youtubeInput.style.display = 'none';
+if (youtubeButton) youtubeButton.style.display = 'none';
+
 // SNSバツ削除
 document.querySelectorAll('.sns-wrapper .sns-delete-btn').forEach(btn => {
   if (btn.parentNode) {
