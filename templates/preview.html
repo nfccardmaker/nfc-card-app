@@ -802,6 +802,28 @@ if (extraInput) {
   }
   hidden.value = text;
 }
+// 表示用divに記入内容を反映（Firebase用に見えるように）
+let displayExtra = document.getElementById('display-extra-text');
+if (!displayExtra) {
+  displayExtra = document.createElement('div');
+  displayExtra.id = 'display-extra-text';
+  displayExtra.style.cssText = `
+    margin: 20px auto;
+    padding: 14px 18px;
+    border-radius: 14px;
+    border: 1px solid #ccc;
+    width: 85vw;
+    max-width: 600px;
+    font-size: 16px;
+    line-height: 1.6;
+    background-color: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    white-space: pre-wrap;
+  `;
+  extraInput.parentNode.appendChild(displayExtra);
+}
+displayExtra.textContent = text;
+
 
   const toolbar = document.getElementById('toolbar');
   if (toolbar) toolbar.style.display = 'none';
