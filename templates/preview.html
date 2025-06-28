@@ -801,6 +801,7 @@ if (extraInput) {
     extraInput.parentNode.appendChild(hidden); // ✅ 修正！
   }
   hidden.value = text;
+   extraInput.textContent = text;
 }
 
   const toolbar = document.getElementById('toolbar');
