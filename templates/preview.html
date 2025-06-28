@@ -825,6 +825,35 @@ document.querySelectorAll('.sns-wrapper .sns-delete-btn').forEach(btn => {
 
   const extraBatsu = document.querySelector('#extra-text-wrapper .sns-delete-btn');
   if (extraBatsu) extraBatsu.style.display = 'none';
+  // SNSリンクをHTMLに埋め込む処理（完成ボタン処理の中に追加）
+['instagram', 'x', 'tiktok'].forEach(service => {
+  const wrapper = document.querySelector(`.sns-wrapper:has(#input-${service})`);
+  const link = urls[service];
+  if (wrapper && link) {
+    const snsItem = wrapper.querySelector('.sns-item');
+    if (snsItem) {
+      const img = snsItem.querySelector('img'); // アイコン画像
+      const label = snsItem.childNodes[1]?.textContent?.trim() || service;
+
+      // aタグでラップしてクリック可能に
+      const anchor = document.createElement('a');
+      anchor.href = link;
+      anchor.target = '_blank';
+      anchor.style.display = 'flex';
+      anchor.style.alignItems = 'center';
+      anchor.style.gap = '10px';
+      anchor.style.textDecoration = 'none';
+      anchor.style.color = 'inherit';
+
+      anchor.appendChild(img);
+      anchor.appendChild(document.createTextNode(label));
+
+      snsItem.innerHTML = '';
+      snsItem.appendChild(anchor);
+    }
+  }
+});
+
 
   // ✅ プロフィール画像が blob: だったら保存済みのURLに書き換える
   const profileImg = document.getElementById("profile-img");
