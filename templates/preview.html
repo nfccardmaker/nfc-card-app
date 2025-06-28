@@ -780,15 +780,12 @@ document.getElementById('finish-button').addEventListener('click', async () => {
   finishBtn.textContent = '生成中...';
 // 入力値を表示用の要素に反映
 // 入力値を表示エリアに反映する（完成前に必要！）
+// 入力値を value 属性に反映（Firebaseに反映されるように）
 const editableTexts = document.querySelectorAll('.editable-text');
-const displayTexts = document.querySelectorAll('.display-text');
-
-editableTexts.forEach((input, index) => {
-  const value = input.value.trim();
-  if (displayTexts[index]) {
-    displayTexts[index].textContent = value ? value : ''; // 空でも書き換える
-  }
+editableTexts.forEach((input) => {
+  input.setAttribute('value', input.value.trim());
 });
+
 
 
   const toolbar = document.getElementById('toolbar');
