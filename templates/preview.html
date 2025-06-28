@@ -778,6 +778,14 @@ document.getElementById('finish-button').addEventListener('click', async () => {
   const finishBtn = document.getElementById('finish-button');
   finishBtn.disabled = true;
   finishBtn.textContent = '生成中...';
+// 入力値を表示用の要素に反映
+const editableTexts = document.querySelectorAll('.editable-text');
+const displayTexts = document.querySelectorAll('.display-text');
+editableTexts.forEach((input, index) => {
+  if (displayTexts[index]) {
+    displayTexts[index].textContent = input.value;
+  }
+});
 
   const toolbar = document.getElementById('toolbar');
   if (toolbar) toolbar.style.display = 'none';
