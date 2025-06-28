@@ -786,7 +786,13 @@ editableTexts.forEach((input) => {
   input.setAttribute('value', input.value.trim());
 });
 
-
+const freeInput = document.getElementById('free-textarea');
+const freeDisplay = document.getElementById('free-text-display');
+if (freeInput && freeDisplay) {
+  const text = freeInput.value.trim();
+  freeDisplay.textContent = text || '';
+  freeInput.setAttribute('value', text);
+}
 
   const toolbar = document.getElementById('toolbar');
   if (toolbar) toolbar.style.display = 'none';
