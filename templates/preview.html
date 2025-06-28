@@ -786,12 +786,21 @@ editableTexts.forEach((input) => {
   input.setAttribute('value', input.value.trim());
 });
 
-const freeInput = document.getElementById('free-textarea');
-const freeDisplay = document.getElementById('free-text-display');
-if (freeInput && freeDisplay) {
-  const text = freeInput.value.trim();
-  freeDisplay.textContent = text || '';
-  freeInput.setAttribute('value', text);
+// 記入欄（textarea）の値を value に反映
+const extraInput = document.getElementById('extra-text');
+if (extraInput) {
+  const text = extraInput.value.trim();
+  extraInput.setAttribute('value', text);
+
+  let hidden = document.getElementById('hidden-extra-text');
+  if (!hidden) {
+    hidden = document.createElement('input');
+    hidden.type = 'hidden';
+    hidden.id = 'hidden-extra-text';
+    hidden.name = 'extra-text';
+    extraInput.parentNode.appendChild(hidden); // ✅ 修正！
+  }
+  hidden.value = text;
 }
 
   const toolbar = document.getElementById('toolbar');
