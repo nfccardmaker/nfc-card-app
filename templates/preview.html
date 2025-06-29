@@ -1270,6 +1270,10 @@ window.addEventListener('DOMContentLoaded', () => {
     const message = '📌 この人はこんなことが好きかも…？\n\n' + hobbyHints.join('\n');
     document.getElementById('auto-hobby-text').innerText = message;
     document.getElementById('auto-hobby-modal').style.display = 'flex';
+    document.addEventListener('DOMContentLoaded', () => {
+  startDiagnosis();
+});
+
   }
 });
 </script>
