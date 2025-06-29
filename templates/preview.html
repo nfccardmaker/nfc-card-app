@@ -1048,9 +1048,9 @@ function startDiagnosis() {
 <!-- さらに追加してもOK！ -->
 
 </div>
-<!-- ▼ 診断スタートボタン -->
+<!-- ▼ 診断ボタン -->
 <div style="text-align: center; margin-top: 20px;">
-  <button onclick="startDiagnosis()" style="
+  <button id="diagnosis-button" onclick="startDiagnosis()" style="
     padding: 10px 20px;
     font-size: 16px;
     border-radius: 10px;
@@ -1059,7 +1059,7 @@ function startDiagnosis() {
     border: none;
     cursor: pointer;
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-  ">診断スタート</button>
+  ">〇〇さんの特徴！</button>
 </div>
 
 <!-- ▼ モーダル表示部分 -->
@@ -1101,199 +1101,109 @@ function startDiagnosis() {
   const barColor = getComputedStyle(document.documentElement).getPropertyValue('--bar-color').trim().toLowerCase();
 
   let type = '';
-
-  if (
-    combined.includes('ひとり') || combined.includes('静か') ||
-    combined.includes('本') || combined.includes('ソロ') ||
-    combined.includes('家') || combined.includes('落ち着く') ||
-    combined.includes('アニメ')
-  ) {
+  if (combined.match(/ひとり|静か|本|ソロ|家|落ち着く|アニメ/)) {
     type += 'I';
-  } else if (
-    combined.includes('仲間') || combined.includes('みんな') ||
-    combined.includes('カラオケ') || combined.includes('イベント') ||
-    combined.includes('旅行') || combined.includes('飲み会')
-  ) {
+  } else if (combined.match(/仲間|みんな|カラオケ|イベント|旅行|飲み会/)) {
     type += 'E';
   } else {
     type += 'I';
   }
 
-  if (
-    combined.includes('空想') || combined.includes('ひらめき') ||
-    combined.includes('想像') || combined.includes('クリエイティブ') ||
-    combined.includes('アート') || combined.includes('創作') ||
-    combined.includes('哲学')
-  ) {
+  if (combined.match(/空想|ひらめき|想像|クリエイティブ|アート|創作|哲学/)) {
     type += 'N';
-  } else if (
-    combined.includes('現実') || combined.includes('実用') ||
-    combined.includes('旅行') || combined.includes('運動') ||
-    combined.includes('料理') || combined.includes('アウトドア')
-  ) {
+  } else if (combined.match(/現実|実用|旅行|運動|料理|アウトドア/)) {
     type += 'S';
   } else {
     type += 'N';
   }
 
   let tfScore = 0;
-  if (
-    combined.includes('論理') || combined.includes('分析') ||
-    combined.includes('効率') || combined.includes('数字') ||
-    combined.includes('プログラミング')
-  ) {
-    tfScore += 1;
-  }
-  if (
-    combined.includes('共感') || combined.includes('やさしい') ||
-    combined.includes('応援') || combined.includes('思いやり') ||
-    combined.includes('ケア')
-  ) {
-    tfScore -= 1;
-  }
-
-  if (barColor.includes('pink') || barColor.includes('#f') || barColor.includes('red')) {
-    tfScore -= 1;
-  }
-  if (barColor.includes('blue') || barColor.includes('#00f') || barColor.includes('navy')) {
-    tfScore += 1;
-  }
+  if (combined.match(/論理|分析|効率|数字|プログラミング/)) tfScore += 1;
+  if (combined.match(/共感|やさしい|応援|思いやり|ケア/)) tfScore -= 1;
+  if (barColor.includes('pink') || barColor.includes('#f')) tfScore -= 1;
+  if (barColor.includes('blue') || barColor.includes('#00f') || barColor.includes('navy')) tfScore += 1;
 
   type += tfScore >= 0 ? 'T' : 'F';
 
-  if (
-    combined.includes('計画') || combined.includes('整理') ||
-    combined.includes('スケジュール') || combined.includes('時間管理') ||
-    combined.includes('リスト') || combined.includes('準備')
-  ) {
+  if (combined.match(/計画|整理|スケジュール|時間管理|リスト|準備/)) {
     type += 'J';
-  } else if (
-    combined.includes('自由') || combined.includes('気まま') ||
-    combined.includes('柔軟') || combined.includes('マイペース') ||
-    combined.includes('その場')
-  ) {
+  } else if (combined.match(/自由|気まま|柔軟|マイペース|その場/)) {
     type += 'P';
   } else {
     type += 'P';
   }
-
-  const resultLines = [];
-
-  // MBTI診断
-  resultLines.push(`あなたは「${type}タイプ」かも！？`);
 
   const mbtiDescriptions = {
-    INFP: "理想主義で感受性豊かな「癒し系タイプ」！",
-    INTP: "論理的で探究心が強い「思索家タイプ」！",
-    INFJ: "人の心に寄り添う「静かなカリスマタイプ」！",
-    INTJ: "戦略的で未来志向な「構想派タイプ」！",
-    ENFP: "ひらめきと人間関係が得意な「冒険家タイプ」！",
-    ENTP: "機転が利いて挑戦を恐れない「アイデアマン」！",
-    ENFJ: "人を巻き込む力がある「リーダータイプ」！",
-    ENTJ: "目標達成に一直線な「司令塔タイプ」！",
-    ISFP: "感性と調和を重視する「やさしさ派」！",
-    ISTP: "冷静沈着な「実践派」！",
-    ISFJ: "支えることに喜びを感じる「サポーター」！",
-    ISTJ: "責任感の強い「しっかり者」！",
-    ESFP: "ムードメーカーな「エンタメ好き」！",
-    ESTP: "行動力抜群な「体験型リーダー」！",
-    ESFJ: "人の役に立ちたい「親しみ派」！",
-    ESTJ: "効率的で実務に強い「頼れる人」！"
+    INFP: "理想主義で感受性豊かな癒し系タイプ！",
+    INTP: "論理的で探究心が強い思索家タイプ！",
+    INFJ: "人の心に寄り添う静かなカリスマタイプ！",
+    INTJ: "戦略的で未来志向な構想派タイプ！",
+    ENFP: "ひらめきと人間関係が得意な冒険家タイプ！",
+    ENTP: "機転が利いて挑戦を恐れないアイデアマン！",
+    ENFJ: "人を巻き込む力があるリーダータイプ！",
+    ENTJ: "目標達成に一直線な司令塔タイプ！",
+    ISFP: "感性と調和を重視するやさしさ派！",
+    ISTP: "冷静沈着な実践派！",
+    ISFJ: "支えることに喜びを感じるサポーター！",
+    ISTJ: "責任感の強いしっかり者！",
+    ESFP: "ムードメーカーなエンタメ好き！",
+    ESTP: "行動力抜群な体験型リーダー！",
+    ESFJ: "人の役に立ちたい親しみ派！",
+    ESTJ: "効率的で実務に強い頼れる人！"
   };
-  resultLines.push(`\n MBTI的には：\n${mbtiDescriptions[type] || "バランス型タイプ！"}`);
 
-  // カラー診断
+  const displayName = "〇〇さん";
+  const resultLines = [];
+
+  resultLines.push(`${displayName}は「${type}タイプ」かも！？`);
+  resultLines.push(`MBTI的には：${mbtiDescriptions[type] || "バランス型タイプ！"}`);
+
   if (barColor.includes('pink') || barColor.includes('#f')) {
-    resultLines.push(`\n カラー診断：\n選んだ色（ピンク系）は、感受性が豊かでやさしい性格のあらわれ。`);
-  } else if (barColor.includes('blue') || barColor.includes('#00f') || barColor.includes('navy')) {
-    resultLines.push(`\n カラー診断：\n選んだ色（青系）は、冷静で誠実な性格のあらわれ。`);
+    resultLines.push("カラー診断：ピンク系 → 感受性豊かでやさしい性格！");
+  } else if (barColor.includes('blue') || barColor.includes('navy')) {
+    resultLines.push("カラー診断：青系 → 冷静で誠実な性格！");
   } else if (barColor.includes('green')) {
-    resultLines.push(`\n カラー診断：\n選んだ色（緑系）は、調和や自然を大切にする穏やかな性格です。`);
+    resultLines.push("カラー診断：緑系 → 自然を大切にする穏やかタイプ！");
   } else if (barColor.includes('yellow')) {
-    resultLines.push(`\n カラー診断：\n選んだ色（黄色系）は、明るく前向きで社交的なタイプです。`);
-  } else {
-    resultLines.push(`\n カラー診断：\n選んだ色からも個性的なセンスが感じられます！`);
+    resultLines.push("カラー診断：黄色系 → 明るく前向きなタイプ！");
   }
 
-  // 趣味診断
-  const hobbyAnalysis = [];
-  if (combined.includes('ゲーム')) hobbyAnalysis.push("戦略系・マイペース派");
-  if (combined.includes('アニメ')) hobbyAnalysis.push("感性豊かで内向型寄り");
-  if (combined.includes('旅行')) hobbyAnalysis.push("好奇心旺盛な冒険タイプ");
-  if (combined.includes('カフェ')) hobbyAnalysis.push("癒し・感性重視タイプ");
-  if (combined.includes('音楽')) hobbyAnalysis.push("感情とのつながりが強い人");
-  if (combined.includes('読書')) hobbyAnalysis.push("思索型で想像力が豊か");
-  if (combined.includes('スポーツ')) hobbyAnalysis.push("外向的でエネルギッシュ");
-
-  if (hobbyAnalysis.length > 0) {
-    resultLines.push(`\n🎯 趣味診断：\n${hobbyAnalysis.join('／')} な傾向が見られます！`);
+  const hobbyTags = {
+    'ゲーム': '戦略派 or マイペース派',
+    'アニメ': '感性豊かで内向型寄り',
+    '旅行': '好奇心旺盛な冒険好き',
+    'カフェ': '癒し重視・感性タイプ',
+    '音楽': '感情と結びつきが強い人',
+    '読書': '思索型・想像力が豊か',
+    'スポーツ': '外向的でエネルギッシュ',
+    '美術': 'クリエイティブ志向',
+    '料理': '繊細で家庭的な気質',
+    '筋トレ': '自己成長意識が強いタイプ'
+  };
+  const detectedHobbies = Object.keys(hobbyTags).filter(word => combined.includes(word));
+  if (detectedHobbies.length > 0) {
+    resultLines.push(`${displayName}は ${detectedHobbies.join('・')} が好きな傾向があるよ！`);
+    resultLines.push(`→ 傾向：${detectedHobbies.map(h => hobbyTags[h]).join(' ／ ')}`);
   }
 
-  // 趣味からの拡張提案
   const hobbyExtensions = [];
-  const extraText = extra;
-
-  if (extraText.includes('ゲーム')) hobbyExtensions.push("🎮 実は「サバゲー」や「ボードゲーム」もハマるかも？");
-  if (extraText.includes('音楽')) hobbyExtensions.push("🎵 実は「ライブ参戦」や「作詞・作曲活動」も向いてるかも？");
-  if (extraText.includes('スポーツ')) hobbyExtensions.push("⚽ 実は「スポーツ観戦」や「eスポーツ」も熱中できるかも？");
-  if (extraText.includes('カフェ')) hobbyExtensions.push("☕ 実は「カフェ巡りブログ」や「コーヒーの淹れ方研究」も楽しいかも？");
-  if (extraText.includes('アニメ')) hobbyExtensions.push("🎨 実は「イラスト制作」や「コスプレ」も挑戦してみたくなるかも？");
-  if (extraText.includes('映画')) hobbyExtensions.push("🎬 実は「映画レビュー投稿」や「脚本づくり」も好きかも？");
-  if (extraText.includes('旅行')) hobbyExtensions.push("✈️ 実は「旅動画作り」や「現地グルメ巡り」も楽しめるかも？");
-  if (extraText.includes('美術') || extraText.includes('イラスト')) hobbyExtensions.push("🖼️ 実は「展示巡り」や「デジタルアート」もぴったりかも？");
-  if (extraText.includes('読書')) hobbyExtensions.push("📖 実は「執筆活動」や「読書会」も向いてるかも？");
-  if (extraText.includes('ファッション')) hobbyExtensions.push("👗 実は「古着探し」や「セルフスタイリング撮影」も得意かも？");
-  if (extraText.includes('ペット')) hobbyExtensions.push("🐶 実は「ペット写真投稿」や「しつけ動画の視聴」も好きかも？");
-  if (extraText.includes('アウトドア')) hobbyExtensions.push("⛰️ 実は「登山」や「キャンプ道具収集」も趣味になるかも？");
-  if (extraText.includes('料理')) hobbyExtensions.push("🍳 実は「レシピ動画投稿」や「食器集め」も楽しめるかも？");
-  if (extraText.includes('筋トレ')) hobbyExtensions.push("💪 実は「食事管理」や「筋トレ仲間との交流」も好きかも？");
+  if (combined.includes('ゲーム')) hobbyExtensions.push("🎮 サバゲーやボードゲームも好きな可能性あり！");
+  if (combined.includes('音楽')) hobbyExtensions.push("🎵 作曲やライブ参戦にも興味あるかも！");
+  if (combined.includes('カフェ')) hobbyExtensions.push("☕ カフェ巡りブログ始めてるかも？");
 
   if (hobbyExtensions.length > 0) {
-    resultLines.push(`\n✨ 趣味からの広がり提案：\n${hobbyExtensions.join('\n')}`);
+    resultLines.push("この話題を振ってみよう👇");
+    resultLines.push(hobbyExtensions.join('\n'));
   }
 
-  const formattedResult = resultLines.map(line => `
-    <div style="
-      margin: 18px 0;
-      font-size: 18px;
-      line-height: 1.8;
-      text-align: left;
-    ">${line}</div>
-  `).join('');
-
-  document.getElementById('diagnosis-result').innerHTML = formattedResult;
+  const formatted = resultLines.map(line => `<div style="margin: 12px 0;">${line}</div>`).join('');
+  document.getElementById('diagnosis-result').innerHTML = formatted;
   document.getElementById('diagnosis-modal').style.display = 'flex';
+
   document.getElementById('diagnosis-modal').addEventListener('click', () => {
     document.getElementById('diagnosis-modal').style.display = 'none';
   });
 }
-window.addEventListener('DOMContentLoaded', () => {
-  const textInputs = Array.from(document.querySelectorAll('.editable-text')).map(i => i.value).join(' ');
-  const extra = document.getElementById('extra-text')?.value || '';
-  const combined = (textInputs + ' ' + extra).toLowerCase();
-
-  const hobbyHints = [];
-  if (combined.includes('ゲーム')) hobbyHints.push('🎮 この人は「ゲーム好き」かも？');
-  if (combined.includes('アニメ')) hobbyHints.push('🎥 アニメや映像作品が好きな人かも？');
-  if (combined.includes('旅行')) hobbyHints.push('✈️ 好奇心旺盛で旅行好きなタイプかも？');
-  if (combined.includes('カフェ')) hobbyHints.push('☕ カフェ巡りやおしゃれな空間が好きかも？');
-  if (combined.includes('音楽')) hobbyHints.push('🎵 音楽やライブにも詳しいかも？');
-  if (combined.includes('スポーツ')) hobbyHints.push('⚽ スポーツ観戦や体を動かすのが好きかも？');
-  if (combined.includes('読書')) hobbyHints.push('📚 本や物語の世界に没頭するのが好きかも？');
-  if (combined.includes('映画')) hobbyHints.push('🎬 映画を語り合うのが好きなタイプかも？');
-
-  if (hobbyHints.length > 0) {
-    const message = '📌 この人はこんなことが好きかも…？\n\n' + hobbyHints.join('\n');
-    document.getElementById('auto-hobby-text').innerText = message;
-    document.getElementById('auto-hobby-modal').style.display = 'flex';
-    document.addEventListener('DOMContentLoaded', () => {
-  startDiagnosis();
-});
-
-  }
-});
-</script>
-
 </script>
 
 
