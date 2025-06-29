@@ -781,7 +781,23 @@ document.getElementById('finish-button').addEventListener('click', async () => {
 // 入力値を表示用の要素に反映
 // 入力値を表示エリアに反映する（完成前に必要！）
 // 入力値を value 属性に反映（Firebaseに反映されるように）
-const editableTexts = document.querySelectorAll('.editable-text');
+function escapeHTML(str) {
+  return str.replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+}
+
+const editableTexts = document.querySelectorAll('.editable-text, textarea');
+editableTexts.forEach(input => {
+  const val = input.value.trim();
+  input.setAttribute('value', escapeHTML(val));
+  if (input.tagName === 'TEXTAREA') {
+    input.textContent = escapeHTML(val);
+  }
+});
+
 editableTexts.forEach((input) => {
   input.setAttribute('value', input.value.trim());
 });
