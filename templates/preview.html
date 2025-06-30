@@ -1310,11 +1310,11 @@ function showCompatibilityDetail() {
     if (myMBTI && targetMBTI) {
       const compatibilityScore = Math.floor(Math.random() * 21) + 70; // 70～90%
       const resultHTML = `<div style="font-size:28px; color:#ff4d4d; font-weight:bold;">二人の相性：${compatibilityScore}%</div><div style="margin-top:10px;">${myMBTI} × ${targetMBTI} の組み合わせ！</div>`;
-      const mbtiTypeDiv = document.getElementById('mbti-type');
-if (mbtiTypeDiv) mbtiTypeDiv.textContent = type;
-
+      
       document.getElementById('compatibility-result').innerHTML = resultHTML;
       document.getElementById('compatibility-modal').style.display = 'flex';
+      document.getElementById('mbti-type').innerText = type;
+
     }
   });
 </script>
