@@ -1262,6 +1262,33 @@ function getCompatibility(mbti1, mbti2) {
   }
   return '価値観の違いも楽しめる関係！';
 }
+function getPairComment(m1, m2) {
+  const pair = [m1, m2].sort().join('-');
+  const comments = {
+    'ENTJ-INTP': '合理性と創造性のペア。ぶつかりながらも最強のチームに！？',
+    'ENFP-INFJ': '運命的な繋がり！お互いを深く理解し合える理想の関係。',
+    'ENFJ-INFP': '共感とサポートのバランスが絶妙！心の癒しコンビ。',
+    'ENTP-INTJ': '戦略とアイデアが炸裂！一緒にいると革命が起きるかも！？',
+    'ESFJ-ISFP': '穏やかで優しい空気感。同じ空間にいるだけでホッとできる。',
+    'ESTJ-ISTP': '現実的×柔軟タイプ！実務と即興がかみ合えば最強。',
+    'ESFP-ISFJ': '明るく社交的なESFPと、面倒見の良いISFJの黄金タッグ！',
+    'ESTP-ISTJ': 'リーダー気質と実行力のペア。やるときは一緒に突き進む！',
+    'INTJ-INTP': '論理派同士の刺激的な関係！でもマイペースには注意。',
+    'INFP-INFP': '繊細さと想像力が共鳴！ロマンチックな関係になる予感。',
+    'ISFJ-ISFP': '静かに寄り添い合える2人。信頼関係は深く長続きしやすい。',
+    'ISTJ-ISTP': 'クールで安定した関係。無言でも心地よい時間が流れる。',
+    'ENFP-INTP': '直感と分析の融合！話が止まらない刺激的なコンビ。',
+    'INFJ-INTP': 'お互いに理解者を求めるタイプ。語り合えば深まる関係。',
+    'ENFP-ENFP': '好奇心のかたまり×2！テンション高めで自由な関係。',
+    'ENTP-ENTP': '会話とアイデアが止まらない！一緒に何か生み出せるかも。',
+    'ISFJ-ENFP': '安心感と冒険心がいいバランス。お互いに刺激をもらえる。',
+    'INFP-INTP': '内向的で思考型な2人。静かだけど深い関係になる可能性大。',
+    'INTP-INTP': 'お互い深く考えるタイプ。マニアックな話題で盛り上がる！'
+    // ← さらに増やしたい場合はここに追記！
+  };
+  return comments[pair] || 'お互いの違いを尊重し合えれば、素敵な関係に！';
+}
+
 
 function getCompatibilityScore(m1, m2) {
   let score = 50;
@@ -1312,6 +1339,10 @@ function showCompatibilityModal(my, other, message, score) {
       <div style="font-size: 20px; color: #e91e63; font-weight: bold;">
         ${message}
       </div>
+      <div style="margin-top: 12px; font-size: 14px; color: #555;">
+  ${pairComment}
+</div>
+
       <div style="margin-top: 24px;">
         <button onclick="document.getElementById('compat-modal').remove()" style="
           padding: 8px 16px;
