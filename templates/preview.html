@@ -1077,37 +1077,43 @@ function startDiagnosis() {
   const barColor = getComputedStyle(document.documentElement).getPropertyValue('--bar-color').trim().toLowerCase();
 
   let type = '';
-  if (combined.match(/ひとり|静か|本|ソロ|家|落ち着く|アニメ/)) {
-    type += 'I';
-  } else if (combined.match(/仲間|みんな|カラオケ|イベント|旅行|飲み会/)) {
-    type += 'E';
-  } else {
-    type += 'I';
-  }
 
-  if (combined.match(/空想|ひらめき|想像|クリエイティブ|アート|創作|哲学/)) {
-    type += 'N';
-  } else if (combined.match(/現実|実用|旅行|運動|料理|アウトドア/)) {
-    type += 'S';
-  } else {
-    type += 'N';
-  }
+// I / E 判定
+if (combined.match(/ひとり|静か|本|ソロ|家|落ち着く|アニメ|内省|黙る|マイペース/)) {
+  type += 'I';
+} else if (combined.match(/仲間|みんな|カラオケ|イベント|旅行|飲み会|おしゃべり|騒ぐ|SNS/)) {
+  type += 'E';
+} else {
+  type += 'I';
+}
 
-  let tfScore = 0;
-  if (combined.match(/論理|分析|効率|数字|プログラミング/)) tfScore += 1;
-  if (combined.match(/共感|やさしい|応援|思いやり|ケア/)) tfScore -= 1;
-  if (barColor.includes('pink') || barColor.includes('#f')) tfScore -= 1;
-  if (barColor.includes('blue') || barColor.includes('#00f') || barColor.includes('navy')) tfScore += 1;
+// N / S 判定
+if (combined.match(/空想|ひらめき|想像|クリエイティブ|アート|創作|哲学|直感|夢/)) {
+  type += 'N';
+} else if (combined.match(/現実|実用|旅行|運動|料理|アウトドア|具体|体験|五感/)) {
+  type += 'S';
+} else {
+  type += 'N';
+}
 
-  type += tfScore >= 0 ? 'T' : 'F';
+// T / F 判定（スコア式）
+let tfScore = 0;
+if (combined.match(/論理|分析|効率|数字|プログラミング|理屈|戦略|データ/)) tfScore += 1;
+if (combined.match(/共感|やさしい|応援|思いやり|ケア|感情|涙|相談/)) tfScore -= 1;
+if (barColor.includes('pink') || barColor.includes('#f')) tfScore -= 1;
+if (barColor.includes('blue') || barColor.includes('#00f') || barColor.includes('navy')) tfScore += 1;
 
-  if (combined.match(/計画|整理|スケジュール|時間管理|リスト|準備/)) {
-    type += 'J';
-  } else if (combined.match(/自由|気まま|柔軟|マイペース|その場/)) {
-    type += 'P';
-  } else {
-    type += 'P';
-  }
+type += tfScore >= 0 ? 'T' : 'F';
+
+// J / P 判定
+if (combined.match(/計画|整理|スケジュール|時間管理|リスト|準備|管理|目標|段取り/)) {
+  type += 'J';
+} else if (combined.match(/自由|気まま|柔軟|マイペース|その場|思いつき|即興/)) {
+  type += 'P';
+} else {
+  type += 'P';
+}
+
 
   const mbtiDescriptions = {
     INFP: "理想主義で感受性豊かな癒し系タイプ！",
@@ -1134,38 +1140,77 @@ function startDiagnosis() {
   resultLines.push(`<div style="font-size: 20px;">${displayName}は「${type}タイプ」かも！？</div>`);
   resultLines.push(`<div>MBTI的には：${mbtiDescriptions[type] || "バランス型タイプ！"}</div>`);
 
-  if (barColor.includes('pink') || barColor.includes('#f')) {
-    resultLines.push("<div>カラー診断：ピンク系 → 感受性豊かでやさしい性格！</div>");
-  } else if (barColor.includes('blue') || barColor.includes('navy')) {
-    resultLines.push("<div>カラー診断：青系 → 冷静で誠実な性格！</div>");
-  } else if (barColor.includes('green')) {
-    resultLines.push("<div>カラー診断：緑系 → 自然を大切にする穏やかタイプ！</div>");
-  } else if (barColor.includes('yellow')) {
-    resultLines.push("<div>カラー診断：黄色系 → 明るく前向きなタイプ！</div>");
-  }
+  if (barColor.includes('pink') || barColor.includes('#f') || barColor.includes('rose')) {
+  resultLines.push("<div>カラー診断：ピンク系 → 感受性豊かでやさしい性格！</div>");
+} else if (barColor.includes('blue') || barColor.includes('navy') || barColor.includes('#00f') || barColor.includes('sky')) {
+  resultLines.push("<div>カラー診断：青系 → 冷静で誠実、知的な性格！</div>");
+} else if (barColor.includes('green') || barColor.includes('lime') || barColor.includes('olive')) {
+  resultLines.push("<div>カラー診断：緑系 → 自然や平和を大切にする穏やかタイプ！</div>");
+} else if (barColor.includes('yellow') || barColor.includes('gold') || barColor.includes('#ff0')) {
+  resultLines.push("<div>カラー診断：黄色系 → 明るく前向きで社交的な性格！</div>");
+} else if (barColor.includes('orange') || barColor.includes('#ffa')) {
+  resultLines.push("<div>カラー診断：オレンジ系 → 活動的で人懐っこいエネルギー派！</div>");
+} else if (barColor.includes('red') || barColor.includes('crimson') || barColor.includes('#f00')) {
+  resultLines.push("<div>カラー診断：赤系 → 情熱的でリーダーシップを持つ人！</div>");
+} else if (barColor.includes('purple') || barColor.includes('violet') || barColor.includes('indigo')) {
+  resultLines.push("<div>カラー診断：紫系 → 感性豊かでミステリアスな魅力！</div>");
+} else if (barColor.includes('black') || barColor.includes('#000')) {
+  resultLines.push("<div>カラー診断：黒系 → 意志が強く、落ち着いた雰囲気！</div>");
+} else if (barColor.includes('white') || barColor.includes('#fff') || barColor.includes('ivory')) {
+  resultLines.push("<div>カラー診断：白系 → 純粋で素直、調和を大切にするタイプ！</div>");
+} else if (barColor.includes('gray') || barColor.includes('grey') || barColor.includes('#888')) {
+  resultLines.push("<div>カラー診断：グレー系 → 冷静で大人びたバランスタイプ！</div>");
+} else {
+  resultLines.push("<div>カラー診断：中間色 → 多様性を受け入れる柔軟なタイプ！</div>");
+}
+
 
   const hobbyTags = {
-    'ゲーム': '戦略派 or マイペース派',
-    'アニメ': '感性豊かで内向型寄り',
-    '旅行': '好奇心旺盛な冒険好き',
-    'カフェ': '癒し重視・感性タイプ',
-    '音楽': '感情と結びつきが強い人',
-    '読書': '思索型・想像力が豊か',
-    'スポーツ': '外向的でエネルギッシュ',
-    '美術': 'クリエイティブ志向',
-    '料理': '繊細で家庭的な気質',
-    '筋トレ': '自己成長意識が強いタイプ'
-  };
+  'ゲーム': '戦略派 or マイペース派',
+  'アニメ': '感性豊かで内向型寄り',
+  '旅行': '好奇心旺盛な冒険好き',
+  'カフェ': '癒し重視・感性タイプ',
+  '音楽': '感情と結びつきが強い人',
+  '読書': '思索型・想像力が豊か',
+  'スポーツ': '外向的でエネルギッシュ',
+  '美術': 'クリエイティブ志向',
+  '料理': '繊細で家庭的な気質',
+  '筋トレ': '自己成長意識が強いタイプ',
+  'ファッション': '自己表現と流行に敏感なタイプ',
+  'ダンス': '身体で感情を表現する情熱派',
+  'カラオケ': '社交的で表現が好きな盛り上げ役',
+  'ボードゲーム': '頭脳派でみんなと楽しむことが好き',
+  'ペット': '愛情深く、癒しやつながりを大事にする人',
+  'イラスト': '繊細で感受性が豊か、想像力も高い',
+  'カメラ': '観察眼に優れ、感情を写真で表現したいタイプ',
+  '映画': '物語や世界観に没入するエモ派',
+  'カラフルな雑貨': '明るく個性的なセンスの持ち主',
+  '手芸': '丁寧で集中力が高く、ものづくり好き',
+  '散歩': '自然との調和を大切にするマイペース派'
+};
+
   const detectedHobbies = Object.keys(hobbyTags).filter(word => combined.includes(word));
   if (detectedHobbies.length > 0) {
     resultLines.push(`<div>${displayName}は ${detectedHobbies.join('・')} が好きな傾向があるよ！</div>`);
     resultLines.push(`<div>→ 傾向：${detectedHobbies.map(h => hobbyTags[h]).join(' ／ ')}</div>`);
   }
 
-  const hobbyExtensions = [];
-  if (combined.includes('ゲーム')) hobbyExtensions.push("🎮 サバゲーやボードゲームも好きな可能性あり！");
-  if (combined.includes('音楽')) hobbyExtensions.push("🎵 作曲やライブ参戦にも興味あるかも！");
-  if (combined.includes('カフェ')) hobbyExtensions.push("☕ カフェ巡りブログ始めてるかも？");
+ const hobbyExtensions = [];
+if (combined.includes('ゲーム')) hobbyExtensions.push("🎮 サバゲーやボードゲームも好きな可能性あり！");
+if (combined.includes('音楽')) hobbyExtensions.push("🎵 作曲やライブ参戦にも興味あるかも！");
+if (combined.includes('カフェ')) hobbyExtensions.push("☕ カフェ巡りブログ始めてるかも？");
+if (combined.includes('読書')) hobbyExtensions.push("📚 最近読んだ本の話をしてみると盛り上がるかも！");
+if (combined.includes('アニメ')) hobbyExtensions.push("📺 推しキャラやアニメある？って聞くと喜ぶタイプかも！");
+if (combined.includes('スポーツ')) hobbyExtensions.push("⚽ 観戦派かプレイ派か聞いてみると意外な話が聞けるかも！");
+if (combined.includes('旅行')) hobbyExtensions.push("✈️ 行ってみたい国とか語り合うと楽しいかも！");
+if (combined.includes('美術')) hobbyExtensions.push("🎨 美術館トークや推し画家の話がハマるかも！");
+if (combined.includes('料理')) hobbyExtensions.push("🍳 得意料理とか聞くとテンション上がりそう！");
+if (combined.includes('筋トレ')) hobbyExtensions.push("💪 プロテインの話で盛り上がれるかも…！？");
+if (combined.includes('ファッション')) hobbyExtensions.push("👗 好きなブランドや服の系統、話してみよう！");
+if (combined.includes('カラオケ')) hobbyExtensions.push("🎤 定番ソングある？って聞くと一気に距離縮まるかも！");
+if (combined.includes('ペット')) hobbyExtensions.push("🐾 飼ってる動物の話をすると嬉しそうに話してくれるかも！");
+if (combined.includes('イラスト')) hobbyExtensions.push("🖌️ SNSに投稿してるかも？見せてもらってみよう！");
+if (combined.includes('映画')) hobbyExtensions.push("🎬 好きなジャンルや推し俳優の話で盛り上がれるかも！");
 
   if (hobbyExtensions.length > 0) {
     resultLines.push(`<div style="margin-top:12px;">この話題を振ってみよう👇</div>`);
@@ -1187,7 +1232,8 @@ if (mbtiEl) mbtiEl.innerText = type;
 
 <!-- ↓ ここがMBTIタイプが表示される非表示エリア -->
 <div id="mbti-type" style="display:none;"></div>
-<!-- ▼ 相性診断スクリプト（フッター付近に追加） -->
+
+<!-- ▼ 相性診断スクリプト -->
 <script>
 window.addEventListener('DOMContentLoaded', () => {
   const myMbti = localStorage.getItem('my_mbti');
@@ -1196,23 +1242,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
   if (myMbti && otherMbti && myMbti.length === 4 && otherMbti.length === 4) {
     const compatibility = getCompatibility(myMbti, otherMbti);
-    const target = document.createElement('div');
-    target.innerHTML = `<div style="
-      background: #fff;
-      color: #444;
-      border-radius: 12px;
-      padding: 16px;
-      margin: 16px auto;
-      max-width: 320px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      font-family: 'Comic Sans MS', cursive;
-      text-align: center;
-      font-size: 14px;
-    ">
-      あなた（${myMbti}）とこの人（${otherMbti}）の相性は…<br>
-      <strong style="font-size: 16px; color: #e91e63;">${compatibility}</strong>
-    </div>`;
-    document.body.appendChild(target);
+    const score = getCompatibilityScore(myMbti, otherMbti);
+    showCompatibilityModal(myMbti, otherMbti, compatibility, score);
   }
 });
 
@@ -1231,10 +1262,65 @@ function getCompatibility(mbti1, mbti2) {
   }
   return '価値観の違いも楽しめる関係！';
 }
+
+function getCompatibilityScore(m1, m2) {
+  let score = 50;
+  if (m1 === m2) return 90;
+  const pairs = ['IE', 'NS', 'TF', 'JP'];
+  for (let i = 0; i < 4; i++) {
+    if (m1[i] === m2[i]) score += 10;
+    else score -= 5;
+  }
+  return Math.max(0, Math.min(100, score));
+}
+
+function showCompatibilityModal(my, other, message, score) {
+  const modal = document.createElement('div');
+  modal.id = 'compat-modal';
+  modal.style.cssText = `
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  `;
+  modal.innerHTML = `
+    <div style="
+      background: white;
+      padding: 24px;
+      border-radius: 16px;
+      font-family: 'Comic Sans MS', cursive;
+      text-align: center;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+      max-width: 80vw;
+    ">
+      <div style="font-size: 16px; margin-bottom: 10px;">
+        あなた（${my}）とこの人（${other}）の相性は…
+      </div>
+      <div style="font-size: 24px; font-weight: bold; color: #e91e63;">
+        ${message}
+      </div>
+      <div style="font-size: 18px; margin-top: 10px;">
+        ❤️ 相性スコア：<strong>${score}%</strong>
+      </div>
+      <div style="margin-top: 20px;">
+        <button onclick="document.getElementById('compat-modal').remove()" style="
+          padding: 8px 16px;
+          background: #e91e63;
+          color: white;
+          border: none;
+          border-radius: 8px;
+          cursor: pointer;
+        ">閉じる</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
 </script>
 
 <!-- ▼ hidden用（相手MBTIを埋め込む用） -->
 <input type="hidden" id="hidden-mbti" value="" />
-
-</body>
-</html> 
