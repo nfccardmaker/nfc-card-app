@@ -1248,12 +1248,17 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 function getCompatibility(mbti1, mbti2) {
-  const perfectPairs = [
-    ['INFP', 'ENFJ'], ['ENFP', 'INFJ'],
-    ['INTP', 'ENTJ'], ['ENTP', 'INTJ'],
-    ['ISFP', 'ESFJ'], ['ISTP', 'ESTJ'],
-    ['ISFJ', 'ESFP'], ['ISTJ', 'ESTP']
-  ];
+ const perfectPairs = [
+  ['INFP', 'ENFJ'], ['ENFP', 'INFJ'], ['INFJ', 'INTP'], ['INFP', 'INFJ'],
+  ['ENFP', 'INTP'], ['ENTP', 'INFJ'], ['ENFJ', 'INFP'], ['ISFJ', 'ENFP'],
+  ['ISTJ', 'ISFJ'], ['ISFP', 'INFP'], ['ESTP', 'ENFP'], ['ESFP', 'ENFJ'],
+  ['ISTP', 'INFP'], ['INTP', 'ENTJ'], ['ENTP', 'INTJ'], ['ISFP', 'ESFJ'],
+  ['ISTP', 'ESTJ'], ['ISFJ', 'ESFP'], ['ISTJ', 'ESTP'], ['INTJ', 'ENFP'],
+  ['INTP', 'INFJ'], ['ESFJ', 'ISFP'], ['ESTJ', 'ISTP'], ['ESFP', 'ISFJ'],
+  ['ESTP', 'ISTJ'], ['ENFJ', 'ISFP'], ['ENFP', 'ISFJ'], ['ENTJ', 'INFP'],
+  ['INTJ', 'ENFJ'], ['ENFP', 'ENFP'], ['ENTP', 'ENTP'], ['INFP', 'INTP']
+];
+
   if (mbti1 === mbti2) return '似たもの同士で安心感バッチリ！';
   for (const [a, b] of perfectPairs) {
     if ((mbti1 === a && mbti2 === b) || (mbti1 === b && mbti2 === a)) {
