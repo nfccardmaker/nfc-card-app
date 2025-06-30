@@ -1173,7 +1173,8 @@ function startDiagnosis() {
   }
 
   localStorage.setItem('my_mbti', type);
-  document.getElementById('mbti-type').innerText = type; // ← ここを追加
+  const mbtiEl = document.getElementById('mbti-type');
+if (mbtiEl) mbtiEl.innerText = type;
 
   document.getElementById('diagnosis-result').innerHTML = resultLines.join('');
   document.getElementById('diagnosis-modal').style.display = 'flex';
@@ -1186,6 +1187,54 @@ function startDiagnosis() {
 
 <!-- ↓ ここがMBTIタイプが表示される非表示エリア -->
 <div id="mbti-type" style="display:none;"></div>
+<!-- ▼ 相性診断スクリプト（フッター付近に追加） -->
+<script>
+window.addEventListener('DOMContentLoaded', () => {
+  const myMbti = localStorage.getItem('my_mbti');
+  const otherMbti = document.getElementById('mbti-type')?.innerText ||
+                    document.getElementById('hidden-mbti')?.value || '';
+
+  if (myMbti && otherMbti && myMbti.length === 4 && otherMbti.length === 4) {
+    const compatibility = getCompatibility(myMbti, otherMbti);
+    const target = document.createElement('div');
+    target.innerHTML = `<div style="
+      background: #fff;
+      color: #444;
+      border-radius: 12px;
+      padding: 16px;
+      margin: 16px auto;
+      max-width: 320px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      font-family: 'Comic Sans MS', cursive;
+      text-align: center;
+      font-size: 14px;
+    ">
+      あなた（${myMbti}）とこの人（${otherMbti}）の相性は…<br>
+      <strong style="font-size: 16px; color: #e91e63;">${compatibility}</strong>
+    </div>`;
+    document.body.appendChild(target);
+  }
+});
+
+function getCompatibility(mbti1, mbti2) {
+  const perfectPairs = [
+    ['INFP', 'ENFJ'], ['ENFP', 'INFJ'],
+    ['INTP', 'ENTJ'], ['ENTP', 'INTJ'],
+    ['ISFP', 'ESFJ'], ['ISTP', 'ESTJ'],
+    ['ISFJ', 'ESFP'], ['ISTJ', 'ESTP']
+  ];
+  if (mbti1 === mbti2) return '似たもの同士で安心感バッチリ！';
+  for (const [a, b] of perfectPairs) {
+    if ((mbti1 === a && mbti2 === b) || (mbti1 === b && mbti2 === a)) {
+      return 'バランス最高！理想のペア！';
+    }
+  }
+  return '価値観の違いも楽しめる関係！';
+}
+</script>
+
+<!-- ▼ hidden用（相手MBTIを埋め込む用） -->
+<input type="hidden" id="hidden-mbti" value="" />
 
 </body>
 </html> 
