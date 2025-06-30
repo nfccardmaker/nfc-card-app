@@ -1075,14 +1075,15 @@ function startDiagnosis() {
 ">
   <div style="
     background: white;
-    padding: 30px;
+    padding: 28px 24px;
     border-radius: 20px;
-    max-width: 80vw;
-    font-size: 24px;
+    max-width: 90vw;
+    font-size: 13px;
     font-weight: bold;
     text-align: center;
     font-family: 'Comic Sans MS', 'Arial Rounded MT Bold', sans-serif;
     animation: fadeIn 0.6s ease-in-out;
+    line-height: 1.6;
   " id="diagnosis-result"></div>
 </div>
 
@@ -1155,17 +1156,17 @@ function startDiagnosis() {
   const displayName = "〇〇さん";
   const resultLines = [];
 
-  resultLines.push(`${displayName}は「${type}タイプ」かも！？`);
-  resultLines.push(`MBTI的には：${mbtiDescriptions[type] || "バランス型タイプ！"}`);
+  resultLines.push(`<div style="font-size: 20px;">${displayName}は「${type}タイプ」かも！？</div>`);
+  resultLines.push(`<div>MBTI的には：${mbtiDescriptions[type] || "バランス型タイプ！"}</div>`);
 
   if (barColor.includes('pink') || barColor.includes('#f')) {
-    resultLines.push("カラー診断：ピンク系 → 感受性豊かでやさしい性格！");
+    resultLines.push("<div>カラー診断：ピンク系 → 感受性豊かでやさしい性格！</div>");
   } else if (barColor.includes('blue') || barColor.includes('navy')) {
-    resultLines.push("カラー診断：青系 → 冷静で誠実な性格！");
+    resultLines.push("<div>カラー診断：青系 → 冷静で誠実な性格！</div>");
   } else if (barColor.includes('green')) {
-    resultLines.push("カラー診断：緑系 → 自然を大切にする穏やかタイプ！");
+    resultLines.push("<div>カラー診断：緑系 → 自然を大切にする穏やかタイプ！</div>");
   } else if (barColor.includes('yellow')) {
-    resultLines.push("カラー診断：黄色系 → 明るく前向きなタイプ！");
+    resultLines.push("<div>カラー診断：黄色系 → 明るく前向きなタイプ！</div>");
   }
 
   const hobbyTags = {
@@ -1182,8 +1183,8 @@ function startDiagnosis() {
   };
   const detectedHobbies = Object.keys(hobbyTags).filter(word => combined.includes(word));
   if (detectedHobbies.length > 0) {
-    resultLines.push(`${displayName}は ${detectedHobbies.join('・')} が好きな傾向があるよ！`);
-    resultLines.push(`→ 傾向：${detectedHobbies.map(h => hobbyTags[h]).join(' ／ ')}`);
+    resultLines.push(`<div>${displayName}は ${detectedHobbies.join('・')} が好きな傾向があるよ！</div>`);
+    resultLines.push(`<div>→ 傾向：${detectedHobbies.map(h => hobbyTags[h]).join(' ／ ')}</div>`);
   }
 
   const hobbyExtensions = [];
@@ -1192,12 +1193,11 @@ function startDiagnosis() {
   if (combined.includes('カフェ')) hobbyExtensions.push("☕ カフェ巡りブログ始めてるかも？");
 
   if (hobbyExtensions.length > 0) {
-    resultLines.push("この話題を振ってみよう👇");
-    resultLines.push(hobbyExtensions.join('\n'));
+    resultLines.push(`<div style="margin-top:12px;">この話題を振ってみよう👇</div>`);
+    resultLines.push(`<div>${hobbyExtensions.join('<br>')}</div>`);
   }
 
-  const formatted = resultLines.map(line => `<div style="margin: 12px 0;">${line}</div>`).join('');
-  document.getElementById('diagnosis-result').innerHTML = formatted;
+  document.getElementById('diagnosis-result').innerHTML = resultLines.join('');
   document.getElementById('diagnosis-modal').style.display = 'flex';
 
   document.getElementById('diagnosis-modal').addEventListener('click', () => {
