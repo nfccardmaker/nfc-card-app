@@ -5,177 +5,51 @@
   <title>Smart Value</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body {
-      background-color: #000;
-      color: white;
-      font-family: 'Helvetica Neue', sans-serif;
+    * {
       margin: 0;
       padding: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      min-height: 100vh;
+      box-sizing: border-box;
     }
 
-    img.logo {
-      max-width: 60vw;
-      height: auto;
-      margin-top: 40px;
+    html, body {
+      height: 100%;
+      font-family: 'Helvetica Neue', sans-serif;
+      overflow: hidden;
     }
 
-    .catch {
-      font-size: 14px;
-      color: #ccc;
-      margin: 20px 20px 30px;
+    video#bg-video {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      object-fit: contain;
+      z-index: -1;
     }
 
-    .button-group {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      width: 80%;
-      max-width: 300px;
-    }
-
-    .button-group a {
+    .click-button {
+      position: absolute;
+      bottom: 18%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 160px;
+      height: 60px;
       background-color: transparent;
-      border: 2px solid #FFCC00;
-      color: #FFCC00;
-      padding: 12px;
-      border-radius: 30px;
-      font-weight: bold;
-      text-decoration: none;
-      transition: all 0.3s;
-    }
-
-    .button-group a:hover {
-      background-color: #FFCC00;
-      color: #000;
-    }
-
-    .slider {
-      margin-top: 30px;
-      margin-bottom: 10px;
-    }
-
-    .slider img {
-      width: 140px;
-      height: auto;
-    }
-
-    .fade-zoom {
-      animation: fadeZoom 0.7s ease-in-out;
-    }
-
-    @keyframes fadeZoom {
-      0% {
-        opacity: 0;
-        transform: scale(0.95) rotateY(10deg);
-      }
-      100% {
-        opacity: 1;
-        transform: scale(1) rotateY(0deg);
-      }
-    }
-
-    .slider-text {
-      font-size: 13px;
-      color: #FFCC00;
-      font-weight: bold;
-      padding: 0 20px 30px;
-      max-width: 320px;
-    }
-
-    .steps {
-      background-color: #111;
-      padding: 20px;
-      margin: 30px auto;
-      border-radius: 12px;
-      max-width: 320px;
-    }
-
-    .steps p {
-      color: #fff;
-      font-size: 13px;
-      text-align: left;
-      line-height: 1.6;
-    }
-
-    .steps p span {
-      color: #FFCC00;
-      font-weight: bold;
-    }
-
-    @media(min-width: 600px) {
-      .button-group {
-        flex-direction: row;
-        justify-content: center;
-      }
-
-      .slider img {
-        width: 180px;
-      }
-
-      .slider-text {
-        font-size: 14px;
-      }
+      border: none;
+      cursor: pointer;
+      z-index: 10;
     }
   </style>
 </head>
 <body>
 
-  <img src="{{ url_for('static', filename='NFC_logo.jpeg') }}" alt="Smart Value ロゴ" class="logo">
-  <div class="catch">スマートにつながる、あたらしい価値の持ち方</div>
+  <video autoplay muted loop playsinline id="bg-video">
+    <source src="{{ url_for('static', filename='fureta.mp4') }}" type="video/mp4">
+    お使いのブラウザは動画に対応していません。
+  </video>
 
-  <div class="button-group">
-    <a href="/preview">作成する</a>
-  </div>
-
-  <div class="slider">
-    <img id="slide" src="{{ url_for('static', filename='change.jpeg') }}" alt="紹介画像" class="fade-zoom">
-  </div>
-
-  <div class="slider-text" id="slide-text">
-    スマホかざして、サクッと自己紹介
-  </div>
-
-  <div class="steps">
-    <p><span>Step1.</span> 背景画像とバーの色を選んで「作成する」を押す</p>
-    <p><span>Step2.</span> プレビュー画面で見た目をチェック</p>
-    <p><span>Step3.</span> ダウンロードしたZipファイルをGitHubなどで公開</p>
-    <p><span>Step4.</span> URLをNFCカードに登録しよう！</p>
-  </div>
-
-  <script>
-    const images = [
-      {
-        src: "{{ url_for('static', filename='change.jpeg') }}",
-        text: "スマホかざして、サクッと自己紹介"
-      },
-      {
-        src: "{{ url_for('static', filename='protect.jpeg') }}",
-        text: "あなたの情報をカードがしっかり守る"
-      },
-      {
-        src: "{{ url_for('static', filename='degitaru.jpeg') }}",
-        text: "デジタル名刺としてそのまま使える"
-      }
-    ];
-
-    let index = 0;
-    const imgEl = document.getElementById("slide");
-    const textEl = document.getElementById("slide-text");
-
-    setInterval(() => {
-      index = (index + 1) % images.length;
-      imgEl.classList.remove("fade-zoom");
-      void imgEl.offsetWidth;
-      imgEl.src = images[index].src;
-      imgEl.classList.add("fade-zoom");
-      textEl.textContent = images[index].text;
-    }, 3000);
-  </script>
+  <!-- 動画内のボタンに被せて透明なクリック領域 -->
+  <button class="click-button" onclick="location.href='/preview'"></button>
 
 </body>
 </html>
