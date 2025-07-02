@@ -677,7 +677,9 @@ input.style.left = `${x}px`;
 input.style.top = `${y}px`;
 input.style.width = '150px';  // 固定サイズで横スクロール防止
 input.style.maxWidth = 'calc(100vw - 40px)';  // 念のための安全策
-document.body.appendChild(input);
+const container = document.getElementById('page-wrapper');
+container.appendChild(input);
+
 // 入力が空のままフォーカスが外れたら消す処理
 input.addEventListener("blur", () => {
   if (input.value.trim() === "") {
