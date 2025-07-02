@@ -1330,6 +1330,10 @@ function showCompatibilityModal(my, other, message, score) {
       <div style="font-size: 20px; color: #e91e63; font-weight: bold;">
         ${message}
       </div>
+      <div style="font-size: 14px; color: #555; margin-top: 8px;">
+  ${getExtraCompatComment(my, other)}
+</div>
+
       <div style="margin-top: 24px;">
         <button onclick="document.getElementById('compat-modal').remove()" style="
           padding: 8px 16px;
@@ -1349,6 +1353,24 @@ function showCompatibilityModal(my, other, message, score) {
   setTimeout(() => {
     modal.style.opacity = '1';
   }, 50);
+}
+function getExtraCompatComment(mbti1, mbti2) {
+  const same = mbti1 === mbti2;
+  const sortedPair = [mbti1, mbti2].sort().join('-');
+
+  const comments = {
+    "INTP-INTP": "お互いマイペースで居心地のいい関係になれそう！",
+    "ENFP-INFJ": "相手の世界観を大事にし合える相性！",
+    "ENTP-INTJ": "好奇心×論理！一緒に面白い企画が生まれそう！",
+    "ISFJ-ESFP": "真面目さと元気さの絶妙コンビ！",
+    "INFP-ENFJ": "気持ちを尊重し合う温かい関係に！",
+  };
+
+  if (same) {
+    return "似た価値観で安心できる時間を過ごせるかも！";
+  }
+
+  return comments[sortedPair] || "性格の違いが良い刺激に！話してみると新しい発見があるかも？";
 }
 
 </script>
