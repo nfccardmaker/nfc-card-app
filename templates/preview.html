@@ -1091,18 +1091,18 @@ function startDiagnosis() {
   let type = '';
 
 // I / E 判定
-if (combined.match(/ひとり|静か|本|ソロ|家|落ち着く|アニメ|内省|黙る|マイペース/)) {
+if (combined.match(/ひとり|静か|本|ソロ|家|落ち着く|アニメ|内省|黙る|マイペース|一人旅|図書館|音楽鑑賞|ゆっくり/)) {
   type += 'I';
-} else if (combined.match(/仲間|みんな|カラオケ|イベント|旅行|飲み会|おしゃべり|騒ぐ|SNS/)) {
+} else if (combined.match(/仲間|みんな|カラオケ|イベント|旅行|飲み会|おしゃべり|騒ぐ|SNS|パーティ|外出|集まり|友達と|BBQ/)) {
   type += 'E';
 } else {
-  type += 'I';
+  type += 'I'; // デフォルト
 }
 
 // N / S 判定
-if (combined.match(/空想|ひらめき|想像|クリエイティブ|アート|創作|哲学|直感|夢/)) {
+if (combined.match(/空想|ひらめき|想像|クリエイティブ|アート|創作|哲学|直感|夢|アイデア|インスピレーション|未来/)) {
   type += 'N';
-} else if (combined.match(/現実|実用|旅行|運動|料理|アウトドア|具体|体験|五感/)) {
+} else if (combined.match(/現実|実用|旅行|運動|料理|アウトドア|具体|体験|五感|道具|自然|生活感|日常/)) {
   type += 'S';
 } else {
   type += 'N';
@@ -1110,22 +1110,21 @@ if (combined.match(/空想|ひらめき|想像|クリエイティブ|アート|�
 
 // T / F 判定（スコア式）
 let tfScore = 0;
-if (combined.match(/論理|分析|効率|数字|プログラミング|理屈|戦略|データ/)) tfScore += 1;
-if (combined.match(/共感|やさしい|応援|思いやり|ケア|感情|涙|相談/)) tfScore -= 1;
+if (combined.match(/論理|分析|効率|数字|プログラミング|理屈|戦略|データ|証拠|客観/)) tfScore += 1;
+if (combined.match(/共感|やさしい|応援|思いやり|ケア|感情|涙|相談|気遣い|感動|仲間思い/)) tfScore -= 1;
 if (barColor.includes('pink') || barColor.includes('#f')) tfScore -= 1;
 if (barColor.includes('blue') || barColor.includes('#00f') || barColor.includes('navy')) tfScore += 1;
 
 type += tfScore >= 0 ? 'T' : 'F';
 
 // J / P 判定
-if (combined.match(/計画|整理|スケジュール|時間管理|リスト|準備|管理|目標|段取り/)) {
+if (combined.match(/計画|整理|スケジュール|時間管理|リスト|準備|管理|目標|段取り|メモ|ToDo/)) {
   type += 'J';
-} else if (combined.match(/自由|気まま|柔軟|マイペース|その場|思いつき|即興/)) {
+} else if (combined.match(/自由|気まま|柔軟|マイペース|その場|思いつき|即興|流れに任せる|成り行き/)) {
   type += 'P';
 } else {
   type += 'P';
 }
-
 
   const mbtiDescriptions = {
     INFP: "理想主義で感受性豊かな癒し系タイプ！",
