@@ -1310,16 +1310,23 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 function getCompatibility(mbti1, mbti2) {
- const perfectPairs = [
-  ['INFP', 'ENFJ'], ['ENFP', 'INFJ'], ['INFJ', 'INTP'], ['INFP', 'INFJ'],
-  ['ENFP', 'INTP'], ['ENTP', 'INFJ'], ['ENFJ', 'INFP'], ['ISFJ', 'ENFP'],
-  ['ISTJ', 'ISFJ'], ['ISFP', 'INFP'], ['ESTP', 'ENFP'], ['ESFP', 'ENFJ'],
-  ['ISTP', 'INFP'], ['INTP', 'ENTJ'], ['ENTP', 'INTJ'], ['ISFP', 'ESFJ'],
-  ['ISTP', 'ESTJ'], ['ISFJ', 'ESFP'], ['ISTJ', 'ESTP'], ['INTJ', 'ENFP'],
-  ['INTP', 'INFJ'], ['ESFJ', 'ISFP'], ['ESTJ', 'ISTP'], ['ESFP', 'ISFJ'],
-  ['ESTP', 'ISTJ'], ['ENFJ', 'ISFP'], ['ENFP', 'ISFJ'], ['ENTJ', 'INFP'],
-  ['INTJ', 'ENFJ'], ['ENFP', 'ENFP'], ['ENTP', 'ENTP'], ['INFP', 'INTP']
-];
+  const perfectPairs = [
+    ['INFP', 'ENFJ'], ['ENFP', 'INFJ'], ['INFJ', 'INTP'], ['INFP', 'INFJ'],
+    ['ENFP', 'INTP'], ['ENTP', 'INFJ'], ['ENFJ', 'INFP'], ['ISFJ', 'ENFP'],
+    ['ISTJ', 'ISFJ'], ['ISFP', 'INFP'], ['ESTP', 'ENFP'], ['ESFP', 'ENFJ'],
+    ['ISTP', 'INFP'], ['INTP', 'ENTJ'], ['ENTP', 'INTJ'], ['ISFP', 'ESFJ'],
+    ['ISTP', 'ESTJ'], ['ISFJ', 'ESFP'], ['ISTJ', 'ESTP'], ['INTJ', 'ENFP'],
+    ['INTP', 'INFJ'], ['ESFJ', 'ISFP'], ['ESTJ', 'ISTP'], ['ESFP', 'ISFJ'],
+    ['ESTP', 'ISTJ'], ['ENFJ', 'ISFP'], ['ENFP', 'ISFJ'], ['ENTJ', 'INFP'],
+    ['INTJ', 'ENFJ'], ['ENFP', 'ENFP'], ['ENTP', 'ENTP'], ['INFP', 'INTP'],
+    // ⬇ 拡張ここから
+    ['ISFJ', 'ISTP'], ['INFJ', 'ENFJ'], ['ISFP', 'ENFP'], ['ENFP', 'ISFP'],
+    ['ISTJ', 'ENTP'], ['ISTP', 'ENFP'], ['ESTJ', 'ENFJ'], ['INTP', 'ENTP'],
+    ['ENTP', 'ISFJ'], ['ESFP', 'ISFP'], ['ISFP', 'ISFP'], ['INTP', 'ISFP'],
+    ['INFP', 'INFP'], ['ENFJ', 'ENFJ'], ['ESTJ', 'ISTJ'], ['ISTP', 'ISFJ'],
+    ['INFJ', 'ISFP'], ['ISFJ', 'INFJ'], ['ENFP', 'ISTP'], ['INTJ', 'INFP']
+  ];
+
 
   if (mbti1 === mbti2) return '似たもの同士で安心感バッチリ！';
   for (const [a, b] of perfectPairs) {
