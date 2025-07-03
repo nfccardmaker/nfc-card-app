@@ -313,8 +313,8 @@ body {
 <div id="extra-text-wrapper" class="sns-wrapper" style="margin-top: 20px; position: relative;">
   <img src="/static/batu.jpeg" alt="削除" class="sns-delete-btn" onclick="hideExtraText()" style="
     position: absolute;
-    top: 0px;
-    right: 30px;
+    top: -4px;
+    right: 11px;
     width: 18px;
     height: 18px;
     cursor: pointer;
@@ -326,8 +326,8 @@ body {
     padding: 14px 18px;
     border-radius: 14px;
     border: 1px solid #ccc;
-    width: 85vw;
-    max-width: 600px;
+    width: 90vw;
+    max-width: 650px;
     height: 150px;
     font-size: 16px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.12);
@@ -756,15 +756,29 @@ function hideAddLink(event) {
   if (extraTextWrapper) extraTextWrapper.style.display = 'block';
   const youtubeSection = document.querySelector('.youtube-section');
   if (youtubeSection) youtubeSection.style.display = 'block';
+  const diagnosisWrapper = document.getElementById("diagnosis-wrapper");
+  if (diagnosisWrapper) diagnosisWrapper.style.display = "block";
 }
 function hideExtraText() {
   const wrapper = document.getElementById('extra-text-wrapper');
   if (wrapper) wrapper.style.display = 'none';
 }
+function hideDiagnosisButton() {
+  const diagnosisWrapper = document.getElementById("diagnosis-wrapper");
+  if (diagnosisWrapper) diagnosisWrapper.style.display = "none";
+}
+
+function restoreDiagnosisButton() {
+  const diagnosisWrapper = document.getElementById("diagnosis-wrapper");
+  if (diagnosisWrapper) diagnosisWrapper.style.display = "block";
+}
+
 document.getElementById('finish-button').addEventListener('click', async () => {
   const finishBtn = document.getElementById('finish-button');
+  
   finishBtn.disabled = true;
   finishBtn.textContent = '生成中...';
+  
 // 入力値を表示用の要素に反映
 // 入力値を表示エリアに反映する（完成前に必要！）
 // 入力値を value 属性に反映（Firebaseに反映されるように）
@@ -828,6 +842,8 @@ document.querySelectorAll('.sns-wrapper .sns-delete-btn').forEach(btn => {
 
   const extraBatsu = document.querySelector('#extra-text-wrapper .sns-delete-btn');
   if (extraBatsu) extraBatsu.style.display = 'none';
+  const diagnosisBatsu = document.querySelector('#diagnosis-wrapper .sns-delete-btn');
+  if (diagnosisBatsu) diagnosisBatsu.style.display = 'none';
   // SNSリンクをHTMLに埋め込む処理（完成ボタン処理の中に追加）
 ['instagram', 'x', 'tiktok'].forEach(service => {
   const wrapper = document.querySelector(`.sns-wrapper:has(#input-${service})`);
@@ -1035,19 +1051,44 @@ function startDiagnosis() {
 <!-- さらに追加してもOK！ -->
 
 </div>
-<!-- ▼ 診断ボタン -->
-<div style="text-align: center; margin-top: 20px;">
-  <button id="diagnosis-button" onclick="startDiagnosis()" style="
-    padding: 10px 20px;
-    font-size: 16px;
-    border-radius: 10px;
-    background-color: #f48fb1;
-    color: white;
+<!-- ▼ 先にボタンのスタイル定義！ -->
+<style>
+  #diagnosis-button {
+    padding: 12px 24px;
+    font-size: 17px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #ffffff 0%, #d6f2f9 40%, #ffd1e9 100%);
+    color: #fff;
+    font-weight: bold;
+    font-family: 'Rounded Mplus 1c', 'Hiragino Maru Gothic ProN', sans-serif;
     border: none;
     cursor: pointer;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-  ">〇〇さんの特徴！</button>
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    letter-spacing: 1px;
+    transition: all 0.2s ease-in-out;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3); /* ← ここで視認性UP */
+  }
+
+  #diagnosis-button:hover {
+    background: linear-gradient(135deg, #ffd1e9, #d6f2f9, #ffffff);
+    transform: scale(1.05);
+  }
+</style>
+
+<!-- ▼ 診断ボタン（バツ付き） -->
+<div id="diagnosis-wrapper" style="position: relative; margin-top: 20px; text-align: center;">
+  <img src="/static/batu.jpeg" alt="削除" class="sns-delete-btn" onclick="hideDiagnosisButton()" style="
+    position: absolute;
+    top: -8px;
+    right: 90px;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    z-index: 10;
+  ">
+  <button id="diagnosis-button" onclick="startDiagnosis()">〇〇さんの特徴！</button>
 </div>
+
 
 <!-- ▼ モーダル表示部分 -->
 <div id="diagnosis-modal" style="
@@ -1079,23 +1120,6 @@ function startDiagnosis() {
   from { opacity: 0; transform: scale(0.9); }
   to { opacity: 1; transform: scale(1); }
 }
-<style>
-@keyframes fadeInStep1 {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes popScore {
-  from { opacity: 0; transform: scale(0.8); }
-  to { opacity: 1; transform: scale(1); }
-}
-
-@keyframes fadeInStep3 {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-</style>
-
 </style>
 
 <script>
@@ -1108,18 +1132,18 @@ function startDiagnosis() {
   let type = '';
 
 // I / E 判定
-if (combined.match(/ひとり|静か|本|ソロ|家|落ち着く|アニメ|内省|黙る|マイペース|一人旅|図書館|音楽鑑賞|ゆっくり/)) {
+if (combined.match(/ひとり|静か|本|ソロ|家|落ち着く|アニメ|内省|黙る|マイペース/)) {
   type += 'I';
-} else if (combined.match(/仲間|みんな|カラオケ|イベント|旅行|飲み会|おしゃべり|騒ぐ|SNS|パーティ|外出|集まり|友達と|BBQ/)) {
+} else if (combined.match(/仲間|みんな|カラオケ|イベント|旅行|飲み会|おしゃべり|騒ぐ|SNS/)) {
   type += 'E';
 } else {
-  type += 'I'; // デフォルト
+  type += 'I';
 }
 
 // N / S 判定
-if (combined.match(/空想|ひらめき|想像|クリエイティブ|アート|創作|哲学|直感|夢|アイデア|インスピレーション|未来/)) {
+if (combined.match(/空想|ひらめき|想像|クリエイティブ|アート|創作|哲学|直感|夢/)) {
   type += 'N';
-} else if (combined.match(/現実|実用|旅行|運動|料理|アウトドア|具体|体験|五感|道具|自然|生活感|日常/)) {
+} else if (combined.match(/現実|実用|旅行|運動|料理|アウトドア|具体|体験|五感/)) {
   type += 'S';
 } else {
   type += 'N';
@@ -1127,21 +1151,22 @@ if (combined.match(/空想|ひらめき|想像|クリエイティブ|アート|�
 
 // T / F 判定（スコア式）
 let tfScore = 0;
-if (combined.match(/論理|分析|効率|数字|プログラミング|理屈|戦略|データ|証拠|客観/)) tfScore += 1;
-if (combined.match(/共感|やさしい|応援|思いやり|ケア|感情|涙|相談|気遣い|感動|仲間思い/)) tfScore -= 1;
+if (combined.match(/論理|分析|効率|数字|プログラミング|理屈|戦略|データ/)) tfScore += 1;
+if (combined.match(/共感|やさしい|応援|思いやり|ケア|感情|涙|相談/)) tfScore -= 1;
 if (barColor.includes('pink') || barColor.includes('#f')) tfScore -= 1;
 if (barColor.includes('blue') || barColor.includes('#00f') || barColor.includes('navy')) tfScore += 1;
 
 type += tfScore >= 0 ? 'T' : 'F';
 
 // J / P 判定
-if (combined.match(/計画|整理|スケジュール|時間管理|リスト|準備|管理|目標|段取り|メモ|ToDo/)) {
+if (combined.match(/計画|整理|スケジュール|時間管理|リスト|準備|管理|目標|段取り/)) {
   type += 'J';
-} else if (combined.match(/自由|気まま|柔軟|マイペース|その場|思いつき|即興|流れに任せる|成り行き/)) {
+} else if (combined.match(/自由|気まま|柔軟|マイペース|その場|思いつき|即興/)) {
   type += 'P';
 } else {
   type += 'P';
 }
+
 
   const mbtiDescriptions = {
     INFP: "理想主義で感受性豊かな癒し系タイプ！",
@@ -1325,87 +1350,46 @@ function showCompatibilityModal(my, other, message, score) {
   `;
 
   modal.innerHTML = `
-  <div style="background: #fff; padding: 24px; border-radius: 16px;
-              font-family: 'Comic Sans MS', cursive; text-align: center;
-              box-shadow: 0 8px 16px rgba(0,0,0,0.25); max-width: 90vw;">
-    <div style="font-size: 20px; font-weight: bold; color: #e91e63; margin-bottom: 6px;
-      animation: fadeInStep1 0.6s ease forwards;">
-      2人の相性度
+    <div style="
+      background: #fff;
+      padding: 24px;
+      border-radius: 16px;
+      font-family: 'Comic Sans MS', cursive;
+      text-align: center;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.25);
+      max-width: 90vw;
+      animation: popIn 0.6s ease forwards;
+    ">
+      <div style="font-size: 20px; font-weight: bold; color: #e91e63; margin-bottom: 6px;">
+       2人の相性度
+      <div style="font-size: 36px; font-weight: bold; color: #ff3366; margin-bottom: 12px;">
+        💖 ${score}% 💖
+      </div>
+      <div style="font-size: 16px; margin-bottom: 6px;">
+        あなた（${my}）とこの人（${other}）の相性は…
+      </div>
+      <div style="font-size: 20px; color: #e91e63; font-weight: bold;">
+        ${message}
+      </div>
+      <div style="margin-top: 24px;">
+        <button onclick="document.getElementById('compat-modal').remove()" style="
+          padding: 8px 16px;
+          background: #e91e63;
+          color: white;
+          border: none;
+          border-radius: 8px;
+          cursor: pointer;
+        ">閉じる</button>
+      </div>
     </div>
-
-    <div style="font-size: 36px; font-weight: bold; color: #ff3366; margin-bottom: 12px;
-      animation: popScore 0.6s ease 0.5s forwards; opacity: 0;">
-      ${score}%
-    </div>
-
-    <div style="font-size: 16px; margin-bottom: 6px;
-      animation: fadeInStep3 1s ease 1.1s forwards; opacity: 0;">
-      あなた（${my}）とこの人（${other}）の相性は…
-    </div>
-
-    <div style="font-size: 20px; color: #e91e63; font-weight: bold;
-      animation: fadeInStep3 1s ease 1.6s forwards; opacity: 0;">
-      ${message}
-    </div>
-
-    <div style="font-size: 14px; color: #555; margin-top: 8px;
-      animation: fadeInStep3 1s ease 2.2s forwards; opacity: 0;">
-      ${getExtraCompatComment(my, other)}
-    </div>
-
-    <div style="margin-top: 24px; animation: fadeInStep3 1s ease 2.8s forwards; opacity: 0;">
-      <button onclick="document.getElementById('compat-modal').remove()" style="
-        padding: 8px 16px;
-        background: #e91e63;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-      ">閉じる</button>
-    </div>
-  </div>
-`;
+  `;
 
   document.body.appendChild(modal);
 
-  // フェードインだけ残す
+  // フェードイン
   setTimeout(() => {
     modal.style.opacity = '1';
   }, 50);
-}
-
-function getExtraCompatComment(mbti1, mbti2) {
-  const same = mbti1 === mbti2;
-  const sortedPair = [mbti1, mbti2].sort().join('-');
-
-  const comments = {
-    "INTP-INTP": "お互いマイペースで居心地のいい関係になれそう！",
-    "ENFP-INFJ": "相手の世界観を大事にし合える相性！",
-    "ENTP-INTJ": "好奇心×論理！一緒に面白い企画が生まれそう！",
-    "ISFJ-ESFP": "真面目さと元気さの絶妙コンビ！",
-    "INFP-ENFJ": "気持ちを尊重し合う温かい関係に！",
-    "INFJ-INTP": "感性と論理が絶妙に交わる静かな信頼関係。",
-    "ISTP-ESTJ": "お互いの得意分野を尊重し合えるバランス◎な関係！",
-    "ENTP-INFP": "自由な発想と繊細な感性の相乗効果に期待！",
-    "ENFJ-ISFP": "相手の気持ちを自然に察して寄り添えるペア！",
-    "INTJ-ENFP": "冷静と情熱のコントラストがうまく噛み合う！",
-    "ISTJ-ESTP": "真面目な中にスパイスの効いた面白い関係！",
-    "ISFP-ESFJ": "優しさと社交性で穏やかな時間を過ごせそう。",
-    "ISTJ-ISFJ": "堅実さが共通点。安心して支え合える関係！",
-    "ESFP-ENFP": "お互いのノリや勢いがシンクロして楽しい関係に！",
-    "ESTP-INFJ": "外向と内向の絶妙コンビ！補い合いに期待！",
-    "ENTJ-INFP": "理想と行動の交差点。大きなことを成し遂げる可能性も！",
-    "ESFJ-ISTP": "違いは多いけど、だからこそ刺激があって飽きない関係！",
-    "ISFJ-INFP": "共感力にあふれた心優しい組み合わせ！",
-    "ESTJ-ENFP": "ルール派と自由派の化学反応が面白い！",
-    "INTP-ENFP": "お互いの考えを刺激し合えるクリエイティブなペア！"
-  };
-
-  if (same) {
-    return "似た価値観で安心できる時間を過ごせるかも！";
-  }
-
-  return comments[sortedPair] || "性格の違いが良い刺激に！話してみると新しい発見があるかも？";
 }
 
 </script>
