@@ -1,0 +1,1370 @@
+<html lang="ja"><head>
+  <meta charset="UTF-8">
+  <title>名刺プレビュー</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: 'Helvetica Neue', sans-serif;
+      background-color: #ffffff;
+      overflow: auto;
+    }
+
+    body {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  overflow-x: hidden; /* 👈 横スクロール禁止！ */
+  padding-bottom: 0px; 
+}
+    .main-wrapper {
+      position: relative;
+      min-height: 100vh;
+      padding-bottom: 140px; /* ツールバーを考慮 */
+      box-sizing: border-box;
+    }
+    .card {
+      width: 90%;
+      max-width: 700px;
+      margin: 30px auto;
+      border: 2px solid #ccc;
+      border-radius: 10px;
+      background-color: white;
+      overflow-y: auto;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+    }
+
+   .header-bar {
+  background: linear-gradient(90deg, #ffc1e3, #c1f0f6);
+  height: 40px;
+}
+
+    .student-id {
+      display: flex;
+      flex-direction: row;
+      padding: 20px;
+      gap: 20px;
+    }
+
+    .left-section {
+      width: 40%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .left-section img {
+      width: 125px;
+      height: 125px;
+      object-fit: cover;
+      border-radius: 15px;
+      cursor: pointer;
+    }
+
+    .info-section {
+      width: 60%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .editable-text {
+      border: none;
+      background: transparent;
+      border-bottom: 1px solid #ccc;
+      font-size: 14px;
+      width: 100%;
+    }
+body {
+  padding-bottom: 10px;
+  box-sizing: border-box;
+}
+
+    .toolbar {
+      position: fixed;
+      bottom: 5px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      padding: 10px 16px;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      display: flex;
+      gap: 16px;
+      z-index: 1000;
+      align-items: center;
+      
+    }
+
+    .toolbar img {
+      width: 28spx;
+      height: 28px;
+      cursor: pointer;
+    }
+
+    .toolbar button {
+      padding: 4px 12px;
+      border: none;
+      background: #eee;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+        .hidden-input {
+      opacity: 0;
+      position: absolute;
+      pointer-events: auto;
+    }
+
+
+    .sns-bar {
+      margin: 20px auto;
+      padding-left: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      z-index: 900;
+    }
+
+    .sns-item {
+      background: white;
+      border-radius: 12px;
+      padding: 10px 16px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 16px;
+      max-width: fit-content;
+    }
+
+    .sns-item img {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+    }
+
+    .sns-input {
+      margin-left: 36px;
+      margin-top: 8px;
+      display: none;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 5px 10px;
+      width: 220px;
+      font-size: 14px;
+    }
+
+    .sns-wrapper {
+      display: flex;
+      flex-direction: column;
+    }
+
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 800;
+      display: none;
+    }
+
+    .deco-img {
+      position: fixed;
+      width: 100px;
+      height: auto;
+      cursor: move;
+      z-index: 950;
+      user-select: none;
+      touch-action: none;
+    }
+  .text-sticker {
+  position: absolute;
+  font-size: 20px;
+  font-weight: bold;
+  color: #222;
+  background: transparent;
+  border: none;
+  padding: 0;
+  z-index: 970;
+  max-width: 80vw;
+  word-break: break-word;
+  user-select: none;
+  cursor: move;
+}
+.sns-item {
+  position: relative; /* ボタンを上に重ねるために必要 */
+}
+
+.sns-delete-btn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  z-index: 10;
+}
+#bg-template-list::-webkit-scrollbar {
+  display: none;
+}
+.youtube-section {
+  margin-top: 10px;
+  margin-bottom: 60px; /* ← 追加！ */
+  text-align: center;
+}
+#youtube-url {
+  width: 70%;
+  max-width: 500px;
+  padding: 5px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  margin-top: 5px;
+}
+#youtube-player {
+  margin: 0;
+  padding: 0;
+  line-height: 0;
+}
+iframe {
+  width: 100%;
+  height: 200px; /* ← aspect-ratioと併用せず明示指定で高さ固定 */
+  border: none;
+  margin: 0 auto;
+  padding: 0;
+}
+body {
+  box-sizing: border-box;
+}
+body {
+  overscroll-behavior: contain; /* ← iOSスクロール跳ね返りを抑制 */
+  padding-bottom: 80px;
+}
+#page-wrapper {
+  position: relative;
+  min-height: 100vh;
+  overflow: visible;
+}
+
+  </style>
+</head>
+<body>
+  <div id="page-wrapper">
+  <div class="main-wrapper">
+  <div class="card">
+    <div class="header-bar"></div>
+    <div class="student-id">
+      <div class="left-section">
+        <img id="profile-img" src="/static/profile_icon.jpeg" alt="プロフィール画像">
+        <input type="file" accept="image/*" id="profile-input" class="hidden-input">
+      </div>
+      <div class="info-section">
+        <input type="text" class="editable-text" placeholder="名前" value="">
+        <input type="text" class="editable-text" placeholder="誕生日" value="">
+        <input type="text" class="editable-text" placeholder="年齢" value="">
+        <input type="text" class="editable-text" placeholder="出身地" value="">
+        <input type="text" class="editable-text" placeholder="趣味" value="">
+      </div>
+    </div>
+  </div>
+
+ <!-- ▼ SNSアイコンと入力欄 -->
+<div class="sns-bar">
+  <div class="sns-wrapper">
+    <div class="sns-item" style="position: relative; background: linear-gradient(45deg, #feda75, #fa7e1e, #d62976, #962fbf, #4f5bd5); color: white; padding: 10px 15px; border-radius: 10px; font-weight: bold; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.15);">
+      <img src="/static/instagram_icon.jpeg" alt="Instagram" onclick="handleIconClick('instagram')" style="width: 30px; height: 30px;">
+      Instagram
+      
+    </div>
+    <input id="input-instagram" class="sns-input" placeholder="https://www.instagram.com/yourid" onblur="handleBlur('instagram')">
+  </div>
+
+  <div class="sns-wrapper">
+    <div class="sns-item" style="position: relative; background: #000000; color: white; padding: 10px 15px; border-radius: 10px; font-weight: bold; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.15);">
+      <img src="/static/X_icon.jpeg" alt="X" onclick="handleIconClick('x')" style="width: 28px; height: 28px;">
+    （旧Twitter）
+      
+    </div>
+    <input id="input-x" class="sns-input" placeholder="https://twitter.com/yourid" onblur="handleBlur('x')">
+  </div>
+
+  <div class="sns-wrapper">
+    <div class="sns-item" style="position: relative; background: linear-gradient(45deg, #25F4EE, #FE2C55); color: white; padding: 10px 15px; border-radius: 10px; font-weight: bold; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.15);">
+      <img src="/static/tiktok_icon.jpeg" alt="TikTok" onclick="handleIconClick('tiktok')" style="width: 22px; height: 22px;">
+      TikTok
+      
+    </div>
+    <input id="input-tiktok" class="sns-input" placeholder="https://www.tiktok.com/@yourid" onblur="handleBlur('tiktok')">
+  </div>
+</div>
+
+<!-- ▼ 自由記入欄（バツ付き） -->
+<div id="extra-text-wrapper" class="sns-wrapper" style="margin-top: 20px; position: relative;">
+  
+  <textarea id="extra-text" class="editable-text" placeholder="記入欄" style="
+    margin-top: 3px;
+    margin-left: 20px;
+    padding: 14px 18px;
+    border-radius: 14px;
+    border: 1px solid #ccc;
+    width: 90vw;
+    max-width: 650px;
+    height: 150px;
+    font-size: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    resize: none;
+    line-height: 1.6;
+    background-color: #fff;
+    box-sizing: border-box;
+  " value=""></textarea>
+<input type="hidden" id="hidden-extra-text" name="extra-text" value=""></div>
+
+
+
+
+<!-- ▼ YouTube入力欄 -->
+<div class="youtube-section" style="position: relative; margin-top: 20px;">
+  <img src="/static/batu.jpeg" alt="削除" class="sns-delete-btn" onclick="hideYouTubeSection()" style="position: absolute; top: 15px; right: 20px; width: 18px; height: 18px; cursor: pointer; z-index: 10; display: none;">
+
+  <!-- ここを先に -->
+  <div id="youtube-player" style="padding: 0; text-align: center;"></div>
+
+  <!-- 見出し -->
+  <div style="font-weight: bold; font-size: 14px; margin-bottom: 6px; text-align: left; padding-left: 5vw;">
+    URL<br><span style="font-size: 12px; color: #555;">YouTube</span>
+  </div>
+
+  <!-- 入力欄とボタン -->
+  <input type="text" id="youtube-url" placeholder="YouTubeのURLを入力" style="width: 84vw; max-width: 500px; padding: 10px; border: 1px solid rgb(204, 204, 204); border-radius: 10px; font-size: 14px; display: none;">
+  <button onclick="embedYouTubeVideo()" style="margin-left: 20px; padding: 8px 12px; font-size: 14px; border-radius: 8px; background: rgb(240, 240, 240); display: none;">反映</button>
+</div>
+
+
+  <canvas id="draw-canvas" width="390" height="663" style="display: none;"></canvas>
+  <input type="file" id="background-input" class="hidden-input" accept="image/*" onchange="loadBackgroundImage(event)">
+  <input type="file" id="deco-input" class="hidden-input" accept="image/*" onchange="addDecoImage(event)">
+  <input type="color" id="color-picker" class="hidden-input" onchange="changeBarColor(event)">
+<button id="finish-button" style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgb(238, 238, 238); border: medium; padding: 6px 16px; font-size: 16px; border-radius: 10px; box-shadow: rgba(0, 0, 0, 0.2) 0px 2px 6px; z-index: 1001; cursor: pointer; display: none;" disabled="">生成中...</button>
+ <div class="toolbar" id="toolbar" style="display: none;">
+    <img src="/static/upload.jpeg" onclick="toggleBackgroundList()">
+    <img src="/static/pen_off.jpeg" onclick="toggleTextMode()" id="text-toggle-icon">
+    <div style="position: relative; width: 28px; height: 28px;">
+  <img src="/static/student.jpeg" style="width: 100%; height: 100%; cursor: pointer;">
+  <input type="color" id="color-picker" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+                opacity: 0; cursor: pointer;" onchange="changeBarColor(event)">
+</div>
+<img src="/static/restore.jpeg" onclick="restoreSNS()" style="width: 28px; height: 28px; cursor: pointer;">
+    <img src="/static/photo_icon.jpeg" onclick="document.getElementById('deco-input').click()">
+    <button onclick="togglePreview()" id="check-button">確認</button>
+  </div>
+
+  <script>
+    const urls = { instagram: '', x: '', tiktok: '' };
+    const canvas = document.getElementById('draw-canvas');
+    const ctx = canvas.getContext('2d');
+  function togglePreview() {
+  const toolbar = document.getElementById('toolbar');
+  const finalBtn = document.getElementById('finish-button');
+
+  toolbar.style.display = 'none';
+  finalBtn.style.display = 'block';
+}
+    let drawing = false, drawEnabled = false;
+    let paths = [], currentPath = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      redraw();
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function redraw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 2;
+      for (const path of paths) {
+        ctx.beginPath();
+        path.forEach(([x, y], i) => i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y));
+        ctx.stroke();
+      }
+      if (currentPath.length) {
+        ctx.beginPath();
+        currentPath.forEach(([x, y], i) => i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y));
+        ctx.stroke();
+      }
+    }
+
+    canvas.addEventListener('mousedown', e => {
+      if (!drawEnabled) return;
+      drawing = true;
+      currentPath = [[e.offsetX, e.offsetY]];
+    });
+
+    canvas.addEventListener('mousemove', e => {
+      if (!drawing || !drawEnabled) return;
+      currentPath.push([e.offsetX, e.offsetY]);
+      redraw();
+    });
+
+    canvas.addEventListener('mouseup', () => {
+      if (!drawing || !drawEnabled) return;
+      drawing = false;
+      paths.push(currentPath);
+      currentPath = [];
+    });
+
+    function toggleTextMode() {
+      drawEnabled = !drawEnabled;
+      canvas.style.display = drawEnabled ? 'block' : 'none';
+      const icon = document.getElementById('text-toggle-icon');
+      icon.src = drawEnabled ? '/static/pen_on.jpeg' : '/static/pen_off.jpeg';
+    }
+
+    function loadBackgroundImage(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        document.body.style.backgroundImage = `url('${reader.result}')`;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function changeBarColor(e) {
+      document.documentElement.style.setProperty('--bar-color', e.target.value);
+    }
+
+    function handleIconClick(service) {
+      const input = document.getElementById(`input-${service}`);
+      if (urls[service]) {
+        window.open(urls[service], '_blank');
+      } else {
+        input.style.display = 'block';
+        input.focus();
+      }
+    }
+
+    function handleBlur(service) {
+      const input = document.getElementById(`input-${service}`);
+      const value = input.value.trim();
+      if (value) urls[service] = value;
+      input.style.display = 'none';
+    }
+
+   function addDecoImage(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const img = document.createElement('img');
+  const reader = new FileReader();
+reader.onload = () => {
+  img.src = reader.result;
+};
+reader.readAsDataURL(file);
+
+ const scrollX = window.scrollX;
+const scrollY = window.scrollY;
+
+img.className = 'deco-img';
+img.style.position = 'absolute';
+img.style.left = '150px';
+img.style.top = '300px';
+
+img.style.transform = 'rotate(0deg) scale(1)';
+img.style.touchAction = 'none';
+img.draggable = false;
+
+const container = document.getElementById('page-wrapper') || document.body;
+container.appendChild(img);
+
+let posX = 150 + scrollX, posY = 300 + scrollY, scale = 1, rotation = 0;
+let isDragging = false, offsetX = 0, offsetY = 0;
+let longPressTimer = null;
+
+  // PC用マウス操作
+  img.addEventListener('mousedown', e => {
+    isDragging = true;
+    offsetX = e.offsetX;
+    offsetY = e.offsetY;
+    longPressTimer = setTimeout(() => img.remove(), 1000);
+  });
+
+  document.addEventListener('mousemove', e => {
+    if (!isDragging) return;
+    clearTimeout(longPressTimer);
+    posX = e.pageX - offsetX;
+    posY = e.pageY - offsetY;
+    img.style.left = `${posX}px`;
+    img.style.top = `${posY}px`;
+  });
+
+  document.addEventListener('mouseup', () => {
+    isDragging = false;
+    clearTimeout(longPressTimer);
+  });
+
+  // スマホ用タッチ操作
+  let initialDistance = null;
+  let initialAngle = null;
+  let startScale = 1;
+  let startRotation = 0;
+
+  img.addEventListener('touchstart', e => {
+    if (e.touches.length === 1) {
+      offsetX = e.touches[0].clientX - posX;
+      offsetY = e.touches[0].clientY - posY;
+      longPressTimer = setTimeout(() => img.remove(), 1000);
+    } else if (e.touches.length === 2) {
+      clearTimeout(longPressTimer);
+      initialDistance = getDistance(e.touches[0], e.touches[1]);
+      initialAngle = getAngle(e.touches[0], e.touches[1]);
+      startScale = scale;
+      startRotation = rotation;
+    }
+  }, { passive: false });
+
+  img.addEventListener('touchmove', e => {
+    e.preventDefault();
+    if (e.touches.length === 1) {
+      clearTimeout(longPressTimer);
+      posX = e.touches[0].clientX - offsetX;
+      posY = e.touches[0].clientY - offsetY;
+      img.style.left = `${posX}px`;
+      img.style.top = `${posY}px`;
+    } else if (e.touches.length === 2) {
+      const newDistance = getDistance(e.touches[0], e.touches[1]);
+      const newAngle = getAngle(e.touches[0], e.touches[1]);
+
+      scale = startScale * (newDistance / initialDistance);
+      if (scale < 0.2) scale = 0.2;
+
+      rotation = startRotation + (newAngle - initialAngle);
+      img.style.transform = `rotate(${rotation}deg) scale(${scale})`;
+    }
+  }, { passive: false });
+
+  img.addEventListener('touchend', () => {
+    clearTimeout(longPressTimer);
+  });
+
+  function getDistance(t1, t2) {
+    return Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+  }
+
+  function getAngle(t1, t2) {
+    return Math.atan2(t2.clientY - t1.clientY, t2.clientX - t1.clientX) * 180 / Math.PI;
+  }
+}
+
+    function downloadCard() {
+      alert("この部分で画像化＆ZIP化などの処理を行います");
+    }
+
+    window.onload = () => {
+      canvas.style.display = 'none';
+      const profileImg = document.getElementById("profile-img");
+      const profileInput = document.getElementById("profile-input");
+
+      profileImg.addEventListener("click", () => {
+        profileInput.click();
+      });
+
+      profileInput.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = () => {
+          profileImg.src = reader.result;
+        };
+            fetch('/upload_profile_image', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ image: reader.result })
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log('保存成功:', data);
+    })
+    .catch(error => {
+      console.error('アップロード失敗:', error);
+    });
+
+        reader.readAsDataURL(file);
+      });
+    };
+let textEnabled = false;
+let textFirstTapDone = false; // ← 追加：初回スキップフラグ
+
+document.getElementById("text-toggle-icon").addEventListener("click", () => {
+  textEnabled = !textEnabled;
+  textFirstTapDone = false; // ONにしたときにリセット
+});
+
+document.body.addEventListener("click", (e) => {
+  if (!textEnabled) return;
+
+  if (!textFirstTapDone) {
+    textFirstTapDone = true;
+    return; // ← 初回はスキップして反応なし
+  }
+
+  if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+ const margin = 20;
+const inputWidth = 150;
+const maxX = window.innerWidth - inputWidth - margin;
+const x = Math.min(e.pageX, maxX);
+const y = e.pageY;
+
+const input = document.createElement("input");
+input.type = "text";
+input.placeholder = "テキストを入力";
+input.className = "text-sticker";
+input.style.position = "absolute";
+input.style.left = `${x}px`;
+input.style.top = `${y}px`;
+input.style.width = '150px';  // 固定サイズで横スクロール防止
+input.style.maxWidth = 'calc(100vw - 40px)';  // 念のための安全策
+const container = document.getElementById('page-wrapper');
+container.appendChild(input);
+
+// 入力が空のままフォーカスが外れたら消す処理
+input.addEventListener("blur", () => {
+  if (input.value.trim() === "") {
+    input.remove();
+  }
+});
+input.focus();
+  let offsetX, offsetY, dragging = false;
+
+  input.addEventListener("mousedown", (ev) => {
+    dragging = true;
+    offsetX = ev.offsetX;
+    offsetY = ev.offsetY;
+  });
+
+  document.addEventListener("mousemove", (ev) => {
+    if (!dragging) return;
+    input.style.left = `${ev.pageX - offsetX}px`;
+    input.style.top = `${ev.pageY - offsetY}px`;
+  });
+
+  document.addEventListener("mouseup", () => {
+    dragging = false;
+  });
+
+  // 長押しで削除（スマホ用）
+  let longPressTimer;
+  input.addEventListener("touchstart", () => {
+    longPressTimer = setTimeout(() => {
+      input.remove();
+    }, 1000);
+  });
+
+  input.addEventListener("touchend", () => {
+    clearTimeout(longPressTimer);
+  });
+});
+// SNS項目を非表示にする関数
+function hideSNS(service) {
+  const wrapper = document.querySelector(`.sns-wrapper:has(#input-${service})`);
+  if (wrapper) wrapper.style.display = 'none';
+}
+function showHiddenSNS() {
+  ['instagram', 'x', 'tiktok'].forEach(service => {
+    const wrapper = document.querySelector(`.sns-wrapper:has(#input-${service})`);
+    if (wrapper && wrapper.style.display === 'none') {
+      wrapper.style.display = 'block';
+    }
+  });
+}
+
+function toggleBackgroundList() {
+  const list = document.getElementById('bg-template-list');
+  list.style.display = (list.style.display === 'none' || list.style.display === '') ? 'flex' : 'none';
+}
+
+function setBackground(url) {
+  document.body.style.backgroundImage = `url('${url}')`;
+  document.getElementById('bg-template-list').style.display = 'none';
+}
+function hideAddLink(event) {
+  event.stopPropagation(); // 「showHiddenSNS()」が動かないように
+  const addBtn = document.getElementById('add-link-button');
+  if (addBtn) addBtn.style.display = 'none';
+}function restoreSNS() {
+  ['instagram', 'x', 'tiktok'].forEach(service => {
+    const wrapper = document.querySelector(`.sns-wrapper:has(#input-${service})`);
+    if (wrapper) wrapper.style.display = 'flex';
+  });
+
+  const addBtn = document.getElementById('add-link-button');
+  if (addBtn) addBtn.style.display = 'flex';
+  const extraTextWrapper = document.getElementById('extra-text-wrapper');
+  if (extraTextWrapper) extraTextWrapper.style.display = 'block';
+  const youtubeSection = document.querySelector('.youtube-section');
+  if (youtubeSection) youtubeSection.style.display = 'block';
+  const diagnosisWrapper = document.getElementById("diagnosis-wrapper");
+  if (diagnosisWrapper) diagnosisWrapper.style.display = "block";
+}
+function hideExtraText() {
+  const wrapper = document.getElementById('extra-text-wrapper');
+  if (wrapper) wrapper.style.display = 'none';
+}
+function hideDiagnosisButton() {
+  const diagnosisWrapper = document.getElementById("diagnosis-wrapper");
+  if (diagnosisWrapper) diagnosisWrapper.style.display = "none";
+}
+
+function restoreDiagnosisButton() {
+  const diagnosisWrapper = document.getElementById("diagnosis-wrapper");
+  if (diagnosisWrapper) diagnosisWrapper.style.display = "block";
+}
+
+document.getElementById('finish-button').addEventListener('click', async () => {
+  const finishBtn = document.getElementById('finish-button');
+  
+  finishBtn.disabled = true;
+  finishBtn.textContent = '生成中...';
+  
+// 入力値を表示用の要素に反映
+// 入力値を表示エリアに反映する（完成前に必要！）
+// 入力値を value 属性に反映（Firebaseに反映されるように）
+function escapeHTML(str) {
+  return str.replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+}
+
+const editableTexts = document.querySelectorAll('.editable-text, textarea');
+editableTexts.forEach(input => {
+  const val = input.value.trim();
+  input.setAttribute('value', escapeHTML(val));
+  if (input.tagName === 'TEXTAREA') {
+    input.textContent = escapeHTML(val);
+  }
+});
+
+editableTexts.forEach((input) => {
+  input.setAttribute('value', input.value.trim());
+});
+
+// 記入欄（textarea）の値を value に反映
+const extraInput = document.getElementById('extra-text');
+if (extraInput) {
+  const text = extraInput.value.trim();
+  extraInput.setAttribute('value', text);
+
+  let hidden = document.getElementById('hidden-extra-text');
+  if (!hidden) {
+    hidden = document.createElement('input');
+    hidden.type = 'hidden';
+    hidden.id = 'hidden-extra-text';
+    hidden.name = 'extra-text';
+    extraInput.parentNode.appendChild(hidden); // ✅ 修正！
+  }
+  hidden.value = text;
+   extraInput.textContent = text;
+}
+
+  const toolbar = document.getElementById('toolbar');
+  if (toolbar) toolbar.style.display = 'none';
+
+
+  const youtubeBatsu = document.querySelector('.youtube-section .sns-delete-btn');
+  if (youtubeBatsu) youtubeBatsu.style.display = 'none';
+  // ✅ YouTube入力欄と反映ボタンを非表示にする
+const youtubeInput = document.getElementById('youtube-url');
+const youtubeButton = document.querySelector('.youtube-section button');
+if (youtubeInput) youtubeInput.style.display = 'none';
+if (youtubeButton) youtubeButton.style.display = 'none';
+
+// SNSバツ削除
+document.querySelectorAll('.sns-wrapper .sns-delete-btn').forEach(btn => {
+  if (btn.parentNode) {
+    btn.parentNode.removeChild(btn);
+  }
+});
+
+  const extraBatsu = document.querySelector('#extra-text-wrapper .sns-delete-btn');
+  if (extraBatsu) extraBatsu.style.display = 'none';
+  const diagnosisBatsu = document.querySelector('#diagnosis-wrapper .sns-delete-btn');
+  if (diagnosisBatsu) diagnosisBatsu.style.display = 'none';
+  // SNSリンクをHTMLに埋め込む処理（完成ボタン処理の中に追加）
+['instagram', 'x', 'tiktok'].forEach(service => {
+  const wrapper = document.querySelector(`.sns-wrapper:has(#input-${service})`);
+  const link = urls[service];
+  if (wrapper && link) {
+    const snsItem = wrapper.querySelector('.sns-item');
+    if (snsItem) {
+      const img = snsItem.querySelector('img'); // アイコン画像
+      const label = snsItem.childNodes[1]?.textContent?.trim() || service;
+
+      // aタグでラップしてクリック可能に
+      const anchor = document.createElement('a');
+      anchor.href = link;
+      anchor.target = '_blank';
+      anchor.style.display = 'flex';
+      anchor.style.alignItems = 'center';
+      anchor.style.gap = '10px';
+      anchor.style.textDecoration = 'none';
+      anchor.style.color = 'inherit';
+
+      anchor.appendChild(img);
+      anchor.appendChild(document.createTextNode(label));
+
+      snsItem.innerHTML = '';
+      snsItem.appendChild(anchor);
+    }
+  }
+});
+
+
+  // ✅ プロフィール画像が blob: だったら保存済みのURLに書き換える
+  const profileImg = document.getElementById("profile-img");
+  if (profileImg && profileImg.src.startsWith("blob:")) {
+    profileImg.src = "/static/uploads/profile.jpeg";
+  }
+  if (profileImg && profileImg.src.startsWith("data:image/")) {
+    profileImg.src = await compressImage(profileImg.src);
+  }
+
+  const decoImgs = document.querySelectorAll("img.deco-img");
+  for (const img of decoImgs) {
+    if (img.src.startsWith("data:image/")) {
+      img.src = await compressImage(img.src);
+    }
+  }
+    finishBtn.style.display = 'none';
+
+    const html = document.documentElement.outerHTML;
+
+  // ✅ base64画像のうち、プロフィール画像とデコ画像だけは削除対象から除外！
+  const cleanedHTML = html.replace(/<img[^>]+src="data:image\/[^"]+"[^>]*>/g, (match) => {
+    if (match.includes('id="profile-img"') || match.includes('class="deco-img"')) {
+      return match; // → プロフィール画像 or デコ画像はそのまま残す
+    } else {
+      return match.replace(/src="data:image\/[^"]+"/, 'src="/static/deleted_image.jpeg"');
+    }
+  });
+
+  const formData = new FormData();
+  formData.append('html', cleanedHTML);
+
+  const res = await fetch('/generate_url', {
+    method: 'POST',
+    body: formData
+  });
+
+  const data = await res.json();
+  if (data.url) {
+    finishBtn.textContent = '生成完了';
+    finishBtn.style.display = 'block';
+
+    const output = document.createElement('div');
+    output.id = 'shared-url-box';
+    output.innerHTML = `<p>このURLを共有できます👇</p><a href="${data.url}" target="_blank">${data.url}</a>`;
+    output.style.cssText = `...`; // スタイル省略可
+    document.body.appendChild(output);
+
+    setTimeout(() => {
+      const box = document.getElementById('shared-url-box');
+      if (box) box.remove();
+    }, 600000);
+  } else {
+    alert('URLの発行に失敗しました');
+    finishBtn.disabled = false;
+    finishBtn.textContent = '完成';
+    finishBtn.style.display = 'block';
+  }
+});
+
+
+
+function embedYouTubeVideo() {
+  const input = document.getElementById('youtube-url');
+  const player = document.getElementById('youtube-player');
+  let url = input.value.trim();
+
+  // m.youtube → www.youtube に変換
+  url = url.replace("m.youtube.com", "www.youtube.com");
+
+  const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/);
+  if (match && match[1]) {
+    const videoId = match[1];
+    player.innerHTML = `
+      <iframe width="100%" height="200" 
+      style="max-width: 90vw;"  
+        src="https://www.youtube.com/embed/${videoId}" 
+        frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+        allowfullscreen>
+      </iframe>
+    `;
+  } else {
+    player.innerHTML = "<p style='color:red;'>正しいYouTubeのURLを入力してください。</p>";
+  }
+}
+function hideYouTubeSection() {
+    const section = document.querySelector('.youtube-section');
+    if (section) {
+      section.style.display = 'none';
+    }
+  }
+  // base64画像をリサイズ＋圧縮する関数
+async function compressImage(base64, maxSize = 300) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+
+      const scale = Math.min(maxSize / img.width, maxSize / img.height, 1);
+      canvas.width = img.width * scale;
+      canvas.height = img.height * scale;
+
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      const compressed = canvas.toDataURL("image/jpeg", 0.6); // 60%圧縮
+      resolve(compressed);
+    };
+    img.src = base64;
+  });
+}
+function startDiagnosis() {
+  const textInputs = Array.from(document.querySelectorAll('.editable-text')).map(i => i.value).join(' ');
+  const extra = document.getElementById('extra-text')?.value || '';
+  const combined = (textInputs + ' ' + extra).toLowerCase();
+
+  let type = 'INFP'; // デフォルト
+
+  if (combined.includes('計画') || combined.includes('整理')) type = 'J';
+  else if (combined.includes('ひらめき') || combined.includes('自由')) type = 'P';
+
+  if (combined.includes('ひとり') || combined.includes('静か')) type = 'I';
+  else if (combined.includes('仲間') || combined.includes('ワイワイ')) type = 'E';
+
+  if (combined.includes('直感') || combined.includes('想像')) type = 'N';
+  else if (combined.includes('現実') || combined.includes('実用')) type = 'S';
+
+  if (combined.includes('共感') || combined.includes('優し')) type += 'F';
+  else if (combined.includes('論理') || combined.includes('分析')) type += 'T';
+
+  if (type.length < 4) type = 'INFP'; // 不完全なら初期値に
+
+  const resultText = `あなたは「${type}タイプ」かも！？`;
+
+  document.getElementById('diagnosis-result').textContent = resultText;
+  document.getElementById('diagnosis-modal').style.display = 'flex';
+
+  // タップで閉じる
+  document.getElementById('diagnosis-modal').addEventListener('click', () => {
+    document.getElementById('diagnosis-modal').style.display = 'none';
+  });
+}
+
+  </script>
+<!-- 横スクロール可能な背景テンプレ一覧 -->
+<div id="bg-template-list" style="
+  display: none;
+  position: fixed;
+  bottom: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: white;
+  padding: 10px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  z-index: 1100;
+  max-width: 90vw;
+  overflow-x: auto;
+  gap: 10px;
+  scrollbar-width: none; /* Firefox用 */
+  -ms-overflow-style: none; /* IE用 */
+">
+<!-- ▼ カメラアイコン付きテンプレ追加ここから -->
+<img src="/static/camera.jpeg" onclick="document.getElementById('background-input').click()" style="width:50px; height:50px; cursor:pointer; border-radius:8px; flex-shrink:0;">
+<!-- ▼ カメラアイコン付きテンプレ追加ここまで -->
+  <img src="/static/haikei_1.jpeg" onclick="setBackground('/static/haikei_1.jpeg')" style="width:50px; height:50px; cursor:pointer; border-radius:8px; flex-shrink:0;">
+<img src="/static/haikei_2.jpeg" onclick="setBackground('/static/haikei_2.jpeg')" style="width:50px; height:50px; cursor:pointer; border-radius:8px; flex-shrink:0;">
+<img src="/static/haikei_3.jpeg" onclick="setBackground('/static/haikei_3.jpeg')" style="width:50px; height:50px; cursor:pointer; border-radius:8px; flex-shrink:0;">
+<img src="/static/haikei_4.jpeg" onclick="setBackground('/static/haikei_4.jpeg')" style="width:50px; height:50px; cursor:pointer; border-radius:8px; flex-shrink:0;">
+<img src="/static/haikei_5.jpeg" onclick="setBackground('/static/haikei_5.jpeg')" style="width:50px; height:50px; cursor:pointer; border-radius:8px; flex-shrink:0;">
+<img src="/static/haikei_6.jpeg" onclick="setBackground('/static/haikei_6.jpeg')" style="width:50px; height:50px; cursor:pointer; border-radius:8px; flex-shrink:0;">
+<img src="/static/haikei_7.jpeg" onclick="setBackground('/static/haikei_7.jpeg')" style="width:50px; height:50px; cursor:pointer; border-radius:8px; flex-shrink:0;">
+<img src="/static/haikei_8.jpeg" onclick="setBackground('/static/haikei_8.jpeg')" style="width:50px; height:50px; cursor:pointer; border-radius:8px; flex-shrink:0;">
+<img src="/static/haikei_9.jpeg" onclick="setBackground('/static/haikei_9.jpeg')" style="width:50px; height:50px; cursor:pointer; border-radius:8px; flex-shrink:0;">
+<img src="/static/haikei_10.jpeg" onclick="setBackground('/static/haikei_10.jpeg')" style="width:50px; height:50px; cursor:pointer; border-radius:8px; flex-shrink:0;">
+<!-- さらに追加してもOK！ -->
+
+</div>
+<!-- ▼ 先にボタンのスタイル定義！ -->
+<style>
+  #diagnosis-button {
+    padding: 12px 24px;
+    font-size: 17px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #ffffff 0%, #d6f2f9 40%, #ffd1e9 100%);
+    color: #fff;
+    font-weight: bold;
+    font-family: 'Rounded Mplus 1c', 'Hiragino Maru Gothic ProN', sans-serif;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    letter-spacing: 1px;
+    transition: all 0.2s ease-in-out;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3); /* ← ここで視認性UP */
+  }
+
+  #diagnosis-button:hover {
+    background: linear-gradient(135deg, #ffd1e9, #d6f2f9, #ffffff);
+    transform: scale(1.05);
+  }
+</style>
+
+<!-- ▼ 診断ボタン（バツ付き） -->
+<div id="diagnosis-wrapper" style="position: relative; margin-top: 20px; text-align: center;">
+  <img src="/static/batu.jpeg" alt="削除" class="sns-delete-btn" onclick="hideDiagnosisButton()" style="position: absolute; top: -8px; right: 90px; width: 18px; height: 18px; cursor: pointer; z-index: 10; display: none;">
+  <button id="diagnosis-button" onclick="startDiagnosis()">〇〇さんの特徴！</button>
+</div>
+
+
+<!-- ▼ モーダル表示部分 -->
+<div id="diagnosis-modal" style="
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background-color: rgba(0,0,0,0.7);
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+">
+  <div style="
+    background: white;
+    padding: 28px 24px;
+    border-radius: 20px;
+    max-width: 90vw;
+    font-size: 13px;
+    font-weight: bold;
+    text-align: center;
+    font-family: 'Comic Sans MS', 'Arial Rounded MT Bold', sans-serif;
+    animation: fadeIn 0.6s ease-in-out;
+    line-height: 1.6;
+  " id="diagnosis-result"></div>
+</div>
+
+<style>
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+</style>
+
+<script>
+function startDiagnosis() {
+  const textInputs = Array.from(document.querySelectorAll('.editable-text')).map(i => i.value).join(' ');
+  const extra = document.getElementById('extra-text')?.value || '';
+  const combined = (textInputs + ' ' + extra).toLowerCase();
+  const barColor = getComputedStyle(document.documentElement).getPropertyValue('--bar-color').trim().toLowerCase();
+
+  let type = '';
+
+// I / E 判定
+if (combined.match(/ひとり|静か|本|ソロ|家|落ち着く|アニメ|内省|黙る|マイペース/)) {
+  type += 'I';
+} else if (combined.match(/仲間|みんな|カラオケ|イベント|旅行|飲み会|おしゃべり|騒ぐ|SNS/)) {
+  type += 'E';
+} else {
+  type += 'I';
+}
+
+// N / S 判定
+if (combined.match(/空想|ひらめき|想像|クリエイティブ|アート|創作|哲学|直感|夢/)) {
+  type += 'N';
+} else if (combined.match(/現実|実用|旅行|運動|料理|アウトドア|具体|体験|五感/)) {
+  type += 'S';
+} else {
+  type += 'N';
+}
+
+// T / F 判定（スコア式）
+let tfScore = 0;
+if (combined.match(/論理|分析|効率|数字|プログラミング|理屈|戦略|データ/)) tfScore += 1;
+if (combined.match(/共感|やさしい|応援|思いやり|ケア|感情|涙|相談/)) tfScore -= 1;
+if (barColor.includes('pink') || barColor.includes('#f')) tfScore -= 1;
+if (barColor.includes('blue') || barColor.includes('#00f') || barColor.includes('navy')) tfScore += 1;
+
+type += tfScore >= 0 ? 'T' : 'F';
+
+// J / P 判定
+if (combined.match(/計画|整理|スケジュール|時間管理|リスト|準備|管理|目標|段取り/)) {
+  type += 'J';
+} else if (combined.match(/自由|気まま|柔軟|マイペース|その場|思いつき|即興/)) {
+  type += 'P';
+} else {
+  type += 'P';
+}
+
+
+  const mbtiDescriptions = {
+    INFP: "理想主義で感受性豊かな癒し系タイプ！",
+    INTP: "論理的で探究心が強い思索家タイプ！",
+    INFJ: "人の心に寄り添う静かなカリスマタイプ！",
+    INTJ: "戦略的で未来志向な構想派タイプ！",
+    ENFP: "ひらめきと人間関係が得意な冒険家タイプ！",
+    ENTP: "機転が利いて挑戦を恐れないアイデアマン！",
+    ENFJ: "人を巻き込む力があるリーダータイプ！",
+    ENTJ: "目標達成に一直線な司令塔タイプ！",
+    ISFP: "感性と調和を重視するやさしさ派！",
+    ISTP: "冷静沈着な実践派！",
+    ISFJ: "支えることに喜びを感じるサポーター！",
+    ISTJ: "責任感の強いしっかり者！",
+    ESFP: "ムードメーカーなエンタメ好き！",
+    ESTP: "行動力抜群な体験型リーダー！",
+    ESFJ: "人の役に立ちたい親しみ派！",
+    ESTJ: "効率的で実務に強い頼れる人！"
+  };
+
+  const displayName = "〇〇さん";
+  const resultLines = [];
+
+  resultLines.push(`<div style="font-size: 20px;">${displayName}は「${type}タイプ」かも！？</div>`);
+  resultLines.push(`<div>MBTI的には：${mbtiDescriptions[type] || "バランス型タイプ！"}</div>`);
+
+  if (barColor.includes('pink') || barColor.includes('#f') || barColor.includes('rose')) {
+  resultLines.push("<div>カラー診断：ピンク系 → 感受性豊かでやさしい性格！</div>");
+} else if (barColor.includes('blue') || barColor.includes('navy') || barColor.includes('#00f') || barColor.includes('sky')) {
+  resultLines.push("<div>カラー診断：青系 → 冷静で誠実、知的な性格！</div>");
+} else if (barColor.includes('green') || barColor.includes('lime') || barColor.includes('olive')) {
+  resultLines.push("<div>カラー診断：緑系 → 自然や平和を大切にする穏やかタイプ！</div>");
+} else if (barColor.includes('yellow') || barColor.includes('gold') || barColor.includes('#ff0')) {
+  resultLines.push("<div>カラー診断：黄色系 → 明るく前向きで社交的な性格！</div>");
+} else if (barColor.includes('orange') || barColor.includes('#ffa')) {
+  resultLines.push("<div>カラー診断：オレンジ系 → 活動的で人懐っこいエネルギー派！</div>");
+} else if (barColor.includes('red') || barColor.includes('crimson') || barColor.includes('#f00')) {
+  resultLines.push("<div>カラー診断：赤系 → 情熱的でリーダーシップを持つ人！</div>");
+} else if (barColor.includes('purple') || barColor.includes('violet') || barColor.includes('indigo')) {
+  resultLines.push("<div>カラー診断：紫系 → 感性豊かでミステリアスな魅力！</div>");
+} else if (barColor.includes('black') || barColor.includes('#000')) {
+  resultLines.push("<div>カラー診断：黒系 → 意志が強く、落ち着いた雰囲気！</div>");
+} else if (barColor.includes('white') || barColor.includes('#fff') || barColor.includes('ivory')) {
+  resultLines.push("<div>カラー診断：白系 → 純粋で素直、調和を大切にするタイプ！</div>");
+} else if (barColor.includes('gray') || barColor.includes('grey') || barColor.includes('#888')) {
+  resultLines.push("<div>カラー診断：グレー系 → 冷静で大人びたバランスタイプ！</div>");
+} else {
+  resultLines.push("<div>カラー診断：中間色 → 多様性を受け入れる柔軟なタイプ！</div>");
+}
+
+
+  const hobbyTags = {
+  'ゲーム': '戦略派 or マイペース派',
+  'アニメ': '感性豊かで内向型寄り',
+  '旅行': '好奇心旺盛な冒険好き',
+  'カフェ': '癒し重視・感性タイプ',
+  '音楽': '感情と結びつきが強い人',
+  '読書': '思索型・想像力が豊か',
+  'スポーツ': '外向的でエネルギッシュ',
+  '美術': 'クリエイティブ志向',
+  '料理': '繊細で家庭的な気質',
+  '筋トレ': '自己成長意識が強いタイプ',
+  'ファッション': '自己表現と流行に敏感なタイプ',
+  'ダンス': '身体で感情を表現する情熱派',
+  'カラオケ': '社交的で表現が好きな盛り上げ役',
+  'ボードゲーム': '頭脳派でみんなと楽しむことが好き',
+  'ペット': '愛情深く、癒しやつながりを大事にする人',
+  'イラスト': '繊細で感受性が豊か、想像力も高い',
+  'カメラ': '観察眼に優れ、感情を写真で表現したいタイプ',
+  '映画': '物語や世界観に没入するエモ派',
+  'カラフルな雑貨': '明るく個性的なセンスの持ち主',
+  '手芸': '丁寧で集中力が高く、ものづくり好き',
+  '散歩': '自然との調和を大切にするマイペース派'
+};
+
+  const detectedHobbies = Object.keys(hobbyTags).filter(word => combined.includes(word));
+  if (detectedHobbies.length > 0) {
+    resultLines.push(`<div>${displayName}は ${detectedHobbies.join('・')} が好きな傾向があるよ！</div>`);
+    resultLines.push(`<div>→ 傾向：${detectedHobbies.map(h => hobbyTags[h]).join(' ／ ')}</div>`);
+  }
+
+const hobbyExtensions = [];
+if (combined.includes('ゲーム')) hobbyExtensions.push("🎮 サバゲーやボードゲームも好きな可能性あり！");
+if (combined.includes('音楽')) hobbyExtensions.push("🎵 作曲やライブ参戦にも興味あるかも！");
+if (combined.includes('カフェ')) hobbyExtensions.push("☕ カフェ巡りブログ始めてるかも？");
+if (combined.includes('読書')) hobbyExtensions.push("📚 最近読んだ本の話をしてみると盛り上がるかも！");
+if (combined.includes('アニメ')) hobbyExtensions.push("📺 推しキャラやアニメある？って聞くと喜ぶタイプかも！");
+if (combined.includes('スポーツ')) hobbyExtensions.push("⚽ 観戦派かプレイ派か聞いてみると意外な話が聞けるかも！");
+if (combined.includes('旅行')) hobbyExtensions.push("✈️ 行ってみたい国とか語り合うと楽しいかも！");
+if (combined.includes('美術')) hobbyExtensions.push("🎨 美術館トークや推し画家の話がハマるかも！");
+if (combined.includes('料理')) hobbyExtensions.push("🍳 得意料理とか聞くとテンション上がりそう！");
+if (combined.includes('筋トレ')) hobbyExtensions.push("💪 プロテインの話で盛り上がれるかも…！？");
+if (combined.includes('ファッション')) hobbyExtensions.push("👗 好きなブランドや服の系統、話してみよう！");
+if (combined.includes('カラオケ')) hobbyExtensions.push("🎤 定番ソングある？って聞くと一気に距離縮まるかも！");
+if (combined.includes('ペット')) hobbyExtensions.push("🐾 飼ってる動物の話をすると嬉しそうに話してくれるかも！");
+if (combined.includes('イラスト')) hobbyExtensions.push("🖌️ SNSに投稿してるかも？見せてもらってみよう！");
+if (combined.includes('映画')) hobbyExtensions.push("🎬 好きなジャンルや推し俳優の話で盛り上がれるかも！");
+if (combined.includes('ダンス')) hobbyExtensions.push("💃 好きなジャンルや振り付けの話をすると盛り上がりそう！");
+if (combined.includes('ボードゲーム')) hobbyExtensions.push("🎲 どのゲーム派か聞くと盛り上がれるかも！");
+if (combined.includes('カラフルな雑貨')) hobbyExtensions.push("🌈 センス光るアイテムの話題で盛り上がりそう！");
+if (combined.includes('手芸')) hobbyExtensions.push("🧵 ハンドメイド作品の話をすると嬉しそうに話すかも！");
+if (combined.includes('散歩')) hobbyExtensions.push("🚶‍♂️ 散歩コースの話から自然トークに広がるかも！");
+if (combined.includes('カメラ')) hobbyExtensions.push("📷 撮った写真を見せてもらうと会話が弾むかも！");
+if (combined.includes('プログラミング')) hobbyExtensions.push("💻 どんなアプリやコード書いてるか聞いてみよう！");
+if (combined.includes('写真')) hobbyExtensions.push("📸 SNSやアルバムに素敵な構図があるかも！");
+if (combined.includes('アウトドア')) hobbyExtensions.push("🏕️ キャンプや登山など自然体験の話題が合いそう！");
+
+  if (hobbyExtensions.length > 0) {
+    resultLines.push(`<div style="margin-top:12px;">この話題を振ってみよう👇</div>`);
+    resultLines.push(`<div>${hobbyExtensions.join('<br>')}</div>`);
+  }
+
+  localStorage.setItem('my_mbti', type);
+  const mbtiEl = document.getElementById('mbti-type');
+if (mbtiEl) mbtiEl.innerText = type;
+
+  document.getElementById('diagnosis-result').innerHTML = resultLines.join('');
+  document.getElementById('diagnosis-modal').style.display = 'flex';
+
+  document.getElementById('diagnosis-modal').addEventListener('click', () => {
+    document.getElementById('diagnosis-modal').style.display = 'none';
+  });
+}
+</script>
+
+<!-- ↓ ここがMBTIタイプが表示される非表示エリア -->
+<div id="mbti-type" style="display:none;"></div>
+
+<!-- ▼ 相性診断スクリプト -->
+<script>
+window.addEventListener('DOMContentLoaded', () => {
+  const myMbti = localStorage.getItem('my_mbti');
+  const otherMbti = document.getElementById('mbti-type')?.innerText ||
+                    document.getElementById('hidden-mbti')?.value || '';
+
+  if (myMbti && otherMbti && myMbti.length === 4 && otherMbti.length === 4) {
+    const compatibility = getCompatibility(myMbti, otherMbti);
+    const score = getCompatibilityScore(myMbti, otherMbti);
+    showCompatibilityModal(myMbti, otherMbti, compatibility, score);
+  }
+});
+
+function getCompatibility(mbti1, mbti2) {
+  const perfectPairs = [
+    ['INFP', 'ENFJ'], ['ENFP', 'INFJ'], ['INFJ', 'INTP'], ['INFP', 'INFJ'],
+    ['ENFP', 'INTP'], ['ENTP', 'INFJ'], ['ENFJ', 'INFP'], ['ISFJ', 'ENFP'],
+    ['ISTJ', 'ISFJ'], ['ISFP', 'INFP'], ['ESTP', 'ENFP'], ['ESFP', 'ENFJ'],
+    ['ISTP', 'INFP'], ['INTP', 'ENTJ'], ['ENTP', 'INTJ'], ['ISFP', 'ESFJ'],
+    ['ISTP', 'ESTJ'], ['ISFJ', 'ESFP'], ['ISTJ', 'ESTP'], ['INTJ', 'ENFP'],
+    ['INTP', 'INFJ'], ['ESFJ', 'ISFP'], ['ESTJ', 'ISTP'], ['ESFP', 'ISFJ'],
+    ['ESTP', 'ISTJ'], ['ENFJ', 'ISFP'], ['ENFP', 'ISFJ'], ['ENTJ', 'INFP'],
+    ['INTJ', 'ENFJ'], ['ENFP', 'ENFP'], ['ENTP', 'ENTP'], ['INFP', 'INTP'],
+    // ⬇ 拡張ここから
+    ['ISFJ', 'ISTP'], ['INFJ', 'ENFJ'], ['ISFP', 'ENFP'], ['ENFP', 'ISFP'],
+    ['ISTJ', 'ENTP'], ['ISTP', 'ENFP'], ['ESTJ', 'ENFJ'], ['INTP', 'ENTP'],
+    ['ENTP', 'ISFJ'], ['ESFP', 'ISFP'], ['ISFP', 'ISFP'], ['INTP', 'ISFP'],
+    ['INFP', 'INFP'], ['ENFJ', 'ENFJ'], ['ESTJ', 'ISTJ'], ['ISTP', 'ISFJ'],
+    ['INFJ', 'ISFP'], ['ISFJ', 'INFJ'], ['ENFP', 'ISTP'], ['INTJ', 'INFP']
+  ];
+
+
+  if (mbti1 === mbti2) return '似たもの同士で安心感バッチリ！';
+  for (const [a, b] of perfectPairs) {
+    if ((mbti1 === a && mbti2 === b) || (mbti1 === b && mbti2 === a)) {
+      return 'バランス最高！理想のペア！';
+    }
+  }
+  return '価値観の違いも楽しめる関係！';
+}
+
+
+function getCompatibilityScore(m1, m2) {
+  let score = 50;
+  if (m1 === m2) return 90;
+  const pairs = ['IE', 'NS', 'TF', 'JP'];
+  for (let i = 0; i < 4; i++) {
+    if (m1[i] === m2[i]) score += 10;
+    else score -= 5;
+  }
+  return Math.max(0, Math.min(100, score));
+}
+
+function showCompatibilityModal(my, other, message, score) {
+  const modal = document.createElement('div');
+  modal.id = 'compat-modal';
+  modal.style.cssText = `
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.8s ease;
+  `;
+
+  modal.innerHTML = `
+    <div style="
+      background: #fff;
+      padding: 24px;
+      border-radius: 16px;
+      font-family: 'Comic Sans MS', cursive;
+      text-align: center;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.25);
+      max-width: 90vw;
+      animation: popIn 0.6s ease forwards;
+    ">
+      <div style="font-size: 20px; font-weight: bold; color: #e91e63; margin-bottom: 6px;">
+       2人の相性度
+      <div style="font-size: 36px; font-weight: bold; color: #ff3366; margin-bottom: 12px;">
+        💖 ${score}% 💖
+      </div>
+      <div style="font-size: 16px; margin-bottom: 6px;">
+        あなた（${my}）とこの人（${other}）の相性は…
+      </div>
+      <div style="font-size: 20px; color: #e91e63; font-weight: bold;">
+        ${message}
+      </div>
+      <div style="margin-top: 24px;">
+        <button onclick="document.getElementById('compat-modal').remove()" style="
+          padding: 8px 16px;
+          background: #e91e63;
+          color: white;
+          border: none;
+          border-radius: 8px;
+          cursor: pointer;
+        ">閉じる</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  // フェードイン
+  setTimeout(() => {
+    modal.style.opacity = '1';
+  }, 50);
+}
+
+</script>
+
+<!-- ▼ hidden用（相手MBTIを埋め込む用） -->
+<input type="hidden" id="hidden-mbti" value="">
+  
+
+</div><img class="deco-img" draggable="false" src="data:image/jpeg;base64,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" style="position: absolute; left: 244px; top: 269px; transform: rotate(0deg) scale(1); touch-action: none;"></div></body></html>
