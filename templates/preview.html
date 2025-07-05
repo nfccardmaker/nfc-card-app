@@ -1641,14 +1641,14 @@ function showDetailModal(my, other) {
 
 <!-- ▼ 相性の詳細モーダル -->
 <div id="compat-detail-modal" style="
-  display: none;
-  position: fixed;
-  top: 0; left: 0;
-  width: 100vw; height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
   background-color: rgba(0, 0, 0, 0.7);
   z-index: 10000;
-  align-items: center;
-  justify-content: center;
   overflow-y: auto;
   padding: 60px 16px 40px 16px;
 ">
@@ -1664,25 +1664,25 @@ function showDetailModal(my, other) {
     text-align: center;
     position: relative;
     animation: fadeIn 0.5s ease;
-    margin: 0 auto; 
+    margin: 0 auto;
   ">
 
-  <div style="
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  padding: 0 16px; /* ← これで左右均等に余白とれる */
-  box-sizing: border-box;
-">
-  <canvas id="compat-radar" width="280" height="280"
-    style="display: block; margin: 0 auto;"></canvas>
-</div>
+    <div style="
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      padding: 0 16px;
+      box-sizing: border-box;
+    ">
+      <canvas id="compat-radar" width="280" height="280"
+        style="display: block; margin: 0 auto;"></canvas>
+    </div>
 
-    <!-- スコア中央表示（未使用なら空でもOK） -->
+    <!-- スコア中央表示 -->
     <div id="compat-scores" style="margin-top: 12px; text-align: center;"></div>
 
-    <!-- 🔽 各項目の説明（左揃え） -->
+    <!-- 各項目の説明 -->
     <div id="compat-detail-text" style="
       margin-top: 20px;
       font-size: 15px;
@@ -1705,6 +1705,7 @@ function showDetailModal(my, other) {
       cursor: pointer;
       box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     ">✕</button>
+
   </div>
 </div>
 
