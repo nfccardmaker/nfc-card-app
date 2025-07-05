@@ -1637,7 +1637,11 @@ function showDetailModal(my, other) {
   z-index: 10000;
   align-items: center;
   justify-content: center;
+  overflow-y: auto;        /* ←これ追加 */
+  padding-top: 60px;        /* ←これ追加：上に余白 */
+  padding-bottom: 40px;     /* ←これ追加：下に余白 */
 ">
+
   <div style="
   background: #fff0f5;
   padding: 28px;
