@@ -1493,62 +1493,76 @@ function showCompatibilityModal(my, other, message, score) {
     modal.style.opacity = '1';
   }, 50);
 }
+function getCompatibilityRadarData(myMbti, otherMbti) {
+  // 仮のスコア＆コメント（MBTIペアごとに調整してもOK）
+  const scores = [60, 60, 60, 60, 60];
+  const comments = [
+    '会話を通じて徐々に打ち解ける関係！',
+    'お互いの違いを楽しめる相性！',
+    '一緒に新しい発見ができそう！',
+    '安心感はこれから作っていく感じ！',
+    '刺激より安定感重視な雰囲気！'
+  ];
+
+  return { scores, comments };
+}
 
 function showDetailModal(myMbti, otherMbti) {
   const modal = document.getElementById('compat-detail-modal');
   modal.style.display = 'flex';
 
-  const ctx = document.getElementById('compat-radar').getContext('2d');
-  const data = getCompatibilityRadarData(myMbti, otherMbti);
-  const labels = ['仲良し度', 'ときめき度', '相棒力', '落ち着き度', '盛り上がり度'];
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      const ctx = document.getElementById('compat-radar').getContext('2d');
+      const data = getCompatibilityRadarData(myMbti, otherMbti);
+      const labels = ['仲良し度', 'ときめき度', '相棒力', '落ち着き度', '盛り上がり度'];
 
-  if (window.currentRadarChart) {
-    window.currentRadarChart.destroy();
-  }
+      if (window.currentRadarChart) {
+        window.currentRadarChart.destroy();
+      }
 
-  window.currentRadarChart = new Chart(ctx, {
-    type: 'radar',
-    data: {
-      labels: labels,
-      datasets: [{
-        label: '相性スコア',
-        data: data.scores,
-        backgroundColor: 'rgba(255, 99, 132, 0.2)',
-        borderColor: '#e91e63',
-        pointBackgroundColor: '#e91e63'
-      }]
-    },
-    options: {
-      responsive: false,
-      scales: {
-        r: {
-          suggestedMin: 0,
-          suggestedMax: 100,
-          ticks: { display: false },
-          pointLabels: {
-            font: { size: 14, family: 'Comic Sans MS' },
-            color: '#e91e63',
-            padding: 20
+      window.currentRadarChart = new Chart(ctx, {
+        type: 'radar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: '相性スコア',
+            data: data.scores,
+            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+            borderColor: '#e91e63',
+            pointBackgroundColor: '#e91e63'
+          }]
+        },
+        options: {
+          responsive: false,
+          scales: {
+            r: {
+              suggestedMin: 0,
+              suggestedMax: 100,
+              ticks: { display: false },
+              pointLabels: {
+                font: { size: 14, family: 'Comic Sans MS' },
+                color: '#e91e63',
+                padding: 20
+              },
+              grid: { color: 'rgba(0,0,0,0.1)' },
+              angleLines: { display: true }
+            }
           },
-          grid: { color: 'rgba(0,0,0,0.1)' },
-          angleLines: { display: true }
+          plugins: { legend: { display: false } }
         }
-      },
-      plugins: { legend: { display: false } }
-    }
+      });
+
+      const detailText = labels.map((label, i) => `
+        <div style="margin-bottom: 12px;">
+          <div style="font-weight: bold; color: #e91e63; font-size: 16px;">${label}：${data.scores[i]}%</div>
+          <div style="color: #555; font-size: 14px;">💡${data.comments[i]}</div>
+        </div>
+      `).join('');
+      document.getElementById('compat-detail-text').innerHTML = detailText;
+    }, 30);
   });
-
-  // テキスト内容をセット
-  const detailText = labels.map((label, i) => `
-    <div style="margin-bottom: 12px;">
-      <div style="font-weight: bold; color: #e91e63; font-size: 16px;">${label}：${data.scores[i]}%</div>
-      <div style="color: #555; font-size: 14px;">💡${data.comments[i]}</div>
-    </div>
-  `).join('');
-  document.getElementById('compat-detail-text').innerHTML = detailText;
 }
-
-
 </script>
 
 <!-- ▼ hidden用 -->
@@ -1589,9 +1603,8 @@ function showDetailModal(myMbti, otherMbti) {
       padding: 0 32px;
       box-sizing: border-box;
     ">
-     <canvas id="compat-radar" width="280" height="280"
-  style="display: block; margin: 0 auto; transform: translateX(8px);"></canvas>
-
+      <canvas id="compat-radar" width="280" height="280"
+        style="display: block; margin: 0 auto; transform: translateX(8px);"></canvas>
     </div>
 
     <div id="compat-scores" style="margin-top: 12px; text-align: center;"></div>
@@ -1622,6 +1635,3 @@ function showDetailModal(myMbti, otherMbti) {
 
 <!-- Chart.jsの読み込み -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-</body>
-<html>
