@@ -1501,53 +1501,64 @@ function showDetailModal(my, other) {
   const modal = document.getElementById('compat-detail-modal');
   modal.style.display = 'flex';
 
-  const ctx = document.getElementById('compat-radar').getContext('2d');
+  setTimeout(() => {
+    const ctx = document.getElementById('compat-radar').getContext('2d');
 
-  if (window.currentRadarChart) {
-    window.currentRadarChart.destroy();
-  }
+    if (window.currentRadarChart) {
+      window.currentRadarChart.destroy();
+    }
 
- window.currentRadarChart = new Chart(ctx, {
-  type: 'radar',
-  data: {
-    labels: labels,
-    datasets: [{
-      label: '相性チャート',
-      data: data.scores,
-      fill: true,
-      backgroundColor: 'rgba(255,99,132,0.2)',
-      borderColor: 'rgba(255,99,132,1)',
-      pointBackgroundColor: 'rgba(255,99,132,1)'
-    }]
-  },
-  options: {
-    responsive: false,
-    scales: {
-      r: {
-        suggestedMin: 0,
-        suggestedMax: 100,
-        ticks: {
-          display: false
+    window.currentRadarChart = new Chart(ctx, {
+      type: 'radar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: '相性チャート',
+          data: data.scores,
+          fill: true,
+          backgroundColor: 'rgba(255,99,132,0.2)',
+          borderColor: 'rgba(255,99,132,1)',
+          pointBackgroundColor: 'rgba(255,99,132,1)'
+        }]
+      },
+      options: {
+        responsive: false,
+        scales: {
+          r: {
+            suggestedMin: 0,
+            suggestedMax: 100,
+            ticks: {
+              display: false
+            },
+            pointLabels: {
+              font: {
+                size: 14,
+                family: 'Comic Sans MS'
+              },
+              color: '#e91e63'
+            },
+            grid: {
+              color: 'rgba(0,0,0,0.1)'
+            }
+          }
         },
-        pointLabels: {
-          font: {
-            size: 14,
-            family: 'Comic Sans MS'
-          },
-          color: '#e91e63'
-        },
-        grid: {
-          color: 'rgba(0,0,0,0.1)'
+        plugins: {
+          legend: {
+            display: false
+          }
         }
       }
-    },
-    plugins: {
-      legend: {
-        display: false
-      }
-    }
-  }
-});
+    });
+
+    // ↓ スコアを下に表示
+    const scoreList = labels.map((label, i) => {
+      return `<div style="margin-top: 4px; color: #e91e63; font-size: 15px;">${label}：${data.scores[i]}%</div>`;
+    }).join('');
+    document.getElementById('compat-scores').innerHTML = scoreList;
+
+  }, 100);
+}
+
 
   document.getElementById('compat-detail-text').innerHTML =
   labels.map((label, i) => `
@@ -1557,9 +1568,6 @@ function showDetailModal(my, other) {
     </div>
   `).join('');
 
-  document.getElementById('compat-detail-text').innerHTML =
-    data.texts.map((t, i) => `<div>💡${t}</div>`).join('');
-}
 
   modal.innerHTML = `
     <div style="
@@ -1649,6 +1657,7 @@ function showDetailModal(my, other) {
 ">
 
     <canvas id="compat-radar" width="300" height="300"></canvas>
+    <div id="compat-scores" style="margin-top: 12px; text-align: center;"></div>
    <div id="compat-detail-text" style="
   margin-top: 20px;
   font-size: 15px;
