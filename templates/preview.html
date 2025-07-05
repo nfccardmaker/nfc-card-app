@@ -1501,6 +1501,10 @@ function showDetailModal(my, other) {
   const modal = document.getElementById('compat-detail-modal');
   modal.style.display = 'flex';
 
+  // 💡 ここで前回の内容を消去しておく（複製バグ対策）
+  document.getElementById('compat-scores').innerHTML = '';
+  document.getElementById('compat-detail-text').innerHTML = '';
+
   setTimeout(() => {
     const ctx = document.getElementById('compat-radar').getContext('2d');
 
