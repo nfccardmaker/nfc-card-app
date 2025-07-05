@@ -1501,9 +1501,9 @@ function showDetailModal(my, other) {
   const modal = document.getElementById('compat-detail-modal');
   modal.style.display = 'flex';
 
+  // 💡 ここで前回の内容を消去しておく（複製バグ対策）
   document.getElementById('compat-detail-text').innerHTML = '';
 
-  // 💥 この中に全部入れる！
   setTimeout(() => {
     const ctx = document.getElementById('compat-radar').getContext('2d');
 
@@ -1538,14 +1538,10 @@ function showDetailModal(my, other) {
                 size: 14,
                 family: 'Comic Sans MS'
               },
-              color: '#e91e63',
-              padding: 15
+              color: '#e91e63'
             },
             grid: {
               color: 'rgba(0,0,0,0.1)'
-            },
-            angleLines: {
-              display: true
             }
           }
         },
@@ -1557,13 +1553,7 @@ function showDetailModal(my, other) {
       }
     });
 
-    // ✅ canvasの中央寄せ
-    const canvas = document.getElementById('compat-radar');
-    canvas.style.display = 'block';
-    canvas.style.marginLeft = 'auto';
-    canvas.style.marginRight = 'auto';
-
-    // ✅ テキスト表示
+    // 💬 詳細テキストも表示（←これがあなたの要求）
     document.getElementById('compat-detail-text').innerHTML =
       labels.map((label, i) => `
         <div style="margin-bottom: 12px;">
@@ -1571,10 +1561,8 @@ function showDetailModal(my, other) {
           <div style="color: #555; font-size: 14px;">💡${data.texts[i]}</div>
         </div>
       `).join('');
-
-  }, 100); // ← これでsetTimeout閉じる
+  }, 100);
 }
-
 
 
   modal.innerHTML = `
