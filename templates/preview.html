@@ -1627,7 +1627,8 @@ function showDetailModal(my, other) {
 
 <!-- ▼ hidden用（相手MBTIを埋め込む用） -->
 <input type="hidden" id="hidden-mbti" value="" />
- <!-- ▼ 相性の詳細モーダル -->
+
+<!-- ▼ 相性の詳細モーダル -->
 <div id="compat-detail-modal" style="
   display: none;
   position: fixed;
@@ -1649,20 +1650,20 @@ function showDetailModal(my, other) {
     max-width: 90vw;
     width: 360px;
     font-family: 'Kosugi Maru', 'Noto Sans JP', sans-serif;
+    text-align: left;
     position: relative;
     animation: fadeIn 0.5s ease;
   ">
-
-    <!-- ★ チャートを中央揃え -->
-    <div style="text-align: center;">
+    <!-- 🔽 レーダーチャート中央配置 -->
+    <div style="display: flex; justify-content: center;">
       <canvas id="compat-radar" width="300" height="300"
-        style="display: inline-block; margin: 0 auto 16px auto;">
-      </canvas>
+        style="display: block; margin-bottom: 16px;"></canvas>
     </div>
 
-    <!-- ★ スコア説明は左揃えのまま -->
+    <!-- スコア中央表示（未使用なら空でもOK） -->
     <div id="compat-scores" style="margin-top: 12px; text-align: center;"></div>
 
+    <!-- 🔽 各項目の説明（左揃え） -->
     <div id="compat-detail-text" style="
       margin-top: 20px;
       font-size: 15px;
@@ -1688,6 +1689,7 @@ function showDetailModal(my, other) {
   </div>
 </div>
 
+<!-- Chart.jsの読み込み -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 </body>
