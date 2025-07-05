@@ -1501,10 +1501,10 @@ function showDetailModal(my, other) {
   const modal = document.getElementById('compat-detail-modal');
   modal.style.display = 'flex';
 
-  // 💡 ここで前回の内容を消去しておく（複製バグ対策）
   document.getElementById('compat-detail-text').innerHTML = '';
 
-   setTimeout(() => {
+  // 💥 この中に全部入れる！
+  setTimeout(() => {
     const ctx = document.getElementById('compat-radar').getContext('2d');
 
     if (window.currentRadarChart) {
@@ -1557,13 +1557,13 @@ function showDetailModal(my, other) {
       }
     });
 
-    // ✅ ここでcanvasを中央寄せにする
+    // ✅ canvasの中央寄せ
     const canvas = document.getElementById('compat-radar');
     canvas.style.display = 'block';
     canvas.style.marginLeft = 'auto';
     canvas.style.marginRight = 'auto';
 
-    // 💬 詳細テキストも表示
+    // ✅ テキスト表示
     document.getElementById('compat-detail-text').innerHTML =
       labels.map((label, i) => `
         <div style="margin-bottom: 12px;">
@@ -1571,7 +1571,9 @@ function showDetailModal(my, other) {
           <div style="color: #555; font-size: 14px;">💡${data.texts[i]}</div>
         </div>
       `).join('');
-  }, 100); // ← この閉じカッコ＆セミコロンは1回だけ！
+
+  }, 100); // ← これでsetTimeout閉じる
+}
 
 
 
