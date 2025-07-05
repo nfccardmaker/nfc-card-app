@@ -1642,19 +1642,23 @@ function showDetailModal(my, other) {
   padding-bottom: 40px;     /* ←これ追加：下に余白 */
 ">
 
-  <div style="
+ <div style="
   background: #fff0f5;
   padding: 28px;
   border-radius: 20px;
   border: 2px solid #ffcde0;
   box-shadow: 0 8px 24px rgba(0,0,0,0.2);
   max-width: 90vw;
-  width: 360px;
+  width: 400px; /* 👈 ← 少し広げる */
   font-family: 'Kosugi Maru', 'Noto Sans JP', sans-serif;
   text-align: left;
   position: relative;
   animation: fadeIn 0.5s ease;
+  display: flex;              /* 👈 ← 追加 */
+  flex-direction: column;     /* 👈 ← 追加 */
+  align-items: center;        /* 👈 ← 追加（これで中身が中央に寄る） */
 ">
+
 
     <canvas id="compat-radar" width="300" height="300" style="margin-bottom: 4px; margin-top: -40px;"></canvas>
     <div id="compat-scores" style="margin-top: 12px; text-align: center;"></div>
