@@ -1666,8 +1666,14 @@ function showDetailModal(my, other) {
     animation: fadeIn 0.5s ease;
   ">
 
-   <!-- 🔽 レーダーチャート中央配置 -->
-<div style="display: flex; justify-content: center; align-items: center;">
+  <div style="
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: 0 16px; /* ← これで左右均等に余白とれる */
+  box-sizing: border-box;
+">
   <canvas id="compat-radar" width="280" height="280"
     style="display: block; margin: 0 auto;"></canvas>
 </div>
