@@ -1511,7 +1511,7 @@ function showDetailModal(my, other) {
       window.currentRadarChart.destroy();
     }
 
-  window.currentRadarChart = new Chart(ctx, {
+ window.currentRadarChart = new Chart(ctx, {
   type: 'radar',
   data: {
     labels: labels,
@@ -1526,18 +1526,12 @@ function showDetailModal(my, other) {
   },
   options: {
     responsive: false,
-    layout: {
-      padding: {
-        left: 10,
-        right: 20,
-        top: 10,
-        bottom: 10
-      }
-    },
     scales: {
       r: {
         suggestedMin: 0,
         suggestedMax: 100,
+        centerX: 150, // 👈 canvasが300x300なら中央
+        centerY: 150,
         ticks: {
           display: false
         },
@@ -1563,7 +1557,8 @@ function showDetailModal(my, other) {
       }
     }
   }
-});
+}); // ← Chart閉じ
+
 
     // 詳細テキスト表示
     document.getElementById('compat-detail-text').innerHTML =
