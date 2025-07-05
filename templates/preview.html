@@ -1637,10 +1637,10 @@ function showDetailModal(my, other) {
   z-index: 10000;
   align-items: center;
   justify-content: center;
-  overflow-y: auto;        /* ←これ追加 */
-  padding-top: 60px;        /* ←これ追加：上に余白 */
-  padding-bottom: 40px;     /* ←これ追加：下に余白 */
+  overflow-y: auto;
+  padding: 60px 16px 40px 16px;  /* ← 上右下左の順で指定 */
 ">
+
 
   <div style="
   background: #fff0f5;
@@ -1657,7 +1657,10 @@ function showDetailModal(my, other) {
 ">
 
  <div style="display: flex; justify-content: center;">
-  <canvas id="compat-radar" width="300" height="300" style="margin-top: -40px; margin-bottom: 4px;"></canvas>
+ <canvas id="compat-radar" width="300" height="300"
+  style="display: block; margin: 0 auto 16px auto; max-width: 90vw;">
+</canvas>
+
 </div>
 
     <div id="compat-scores" style="margin-top: 12px; text-align: center;"></div>
