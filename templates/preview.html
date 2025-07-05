@@ -1543,7 +1543,7 @@ function showDetailModal(my, other) {
           family: 'Comic Sans MS'
         },
         color: '#e91e63',
-        padding: 10
+        padding: 26
       },
       grid: {
         color: 'rgba(0,0,0,0.1)'
@@ -1576,55 +1576,7 @@ function showDetailModal(my, other) {
 }
 
 
-  modal.innerHTML = `
-    <div style="
-      background: #fff;
-      padding: 24px;
-      border-radius: 16px;
-      font-family: 'Comic Sans MS', cursive;
-      text-align: center;
-      box-shadow: 0 8px 16px rgba(0,0,0,0.25);
-      max-width: 90vw;
-      animation: popIn 0.6s ease forwards;
-    ">
-      <div style="font-size: 20px; font-weight: bold; color: #e91e63; margin-bottom: 6px;">
-       2人の相性度
-      <div style="font-size: 36px; font-weight: bold; color: #ff3366; margin-bottom: 12px;">
-         ${score}% 
-      </div>
-      <div style="font-size: 16px; margin-bottom: 6px;">
-        あなた（${my}）とこの人（${other}）の相性は…
-      </div>
-      <div style="font-size: 20px; color: #e91e63; font-weight: bold;">
-        ${message}
-        <div style="font-size: 16px; color: #555; margin-top: 8px; font-style: italic;">
-  ${comment}
-</div>
-      </div>
-      <div style="margin-top: 24px;">
-  <button onclick="document.getElementById('compat-modal').remove()" style="
-  padding: 8px 16px;
-  background: #ccc;
-  color: #333;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-">閉じる</button>
-
-  <button onclick="showDetailModal('${my}', '${other}')" style="
-    margin-left: 12px;
-    padding: 8px 16px;
-    background: #2196f3;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-  ">詳細を見る</button>
-</div>
-
-
-    </div>
-  `;
+ 
 
   document.body.appendChild(modal);
 
