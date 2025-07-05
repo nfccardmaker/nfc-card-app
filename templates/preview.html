@@ -1504,70 +1504,70 @@ function showDetailModal(my, other) {
   // 💡 ここで前回の内容を消去しておく（複製バグ対策）
   document.getElementById('compat-detail-text').innerHTML = '';
 
-setTimeout(() => {
-  const ctx = document.getElementById('compat-radar').getContext('2d');
+  setTimeout(() => {
+    const ctx = document.getElementById('compat-radar').getContext('2d');
 
-  if (window.currentRadarChart) {
-    window.currentRadarChart.destroy();
-  }
+    if (window.currentRadarChart) {
+      window.currentRadarChart.destroy();
+    }
 
-  window.currentRadarChart = new Chart(ctx, {
-    type: 'radar',
-    data: {
-      labels: labels,
-      datasets: [{
-        label: '相性チャート',
-        data: data.scores,
-        fill: true,
-        backgroundColor: 'rgba(255,99,132,0.2)',
-        borderColor: 'rgba(255,99,132,1)',
-        pointBackgroundColor: 'rgba(255,99,132,1)'
-      }]
-    },
-    options: {
-      responsive: false,
-      scales: {
-        r: {
-          suggestedMin: 0,
-          suggestedMax: 100,
-          ticks: {
-            display: false
-          },
-          pointLabels: {
-            font: {
-              size: 13,
-              family: 'Comic Sans MS'
+    window.currentRadarChart = new Chart(ctx, {
+      type: 'radar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: '相性チャート',
+          data: data.scores,
+          fill: true,
+          backgroundColor: 'rgba(255,99,132,0.2)',
+          borderColor: 'rgba(255,99,132,1)',
+          pointBackgroundColor: 'rgba(255,99,132,1)'
+        }]
+      },
+      options: {
+        responsive: false,
+        scales: {
+          r: {
+            suggestedMin: 0,
+            suggestedMax: 100,
+            ticks: {
+              display: false
             },
-            color: '#e91e63',
-            padding: 10
-          },
-          grid: {
-            color: 'rgba(0,0,0,0.1)'
-          },
-          angleLines: {
-            display: true
+            pointLabels: {
+              font: {
+                size: 13,
+                family: 'Comic Sans MS'
+              },
+              color: '#e91e63',
+              padding: 10
+            },
+            grid: {
+              color: 'rgba(0,0,0,0.1)'
+            },
+            angleLines: {
+              display: true
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            display: false
           }
         }
-      },
-      plugins: {
-        legend: {
-          display: false
-        }
       }
-    }
-  });
+    });
 
-  // 詳細テキスト表示（ここが赤くなってたやつもまとめてOK）
-  document.getElementById('compat-detail-text').innerHTML =
-    labels.map((label, i) => `
-      <div style="margin-bottom: 12px;">
-        <div style="font-weight: bold; color: #e91e63; font-size: 16px;">${label}：${data.scores[i]}%</div>
-        <div style="color: #555; font-size: 14px;">💡${data.texts[i]}</div>
-      </div>
-    `).join('');
+    // 詳細テキスト表示
+    document.getElementById('compat-detail-text').innerHTML =
+      labels.map((label, i) => `
+        <div style="margin-bottom: 12px;">
+          <div style="font-weight: bold; color: #e91e63; font-size: 16px;">${label}：${data.scores[i]}%</div>
+          <div style="color: #555; font-size: 14px;">💡${data.texts[i]}</div>
+        </div>
+      `).join('');
 
-}, 100); // ← ここ忘れ注意！！
-
+  }, 100);
+}
 
 
   modal.innerHTML = `
