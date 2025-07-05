@@ -1290,6 +1290,8 @@ if (mbtiEl) mbtiEl.innerText = type;
     document.getElementById('diagnosis-modal').style.display = 'none';
   });
 }
+window.dispatchEvent(new Event('DOMContentLoaded'));
+
 </script>
 
 <!-- ↓ ここがMBTIタイプが表示される非表示エリア -->
@@ -1594,7 +1596,7 @@ function showDetailModal(my, other) {
   setTimeout(() => {
     modal.style.opacity = '1';
   }, 50);
-}
+
 
 </script>
 
