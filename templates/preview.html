@@ -1501,7 +1501,7 @@ function showDetailModal(my, other) {
   const modal = document.getElementById('compat-detail-modal');
   modal.style.display = 'flex';
 
-  // 💡 ここで前回の内容を消去しておく（複製バグ対策）
+  // 💡 前回の内容を消去（複製バグ対策）
   document.getElementById('compat-detail-text').innerHTML = '';
 
   setTimeout(() => {
@@ -1511,57 +1511,55 @@ function showDetailModal(my, other) {
       window.currentRadarChart.destroy();
     }
 
- window.currentRadarChart = new Chart(ctx, {
-  type: 'radar',
-  data: {
-    labels: labels,
-    datasets: [{
-      label: '相性チャート',
-      data: data.scores,
-      fill: true,
-      backgroundColor: 'rgba(255,99,132,0.2)',
-      borderColor: 'rgba(255,99,132,1)',
-      pointBackgroundColor: 'rgba(255,99,132,1)'
-    }]
-  },
- options: {
-  responsive: false,
-  maintainAspectRatio: false,
-  layout: {
-    padding: 0
-  },
-  scales: {
-    r: {
-      suggestedMin: 0,
-      suggestedMax: 100,
-      ticks: {
-        display: false
+    window.currentRadarChart = new Chart(ctx, {
+      type: 'radar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: '相性チャート',
+          data: data.scores,
+          fill: true,
+          backgroundColor: 'rgba(255,99,132,0.2)',
+          borderColor: 'rgba(255,99,132,1)',
+          pointBackgroundColor: 'rgba(255,99,132,1)'
+        }]
       },
-      pointLabels: {
-        font: {
-          size: 13,
-          family: 'Comic Sans MS'
+      options: {
+        responsive: false,
+        maintainAspectRatio: false,
+        layout: {
+          padding: 0
         },
-        color: '#e91e63',
-        padding: 26
-      },
-      grid: {
-        color: 'rgba(0,0,0,0.1)'
-      },
-      angleLines: {
-        display: true
+        scales: {
+          r: {
+            suggestedMin: 0,
+            suggestedMax: 100,
+            ticks: {
+              display: false
+            },
+            pointLabels: {
+              font: {
+                size: 13,
+                family: 'Comic Sans MS'
+              },
+              color: '#e91e63',
+              padding: 26
+            },
+            grid: {
+              color: 'rgba(0,0,0,0.1)'
+            },
+            angleLines: {
+              display: true
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            display: false
+          }
+        }
       }
-    }
-  },
-  plugins: {
-    legend: {
-      display: false
-    }
-  }
-}
-
-}); // ← Chart閉じ
-
+    });
 
     // 詳細テキスト表示
     document.getElementById('compat-detail-text').innerHTML =
@@ -1571,24 +1569,11 @@ function showDetailModal(my, other) {
           <div style="color: #555; font-size: 14px;">💡${data.texts[i]}</div>
         </div>
       `).join('');
-
   }, 100);
 }
-
-
- 
-
-  document.body.appendChild(modal);
-
-  // フェードイン
-  setTimeout(() => {
-    modal.style.opacity = '1';
-  }, 50);
-
-
 </script>
 
-<!-- ▼ hidden用（相手MBTIを埋め込む用） -->
+<!-- ▼ hidden用 -->
 <input type="hidden" id="hidden-mbti" value="" />
 
 <!-- ▼ 相性の詳細モーダル -->
@@ -1616,25 +1601,22 @@ function showDetailModal(my, other) {
     text-align: center;
     position: relative;
     animation: fadeIn 0.5s ease;
-    margin: 0 auto; 
+    margin: 0 auto;
   ">
+    <div style="
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      padding: 0 16px;
+      box-sizing: border-box;
+    ">
+      <canvas id="compat-radar" width="280" height="280"
+        style="display: block; margin: 0 auto;"></canvas>
+    </div>
 
-  <div style="
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  padding: 0 16px; /* ← これで左右均等に余白とれる */
-  box-sizing: border-box;
-">
-  <canvas id="compat-radar" width="280" height="280"
-    style="display: block; margin: 0 auto;"></canvas>
-</div>
-
-    <!-- スコア中央表示（未使用なら空でもOK） -->
     <div id="compat-scores" style="margin-top: 12px; text-align: center;"></div>
 
-    <!-- 🔽 各項目の説明（左揃え） -->
     <div id="compat-detail-text" style="
       margin-top: 20px;
       font-size: 15px;
@@ -1643,7 +1625,6 @@ function showDetailModal(my, other) {
       text-align: left;
     "></div>
 
-    <!-- 閉じるボタン -->
     <button onclick="document.getElementById('compat-detail-modal').style.display='none'" style="
       position: absolute;
       top: 10px; right: 10px;
