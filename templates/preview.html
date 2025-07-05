@@ -1495,114 +1495,59 @@ function showCompatibilityModal(my, other, message, score) {
 }
 
 function showDetailModal(myMbti, otherMbti) {
-  const detailModal = document.createElement('div');
-  detailModal.id = 'compat-detail-modal';
-  detailModal.style.cssText = `
-    position: fixed;
-    top: 0; left: 0;
-    width: 100vw; height: 100vh;
-    background: rgba(0,0,0,0.6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-  `;
+  const modal = document.getElementById('compat-detail-modal');
+  modal.style.display = 'flex';
 
-  detailModal.innerHTML = `
-    <div style="
-      background: #ffeef2;
-      padding: 24px;
-      border-radius: 16px;
-      font-family: 'Comic Sans MS', cursive;
-      text-align: center;
-      box-shadow: 0 8px 16px rgba(0,0,0,0.25);
-      max-width: 90vw;
-      width: 320px;
-      position: relative;
-    ">
-      <button onclick="document.getElementById('compat-detail-modal').remove()" style="
-        position: absolute;
-        top: 12px;
-        right: 12px;
-        background: #f44336;
-        color: white;
-        border: none;
-        border-radius: 50%;
-        width: 32px;
-        height: 32px;
-        font-size: 20px;
-        cursor: pointer;
-      ">×</button>
-      <canvas id="compatChart" width="280" height="280" style="margin: 0 auto;"></canvas>
-      <div id="compat-detail-text" style="text-align: left; margin-top: 20px;"></div>
-    </div>
-  `;
+  const ctx = document.getElementById('compat-radar').getContext('2d');
+  const data = getCompatibilityRadarData(myMbti, otherMbti);
+  const labels = ['仲良し度', 'ときめき度', '相棒力', '落ち着き度', '盛り上がり度'];
 
-  document.body.appendChild(detailModal);
+  if (window.currentRadarChart) {
+    window.currentRadarChart.destroy();
+  }
 
-  // 描画タイミングを調整するために遅延させる
-  requestAnimationFrame(() => {
-    setTimeout(() => {
-      const ctx = document.getElementById('compatChart').getContext('2d');
-      const data = getCompatibilityRadarData(myMbti, otherMbti); // ←これがスコアとラベル持ってる前提
-      const labels = ['仲良し度', 'ときめき度', '相棒力', '落ち着き度', '盛り上がり度'];
-
-      new Chart(ctx, {
-        type: 'radar',
-        data: {
-          labels: labels,
-          datasets: [{
-            label: '相性スコア',
-            data: data.scores,
-            backgroundColor: 'rgba(255, 99, 132, 0.2)',
-            borderColor: '#e91e63',
-            pointBackgroundColor: '#e91e63'
-          }]
-        },
-        options: {
-          responsive: false,
-          scales: {
-            r: {
-              suggestedMin: 0,
-              suggestedMax: 100,
-              ticks: {
-                display: false
-              },
-              pointLabels: {
-                font: {
-                  size: 14,
-                  family: 'Comic Sans MS'
-                },
-                color: '#e91e63',
-                padding: 20
-              },
-              grid: {
-                color: 'rgba(0,0,0,0.1)'
-              },
-              angleLines: {
-                display: true
-              }
-            }
+  window.currentRadarChart = new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: '相性スコア',
+        data: data.scores,
+        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+        borderColor: '#e91e63',
+        pointBackgroundColor: '#e91e63'
+      }]
+    },
+    options: {
+      responsive: false,
+      scales: {
+        r: {
+          suggestedMin: 0,
+          suggestedMax: 100,
+          ticks: { display: false },
+          pointLabels: {
+            font: { size: 14, family: 'Comic Sans MS' },
+            color: '#e91e63',
+            padding: 20
           },
-          plugins: {
-            legend: {
-              display: false
-            }
-          }
+          grid: { color: 'rgba(0,0,0,0.1)' },
+          angleLines: { display: true }
         }
-      });
-
-      // 詳細テキストも表示
-      document.getElementById('compat-detail-text').innerHTML =
-        labels.map((label, i) => `
-          <div style="margin-bottom: 12px;">
-            <div style="font-weight: bold; color: #e91e63; font-size: 16px;">${label}：${data.scores[i]}%</div>
-            <div style="color: #555; font-size: 14px;">💡${data.comments[i]}</div>
-          </div>
-        `).join('');
-    }, 0);
+      },
+      plugins: { legend: { display: false } }
+    }
   });
+
+  // テキスト内容をセット
+  const detailText = labels.map((label, i) => `
+    <div style="margin-bottom: 12px;">
+      <div style="font-weight: bold; color: #e91e63; font-size: 16px;">${label}：${data.scores[i]}%</div>
+      <div style="color: #555; font-size: 14px;">💡${data.comments[i]}</div>
+    </div>
+  `).join('');
+  document.getElementById('compat-detail-text').innerHTML = detailText;
 }
+
 
 </script>
 
