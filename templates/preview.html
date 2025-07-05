@@ -1535,6 +1535,18 @@ function showDetailModal(myMbti, otherMbti) {
         },
         options: {
           responsive: false,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            beforeDraw: chart => {
+              const ctx = chart.ctx;
+              ctx.save();
+              ctx.translate(20, 0); // ← 右へ10pxずらす（必要に応じて調整）
+            },
+            afterDraw: chart => {
+              chart.ctx.restore(); // ← 必須！他の描画への影響を防ぐ
+            }
+          },
           scales: {
             r: {
               suggestedMin: 0,
@@ -1548,8 +1560,7 @@ function showDetailModal(myMbti, otherMbti) {
               grid: { color: 'rgba(0,0,0,0.1)' },
               angleLines: { display: true }
             }
-          },
-          plugins: { legend: { display: false } }
+          }
         }
       });
 
@@ -1563,6 +1574,7 @@ function showDetailModal(myMbti, otherMbti) {
     }, 30);
   });
 }
+
 </script>
 
 <!-- ▼ hidden用 -->
