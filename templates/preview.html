@@ -1662,13 +1662,9 @@ function showDetailModal(my, other) {
     position: relative;
     animation: fadeIn 0.5s ease;
   ">
-  <canvas id="compat-radar" width="300" height="300" style="display: block; margin: 0 auto;"></canvas>
 
-   <!-- 🔽 レーダーチャート中央配置 -->
-<div style="display: flex; justify-content: center; align-items: center;">
-  <canvas id="compat-radar" width="280" height="280"
-    style="display: block; margin: 0 auto;"></canvas>
-</div>
+    <!-- 🔽 レーダーチャート中央配置 -->
+    <canvas id="compat-radar" width="280" height="280" style="display: block; margin: 0 auto;"></canvas>
 
     <!-- スコア中央表示（未使用なら空でもOK） -->
     <div id="compat-scores" style="margin-top: 12px; text-align: center;"></div>
@@ -1681,6 +1677,9 @@ function showDetailModal(my, other) {
       color: #444;
       text-align: left;
     "></div>
+
+  </div>
+</div>
 
     <!-- 閉じるボタン -->
     <button onclick="document.getElementById('compat-detail-modal').style.display='none'" style="
