@@ -1524,39 +1524,42 @@ function showDetailModal(my, other) {
       pointBackgroundColor: 'rgba(255,99,132,1)'
     }]
   },
-  options: {
-    responsive: false,
-    scales: {
-      r: {
-        suggestedMin: 0,
-        suggestedMax: 100,
-        centerX: 150, // 👈 canvasが300x300なら中央
-        centerY: 150,
-        ticks: {
-          display: false
-        },
-        pointLabels: {
-          font: {
-            size: 13,
-            family: 'Comic Sans MS'
-          },
-          color: '#e91e63',
-          padding: 10
-        },
-        grid: {
-          color: 'rgba(0,0,0,0.1)'
-        },
-        angleLines: {
-          display: true
-        }
-      }
-    },
-    plugins: {
-      legend: {
+ options: {
+  responsive: false,
+  maintainAspectRatio: false,
+  layout: {
+    padding: 0
+  },
+  scales: {
+    r: {
+      suggestedMin: 0,
+      suggestedMax: 100,
+      ticks: {
         display: false
+      },
+      pointLabels: {
+        font: {
+          size: 13,
+          family: 'Comic Sans MS'
+        },
+        color: '#e91e63',
+        padding: 10
+      },
+      grid: {
+        color: 'rgba(0,0,0,0.1)'
+      },
+      angleLines: {
+        display: true
       }
     }
+  },
+  plugins: {
+    legend: {
+      display: false
+    }
   }
+}
+
 }); // ← Chart閉じ
 
 
