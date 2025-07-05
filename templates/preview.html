@@ -1554,12 +1554,6 @@ function showDetailModal(my, other) {
       }
     });
 
-    // ↓ スコアを下に表示
-    const scoreList = labels.map((label, i) => {
-      return `<div style="margin-top: 4px; color: #e91e63; font-size: 15px;">${label}：${data.scores[i]}%</div>`;
-    }).join('');
-    document.getElementById('compat-scores').innerHTML = scoreList;
-
     // 💬 詳細テキストも表示（←これがあなたの要求）
     document.getElementById('compat-detail-text').innerHTML =
       labels.map((label, i) => `
