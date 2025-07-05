@@ -1648,7 +1648,6 @@ function showDetailModal(my, other) {
   justify-content: center;
   overflow-y: auto;
   padding: 60px 16px 40px 16px;
-  display: flex;  /* ← ここ追加でモーダル本体を中央寄せ */
 ">
   <div style="
     background: #fff0f5;
@@ -1663,15 +1662,18 @@ function showDetailModal(my, other) {
     position: relative;
     animation: fadeIn 0.5s ease;
   ">
-    <!-- ✅ 中央寄せcanvas（1つだけ） -->
-    <div style="display: flex; justify-content: center;">
-      <canvas id="compat-radar" width="280" height="280" style="display: block;"></canvas>
-    </div>
+  <canvas id="compat-radar" width="300" height="300" style="display: block; margin: 0 auto;"></canvas>
 
-    <!-- スコア中央表示 -->
+   <!-- 🔽 レーダーチャート中央配置 -->
+<div style="display: flex; justify-content: center; align-items: center;">
+  <canvas id="compat-radar" width="280" height="280"
+    style="display: block; margin: 0 auto;"></canvas>
+</div>
+
+    <!-- スコア中央表示（未使用なら空でもOK） -->
     <div id="compat-scores" style="margin-top: 12px; text-align: center;"></div>
 
-    <!-- 各項目の説明（左揃え） -->
+    <!-- 🔽 各項目の説明（左揃え） -->
     <div id="compat-detail-text" style="
       margin-top: 20px;
       font-size: 15px;
@@ -1679,9 +1681,6 @@ function showDetailModal(my, other) {
       color: #444;
       text-align: left;
     "></div>
-  </div>
-</div>
-
 
     <!-- 閉じるボタン -->
     <button onclick="document.getElementById('compat-detail-modal').style.display='none'" style="
