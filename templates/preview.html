@@ -1348,8 +1348,50 @@ function getCompatibilityScore(m1, m2) {
   }
   return Math.max(0, Math.min(100, score));
 }
+function getCompatibilityComment(mbti1, mbti2) {
+  const key = [mbti1, mbti2].sort().join('-');
+
+  const commentMap = {
+    'INFP-ENFJ': 'お互いの感性に惹かれ合い、自然と支え合える関係！',
+    'ENFP-INFJ': '自由と深さのバランスが絶妙な相性！',
+    'INFJ-INTP': '理想と論理の融合で、深い対話が止まらない！',
+    'INFP-INFJ': '感受性の波長がぴったり合う癒し系コンビ！',
+    'ENFP-INTP': '突飛なアイデアを一緒に飛躍させられる関係！',
+    'ENTP-INFJ': '発想力と共感力が交差する刺激的な関係！',
+    'ENFJ-INFP': '思いやりと柔らかさが共鳴するあったかペア！',
+    'ISFJ-ENFP': '慎重さと冒険心のいいバランス！',
+    'ISTJ-ISFJ': '安定と安心を生む王道ペア！',
+    'ISFP-INFP': '共感力に溢れたやさしさ全開コンビ！',
+    'ESTP-ENFP': '行動派と夢想家がぶつかりながらも惹かれ合う！',
+    'ESFP-ENFJ': '明るさと面倒見の良さで周りも笑顔に！',
+    'ISTP-INFP': '静と動の組み合わせが意外と心地いい！',
+    'INTP-ENTJ': '計画と構想が噛み合う戦略的パートナー！',
+    'ENTP-INTJ': '未来を語りたくなる知的ペア！',
+    'ISFP-ESFJ': '自然体と気配りの絶妙なコンビ！',
+    'ISTP-ESTJ': '現実的かつ信頼できるタッグ！',
+    'ISFJ-ESFP': '穏やか×社交的の癒しと元気セット！',
+    'ISTJ-ESTP': '冷静と情熱の間に意外な調和！',
+    'INTJ-ENFP': '内なる情熱を共有できる変化推進コンビ！',
+    'INTP-INFJ': '深い思索を楽しめる精神的つながり！',
+    'ESFJ-ISFP': '柔らかくて安心できる包容力ペア！',
+    'ESTJ-ISTP': '頼れる実務家同士で仕事バッチリ！',
+    'ESFP-ISFJ': '感情と安定感が寄り添うあたたかペア！',
+    'ESTP-ISTJ': '信頼とスピードのパートナーシップ！',
+    'ENFJ-ISFP': '面倒見の良さと感性が溶け合う！',
+    'ENFP-ISFJ': '冒険と安心が交差するほのぼの関係！',
+    'ENTJ-INFP': 'カリスマと癒しの不思議な化学反応！',
+    'INTJ-ENFJ': '論理と人情のハイブリッドパートナー！',
+    'ENFP-ENFP': 'ノリと勢いが止まらない無限ループ！',
+    'ENTP-ENTP': '話が尽きない刺激的なペア！',
+    'INFP-INTP': '繊細さと探究心で静かに盛り上がる！'
+  };
+
+  return commentMap[key] || '相手の違いを理解しながら、成長できる関係！';
+}
+
 
 function showCompatibilityModal(my, other, message, score) {
+   const comment = getCompatibilityComment(my, other); 
   const modal = document.createElement('div');
   modal.id = 'compat-modal';
   modal.style.cssText = `
@@ -1386,6 +1428,9 @@ function showCompatibilityModal(my, other, message, score) {
       </div>
       <div style="font-size: 20px; color: #e91e63; font-weight: bold;">
         ${message}
+        <div style="font-size: 16px; color: #555; margin-top: 8px; font-style: italic;">
+  ${comment}
+</div>
       </div>
       <div style="margin-top: 24px;">
         <button onclick="document.getElementById('compat-modal').remove()" style="
