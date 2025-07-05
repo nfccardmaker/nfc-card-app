@@ -1507,34 +1507,55 @@ function showDetailModal(my, other) {
     window.currentRadarChart.destroy();
   }
 
-  window.currentRadarChart = new Chart(ctx, {
-    type: 'radar',
-    data: {
-      labels: labels,
-      datasets: [{
-        label: '相性チャート',
-        data: data.scores,
-        fill: true,
-        backgroundColor: 'rgba(255,99,132,0.2)',
-        borderColor: 'rgba(255,99,132,1)',
-        pointBackgroundColor: 'rgba(255,99,132,1)'
-      }]
-    },
-    options: {
-      responsive: false,
-      scales: {
-        r: {
-          suggestedMin: 0,
-          suggestedMax: 100
-        }
-      },
-      plugins: {
-        legend: {
+ window.currentRadarChart = new Chart(ctx, {
+  type: 'radar',
+  data: {
+    labels: labels,
+    datasets: [{
+      label: '相性チャート',
+      data: data.scores,
+      fill: true,
+      backgroundColor: 'rgba(255,99,132,0.2)',
+      borderColor: 'rgba(255,99,132,1)',
+      pointBackgroundColor: 'rgba(255,99,132,1)'
+    }]
+  },
+  options: {
+    responsive: false,
+    scales: {
+      r: {
+        suggestedMin: 0,
+        suggestedMax: 100,
+        ticks: {
           display: false
+        },
+        pointLabels: {
+          font: {
+            size: 14,
+            family: 'Comic Sans MS'
+          },
+          color: '#e91e63'
+        },
+        grid: {
+          color: 'rgba(0,0,0,0.1)'
         }
       }
+    },
+    plugins: {
+      legend: {
+        display: false
+      }
     }
-  });
+  }
+});
+
+  document.getElementById('compat-detail-text').innerHTML =
+  labels.map((label, i) => `
+    <div style="margin-bottom: 12px;">
+      <div style="font-weight: bold; color: #e91e63; font-size: 16px;">${label}：${data.scores[i]}%</div>
+      <div style="color: #555; font-size: 14px;">💡${data.texts[i]}</div>
+    </div>
+  `).join('');
 
   document.getElementById('compat-detail-text').innerHTML =
     data.texts.map((t, i) => `<div>💡${t}</div>`).join('');
