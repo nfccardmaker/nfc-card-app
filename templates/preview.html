@@ -1622,16 +1622,17 @@ function showDetailModal(myMbti, otherMbti) {
     animation: fadeIn 0.5s ease;
     margin: 0 auto;
   ">
+
+    <!-- ✅ 中央配置のためにflexboxでラップ -->
     <div style="
       display: flex;
       justify-content: center;
       align-items: center;
       width: 100%;
-      padding: 0 32px;
+      padding: 0;
       box-sizing: border-box;
     ">
-      <canvas id="compat-radar" width="280" height="280"
-        style="display: block; margin: 0 auto;"></canvas>
+      <canvas id="compat-radar" width="280" height="280" style="display: block;"></canvas>
     </div>
 
     <div id="compat-scores" style="margin-top: 12px; text-align: center;"></div>
