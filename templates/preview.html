@@ -1493,8 +1493,35 @@ function showCompatibilityModal(my, other, message, score) {
     modal.style.opacity = '1';
   }, 50);
 }
+function getDetailData(my, other) {
+  const key = [my, other].sort().join('-');
+
+  const detailMap = {
+    'INFP-ENFJ': {
+      scores: [90, 85, 80, 95, 70],
+      texts: [
+        '自然体で話せる友達感覚が◎',
+        '一緒にいるだけでドキドキできる相性！',
+        '共に成長し合える最高の相棒！',
+        '価値観が似ていて居心地がとても良い',
+        '盛り上がりすぎず、心地よいテンション感'
+      ]
+    }
+  };
+
+  return detailMap[key] || {
+    scores: [60, 60, 60, 60, 60],
+    texts: [
+      '会話を通じて徐々に打ち解ける関係！',
+      'お互いの違いを楽しめる相性！',
+      '一緒に新しい発見ができそう！',
+      '安心感はこれから作っていく感じ！',
+      '刺激より安定感重視な雰囲気！'
+    ]
+  };
+}
+
 function getCompatibilityRadarData(myMbti, otherMbti) {
-  // 仮のスコア＆コメント（MBTIペアごとに調整してもOK）
   const scores = [60, 60, 60, 60, 60];
   const comments = [
     '会話を通じて徐々に打ち解ける関係！',
@@ -1534,18 +1561,10 @@ function showDetailModal(myMbti, otherMbti) {
           }]
         },
         options: {
-          responsive: false,
+          responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { display: false },
-            beforeDraw: chart => {
-              const ctx = chart.ctx;
-              ctx.save();
-              ctx.translate(20, 0); // ← 右へ10pxずらす（必要に応じて調整）
-            },
-            afterDraw: chart => {
-              chart.ctx.restore(); // ← 必須！他の描画への影響を防ぐ
-            }
+            legend: { display: false }
           },
           scales: {
             r: {
@@ -1574,11 +1593,7 @@ function showDetailModal(myMbti, otherMbti) {
     }, 30);
   });
 }
-
 </script>
-
-<!-- ▼ hidden用 -->
-<input type="hidden" id="hidden-mbti" value="" />
 
 <!-- ▼ 相性の詳細モーダル -->
 <div id="compat-detail-modal" style="
@@ -1616,7 +1631,7 @@ function showDetailModal(myMbti, otherMbti) {
       box-sizing: border-box;
     ">
       <canvas id="compat-radar" width="280" height="280"
-        style="display: block; margin: 0 auto; transform: translateX(8px);"></canvas>
+        style="display: block; margin: 0 auto;"></canvas>
     </div>
 
     <div id="compat-scores" style="margin-top: 12px; text-align: center;"></div>
@@ -1645,5 +1660,7 @@ function showDetailModal(myMbti, otherMbti) {
   </div>
 </div>
 
-<!-- Chart.jsの読み込み -->
+<!-- Chart.js読み込み -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<body>
+</html>
