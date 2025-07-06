@@ -1583,12 +1583,17 @@ function showDetailModal(myMbti, otherMbti) {
         }
       });
 
-  const detailText = labels.map((label, i) => `
-  <div style="margin-bottom: 12px; width: 100%; text-align: left !important; padding-left: 0; margin-left: 0;">
-    <div style="font-weight: bold; color: #e91e63; font-size: 16px; text-align: left !important;">${label}：${data.scores[i]}%</div>
-    <div style="color: #555; font-size: 14px; text-align: left !important;">💡${data.comments[i]}</div>
+const detailText = labels.map((label, i) => `
+  <div style="margin-bottom: 16px;">
+    <div style="font-weight: bold; color: #e91e63; font-size: 16px; text-align: left;">
+      ${label}：${data.scores[i]}%
+    </div>
+    <div style="color: #555; font-size: 14px; text-align: left;">
+      💡${data.comments[i]}
+    </div>
   </div>
 `).join('');
+
       document.getElementById('compat-detail-text').innerHTML = detailText;
     }, 30);
   });
@@ -1651,10 +1656,9 @@ function showDetailModal(myMbti, otherMbti) {
   color: #444;
   text-align: left;
   width: 100%;
-  padding: 0 12px 0 8px;
+  padding: 0 16px;
   box-sizing: border-box;
-  display: block;
-"></div>
+">
 
     <button onclick="document.getElementById('compat-detail-modal').style.display='none'" style="
       position: absolute;
