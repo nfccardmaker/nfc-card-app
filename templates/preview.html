@@ -1655,20 +1655,17 @@ const detailText = labels.map((label, i) => `
              box-shadow: 0 2px 6px rgba(0,0,0,0.2);">
     </canvas>
 
-  <!-- ✅ テキスト（位置指定で下に表示） -->
-<div id="compat-detail-text" style="
-  position: absolute;
-  top: 300px; left: 20px;
-  width: 280px;  /* ✅ 320px→280pxに変更 */
-  font-size: 15px;
-  line-height: 1.8;
-  color: #444;
-  text-align: left;
-  box-sizing: border-box;
-  word-wrap: break-word;        /* ✅ 折り返し */
-  overflow-wrap: break-word;    /* ✅ 念のため */
-">
-
+    <!-- ✅ テキスト（位置指定で下に表示） -->
+    <div id="compat-detail-text" style="
+      position: absolute;
+      top: 300px; left: 20px;
+      width: 320px;
+      font-size: 15px;
+      line-height: 1.8;
+      color: #444;
+      text-align: left;
+      box-sizing: border-box;
+    ">
       <!-- JSで生成 -->
     </div>
 
