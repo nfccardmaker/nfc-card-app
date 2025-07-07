@@ -1613,8 +1613,7 @@ const detailText = labels.map((label, i) => `
   overflow-y: auto;
   padding: 60px 16px 40px 16px;
 ">
-  <!-- ▼ 相性モーダルの中身全体を囲むラッパーに変形 -->
-<div style="
+ <div style="
   background: linear-gradient(to right, #c7f0f9, #fcd6ec);
   padding: 48px 28px 28px 28px;
   border-radius: 20px;
@@ -1625,10 +1624,8 @@ const detailText = labels.map((label, i) => `
   font-family: 'Kosugi Maru', 'Noto Sans JP', sans-serif;
   position: relative;
   animation: fadeIn 0.5s ease;
-  margin: 0 auto;
-
-  /* 👇 ここを追加（全体を左へ） */
-  transform: translateX(-12px);
+  margin-left: 0;
+  margin-right: auto;
 ">
 
 
