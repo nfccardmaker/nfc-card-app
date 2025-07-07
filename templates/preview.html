@@ -1493,47 +1493,6 @@ function showCompatibilityModal(my, other, message, score) {
     modal.style.opacity = '1';
   }, 50);
 }
-function getDetailData(my, other) {
-  const key = [my, other].sort().join('-');
-
-  const detailMap = {
-    'INFP-ENFJ': {
-      scores: [90, 85, 80, 95, 70],
-      texts: [
-        '自然体で話せる友達感覚が◎',
-        '一緒にいるだけでドキドキできる相性！',
-        '共に成長し合える最高の相棒！',
-        '価値観が似ていて居心地がとても良い',
-        '盛り上がりすぎず、心地よいテンション感'
-      ]
-    }
-  };
-
-  return detailMap[key] || {
-    scores: [60, 60, 60, 60, 60],
-    texts: [
-      '会話を通じて徐々に打ち解ける関係！',
-      'お互いの違いを楽しめる相性！',
-      '一緒に新しい発見ができそう！',
-      '安心感はこれから作っていく感じ！',
-      '刺激より安定感重視な雰囲気！'
-    ]
-  };
-}
-
-function getCompatibilityRadarData(myMbti, otherMbti) {
-  const scores = [60, 60, 60, 60, 60];
-  const comments = [
-    '会話を通じて徐々に打ち解ける関係！',
-    'お互いの違いを楽しめる相性！',
-    '一緒に新しい発見ができそう！',
-    '安心感はこれから作っていく感じ！',
-    '刺激より安定感重視な雰囲気！'
-  ];
-
-  return { scores, comments };
-}
-
 function showDetailModal(myMbti, otherMbti) {
   const modal = document.getElementById('compat-detail-modal');
   modal.style.display = 'flex';
@@ -1625,9 +1584,8 @@ function showDetailModal(myMbti, otherMbti) {
     position: relative;
     animation: fadeIn 0.5s ease;
     margin: 0 auto;
-    text-align: center;
   ">
-    <!-- 🔸チャート中央表示 -->
+
     <canvas id="compat-radar"
       width="240"
       height="240"
@@ -1647,7 +1605,7 @@ function showDetailModal(myMbti, otherMbti) {
       color: #444;
       text-align: left;
       width: 100%;
-      padding: 0 16px;
+      padding: 0;
       box-sizing: border-box;
     "></div>
 
@@ -1665,6 +1623,7 @@ function showDetailModal(myMbti, otherMbti) {
       cursor: pointer;
       box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     ">✕</button>
+
   </div>
 </div>
 
