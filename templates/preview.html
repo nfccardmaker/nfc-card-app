@@ -1585,16 +1585,17 @@ function showDetailModal(myMbti, otherMbti) {
 
 const detailText = labels.map((label, i) => `
   <div style="margin-bottom: 16px;">
-    <div style="font-weight: bold; color: #e91e63; font-size: 16px; text-align: left;">
+    <div style="font-weight: bold; color: #e91e63; font-size: 16px;">
       ${label}：${data.scores[i]}%
     </div>
-    <div style="color: #555; font-size: 14px; text-align: left;">
+    <div style="color: #555; font-size: 14px;">
       💡${data.comments[i]}
     </div>
   </div>
 `).join('');
 
-      document.getElementById('compat-detail-text').innerHTML = detailText;
+document.getElementById('compat-detail-text').innerHTML = detailText;
+
     }, 30);
   });
 }
@@ -1640,18 +1641,17 @@ const detailText = labels.map((label, i) => `
       </canvas>
     </div>
 
-    <!-- ✅ テキストだけ左寄せ -->
     <div id="compat-detail-text" style="
-      margin-top: 20px;
-      font-size: 15px;
-      line-height: 1.8;
-      color: #444;
-      text-align: left;
-      width: 100%;
-      padding-left: 16px;
-      padding-right: 8px;
-      box-sizing: border-box;
-    ">
+  margin-top: 20px;
+  font-size: 15px;
+  line-height: 1.8;
+  color: #444;
+  text-align: left;
+  padding: 0 16px;         /* ← 左右に余白 */
+  width: 100%;
+  box-sizing: border-box;
+">
+
       <!-- JavaScriptで中身が追加される -->
     </div>
 
