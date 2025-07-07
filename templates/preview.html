@@ -1582,41 +1582,42 @@ function showDetailModal(myMbti, otherMbti) {
   ">
     
     <!-- 💖 レーダーチャートブロック -->
-    <div style="
-      background-color: #ffeaf3;
-      padding: 32px 20px;
+<div style="
+  background-color: #ffeaf3;
+  padding: 32px 20px;
+  border-radius: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  margin-bottom: 0;  /* ← 不要な余白を削除 */
+">
+  <canvas id="compat-radar"
+    width="240"
+    height="240"
+    style="
+      display: block;
+      background-color: #fff0f5;
       border-radius: 20px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
     ">
-      <canvas id="compat-radar"
-        width="240"
-        height="240"
-        style="
-          display: block;
-          background-color: #fff0f5;
-          border-radius: 20px;
-          box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-        ">
-      </canvas>
-    </div>
+  </canvas>
+</div>
 
-    <!-- 📝 詳細テキストブロック -->
-    <div id="compat-detail-text" style="
-      background: linear-gradient(to right, #c7f0f9, #fcd6ec);
-      padding: 24px 20px;
-      border-radius: 20px;
-      font-size: 15px;
-      line-height: 1.8;
-      color: #444;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      text-align: left;
-    ">
-    </div>
-  </div>
+<!-- 📝 詳細テキストブロック -->
+<div id="compat-detail-text" style="
+  background: linear-gradient(to right, #c7f0f9, #fcd6ec);
+  padding: 24px 20px;
+  border-radius: 20px;
+  font-size: 15px;
+  line-height: 1.8;
+  color: #444;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  text-align: left;
+  margin-top: 0;  /* ← これも念のため追加 */
+">
+</div>
+
 
   <!-- ❌ 閉じるボタン -->
   <button onclick="document.getElementById('compat-detail-modal').style.display='none'" style="
