@@ -1666,17 +1666,21 @@ const detailText = labels.map((label, i) => `
       </canvas>
     </div>
 
-    <!-- ✅ 左揃えテキスト領域 -->
-    <div id="compat-detail-text" style="
-      margin-top: 20px;
-      font-size: 15px;
-      line-height: 1.8;
-      color: #444;
-      text-align: left;
-      width: 100%;
-      padding: 0;
-      box-sizing: border-box;
-    ">
+   <!-- ✅ 左揃えテキスト領域 -->
+<div id="compat-detail-text" style="
+  margin-top: 20px;
+  font-size: 15px;
+  line-height: 1.8;
+  color: #444;
+  text-align: left;
+  width: 100%;
+  padding: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+">
+
       <!-- JavaScriptで埋め込まれる -->
     </div>
 
