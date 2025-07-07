@@ -1627,38 +1627,7 @@ const detailText = labels.map((label, i) => `
     animation: fadeIn 0.5s ease;
     margin: 0 auto;
   ">
-
-    <!-- ✅ 中央配置のためにflexboxでラップ -->
-    <div style="
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      width: 100%;
-      padding: 0;
-      box-sizing: border-box;
-    ">
-     <canvas id="compat-radar"
-  width="240"
-  height="240"
-  style="display: block;
-         transform: translate(30px, 28px);
-         background-color: #fff0f5;
-         border-radius: 20px;
-         box-shadow: 0 2px 6px rgba(0,0,0,0.2);">
-</canvas>
-
-    <!-- ✅ テキストは中央に配置しつつ、左寄せで読みやすく -->
-<div id="compat-detail-text" style="
-  margin-top: 20px;
-  font-size: 15px;
-  line-height: 1.8;
-  color: #444;
-  text-align: left;
-  width: 90%;
-  max-width: 320px;
-  margin-left: auto;
-  margin-right: auto;
-">
+    <!-- ✨ モーダル閉じるボタン -->
     <button onclick="document.getElementById('compat-detail-modal').style.display='none'" style="
       position: absolute;
       top: 10px; right: 10px;
@@ -1672,6 +1641,41 @@ const detailText = labels.map((label, i) => `
       cursor: pointer;
       box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     ">✕</button>
+
+    <!-- ✅ 中央配置のためにflexboxでラップ -->
+    <div style="
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      padding: 0;
+      box-sizing: border-box;
+    ">
+      <canvas id="compat-radar"
+        width="240"
+        height="240"
+        style="
+          display: block;
+          background-color: #fff0f5;
+          border-radius: 20px;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        ">
+      </canvas>
+    </div>
+
+    <!-- ✅ テキストが正しくチャートの下に来るように修正 -->
+    <div id="compat-detail-text" style="
+      margin-top: 20px;
+      font-size: 15px;
+      line-height: 1.8;
+      color: #444;
+      text-align: left;
+      width: 100%;
+      padding: 0 16px;
+      box-sizing: border-box;
+    ">
+    </div>
+
   </div>
 </div>
 
