@@ -1614,7 +1614,8 @@ document.getElementById('compat-detail-text').innerHTML = detailText;
   overflow-y: auto;
   padding: 60px 16px 40px 16px;
 ">
-  <!-- ▼ 相性モーダルの中身全体を囲むラッパーに変形 -->
+
+  <!-- ▼ モーダル中身のラッパー -->
   <div style="
     background: linear-gradient(to right, #c7f0f9, #fcd6ec);
     padding: 48px 28px 28px 28px;
@@ -1626,11 +1627,13 @@ document.getElementById('compat-detail-text').innerHTML = detailText;
     font-family: 'Kosugi Maru', 'Noto Sans JP', sans-serif;
     position: relative;
     animation: fadeIn 0.5s ease;
-    margin-left: 0;
-    margin-right: auto;
+    margin: 0 auto;  /* ← 中央配置のための修正 */
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
   ">
 
-    <!-- ✅ チャートだけ中央配置 -->
+    <!-- ✅ チャートを中央に配置 -->
     <div style="display: flex; justify-content: center;">
       <canvas id="compat-radar"
         width="240"
@@ -1641,17 +1644,16 @@ document.getElementById('compat-detail-text').innerHTML = detailText;
       </canvas>
     </div>
 
+    <!-- ✅ テキストは左揃え -->
     <div id="compat-detail-text" style="
-  margin-top: 20px;
-  font-size: 15px;
-  line-height: 1.8;
-  color: #444;
-  text-align: left;
-  padding: 0 16px;         /* ← 左右に余白 */
-  width: 100%;
-  box-sizing: border-box;
-">
-
+      font-size: 15px;
+      line-height: 1.8;
+      color: #444;
+      text-align: left;
+      padding: 0 16px;
+      width: 100%;
+      box-sizing: border-box;
+    ">
       <!-- JavaScriptで中身が追加される -->
     </div>
 
@@ -1671,6 +1673,7 @@ document.getElementById('compat-detail-text').innerHTML = detailText;
     ">✕</button>
   </div>
 </div>
+
 
 <!-- Chart.js読み込み -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
