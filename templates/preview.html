@@ -1390,7 +1390,6 @@ function getCompatibilityComment(mbti1, mbti2) {
 
   return commentMap[key] || '相手の違いを理解しながら、成長できる関係！';
 }
-
 function getDetailData(my, other) {
   const key = [my, other].sort().join('-');
 
@@ -1420,7 +1419,6 @@ function getDetailData(my, other) {
   };
 }
 
-<script>
 function showCompatibilityModal(my, other, message, score) {
   const comment = getCompatibilityComment(my, other); 
   const modal = document.createElement('div');
@@ -1450,10 +1448,9 @@ function showCompatibilityModal(my, other, message, score) {
       animation: popIn 0.6s ease forwards;
     ">
       <div style="font-size: 20px; font-weight: bold; color: #e91e63; margin-bottom: 6px;">
-        2人の相性度
-      </div>
+       2人の相性度
       <div style="font-size: 36px; font-weight: bold; color: #ff3366; margin-bottom: 12px;">
-        ${score}%
+         ${score}% 
       </div>
       <div style="font-size: 16px; margin-bottom: 6px;">
         あなた（${my}）とこの人（${other}）の相性は…
@@ -1461,29 +1458,31 @@ function showCompatibilityModal(my, other, message, score) {
       <div style="font-size: 20px; color: #e91e63; font-weight: bold;">
         ${message}
         <div style="font-size: 16px; color: #555; margin-top: 8px; font-style: italic;">
-          ${comment}
-        </div>
+  ${comment}
+</div>
       </div>
       <div style="margin-top: 24px;">
-        <button onclick="document.getElementById('compat-modal').remove()" style="
-          padding: 8px 16px;
-          background: #ccc;
-          color: #333;
-          border: none;
-          border-radius: 8px;
-          cursor: pointer;
-        ">閉じる</button>
+  <button onclick="document.getElementById('compat-modal').remove()" style="
+  padding: 8px 16px;
+  background: #ccc;
+  color: #333;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+">閉じる</button>
 
-        <button onclick="showDetailModal('${my}', '${other}')" style="
-          margin-left: 12px;
-          padding: 8px 16px;
-          background: #2196f3;
-          color: white;
-          border: none;
-          border-radius: 8px;
-          cursor: pointer;
-        ">詳細を見る</button>
-      </div>
+  <button onclick="showDetailModal('${my}', '${other}')" style="
+    margin-left: 12px;
+    padding: 8px 16px;
+    background: #2196f3;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+  ">詳細を見る</button>
+</div>
+
+
     </div>
   `;
 
@@ -1494,6 +1493,46 @@ function showCompatibilityModal(my, other, message, score) {
     modal.style.opacity = '1';
   }, 50);
 }
+function getDetailData(my, other) {
+  const key = [my, other].sort().join('-');
+
+  const detailMap = {
+    'INFP-ENFJ': {
+      scores: [90, 85, 80, 95, 70],
+      texts: [
+        '自然体で話せる友達感覚が◎',
+        '一緒にいるだけでドキドキできる相性！',
+        '共に成長し合える最高の相棒！',
+        '価値観が似ていて居心地がとても良い',
+        '盛り上がりすぎず、心地よいテンション感'
+      ]
+    }
+  };
+
+  return detailMap[key] || {
+    scores: [60, 60, 60, 60, 60],
+    texts: [
+      '会話を通じて徐々に打ち解ける関係！',
+      'お互いの違いを楽しめる相性！',
+      '一緒に新しい発見ができそう！',
+      '安心感はこれから作っていく感じ！',
+      '刺激より安定感重視な雰囲気！'
+    ]
+  };
+}
+
+function getCompatibilityRadarData(myMbti, otherMbti) {
+  const scores = [60, 60, 60, 60, 60];
+  const comments = [
+    '会話を通じて徐々に打ち解ける関係！',
+    'お互いの違いを楽しめる相性！',
+    '一緒に新しい発見ができそう！',
+    '安心感はこれから作っていく感じ！',
+    '刺激より安定感重視な雰囲気！'
+  ];
+
+  return { scores, comments };
+}
 
 function showDetailModal(myMbti, otherMbti) {
   const modal = document.getElementById('compat-detail-modal');
@@ -1502,7 +1541,7 @@ function showDetailModal(myMbti, otherMbti) {
   requestAnimationFrame(() => {
     setTimeout(() => {
       const ctx = document.getElementById('compat-radar').getContext('2d');
-      const detail = getDetailData(myMbti, otherMbti);
+      const data = getCompatibilityRadarData(myMbti, otherMbti);
       const labels = ['仲良し度', 'ときめき度', '相棒力', '落ち着き度', '盛り上がり度'];
 
       if (window.currentRadarChart) {
@@ -1515,7 +1554,7 @@ function showDetailModal(myMbti, otherMbti) {
           labels: labels,
           datasets: [{
             label: '相性スコア',
-            data: detail.scores,
+            data: data.scores,
             backgroundColor: 'rgba(255, 99, 132, 0.2)',
             borderColor: '#e91e63',
             pointBackgroundColor: '#e91e63'
@@ -1544,16 +1583,16 @@ function showDetailModal(myMbti, otherMbti) {
         }
       });
 
-      const detailText = labels.map((label, i) => `
-        <div style="margin-bottom: 16px;">
-          <div style="font-weight: bold; color: #e91e63; font-size: 16px;">
-            ${label}：${detail.scores[i]}%
-          </div>
-          <div style="color: #555; font-size: 14px;">
-            💡${detail.texts[i]}
-          </div>
-        </div>
-      `).join('');
+const detailText = labels.map((label, i) => `
+  <div style="margin-bottom: 16px;">
+    <div style="font-weight: bold; color: #e91e63; font-size: 16px; text-align: left;">
+      ${label}：${data.scores[i]}%
+    </div>
+    <div style="color: #555; font-size: 14px; text-align: left;">
+      💡${data.comments[i]}
+    </div>
+  </div>
+`).join('');
 
       document.getElementById('compat-detail-text').innerHTML = detailText;
     }, 30);
@@ -1574,68 +1613,75 @@ function showDetailModal(myMbti, otherMbti) {
   overflow-y: auto;
   padding: 60px 16px 40px 16px;
 ">
-  <div style="
-    max-width: 420px;
-    width: 100%;
-    margin: 0 auto;
-    font-family: 'Kosugi Maru', 'Noto Sans JP', sans-serif;
-  ">
-    
-    <!-- 💖 レーダーチャートブロック -->
+  <!-- ▼ 相性モーダルの中身全体を囲むラッパーに変形 -->
 <div style="
-  background-color: #ffeaf3;
-  padding: 32px 20px;
-  border-radius: 20px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-  margin-bottom: 0;  /* ← 不要な余白を削除 */
-">
-  <canvas id="compat-radar"
-    width="240"
-    height="240"
-    style="
-      display: block;
-      background-color: #fff0f5;
-      border-radius: 20px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-    ">
-  </canvas>
-</div>
-
-<!-- 📝 詳細テキストブロック -->
-<div id="compat-detail-text" style="
   background: linear-gradient(to right, #c7f0f9, #fcd6ec);
-  padding: 24px 20px;
+  padding: 48px 28px 28px 28px;
   border-radius: 20px;
+  border: 2px solid #ffcde0;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  max-width: 90vw;
+  width: 360px;
+  font-family: 'Kosugi Maru', 'Noto Sans JP', sans-serif;
+  position: relative;
+  animation: fadeIn 0.5s ease;
+  margin: 0 auto;
+
+  /* 👇 ここを追加（全体を左へ） */
+  transform: translateX(-12px);
+">
+
+
+
+    <!-- ✅ 中央配置のためにflexboxでラップ -->
+    <div style="
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      padding: 0;
+      box-sizing: border-box;
+    ">
+     <canvas id="compat-radar"
+  width="240"
+  height="240"
+  style="display: block;
+         transform: translate(30px, 28px);
+         background-color: #fff0f5;
+         border-radius: 20px;
+         box-shadow: 0 2px 6px rgba(0,0,0,0.2);">
+</canvas>
+
+    </div>
+
+<div id="compat-detail-text" style="
+  margin-top: 20px;
   font-size: 15px;
   line-height: 1.8;
   color: #444;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
   text-align: left;
-  margin-top: 0;  /* ← これも念のため追加 */
+  width: 100%;
+  padding: 0 16px;
+  box-sizing: border-box;
 ">
+
+    <button onclick="document.getElementById('compat-detail-modal').style.display='none'" style="
+      position: absolute;
+      top: 10px; right: 10px;
+      width: 32px; height: 32px;
+      background: #ffccd5;
+      border: none;
+      border-radius: 50%;
+      font-size: 18px;
+      color: #a00;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    ">✕</button>
+  </div>
 </div>
 
-
-  <!-- ❌ 閉じるボタン -->
-  <button onclick="document.getElementById('compat-detail-modal').style.display='none'" style="
-    position: absolute;
-    top: 10px; right: 10px;
-    width: 32px; height: 32px;
-    background: #ffccd5;
-    border: none;
-    border-radius: 50%;
-    font-size: 18px;
-    color: #a00;
-    font-weight: bold;
-    cursor: pointer;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-  ">✕</button>
-</div>
-
+<!-- Chart.js読み込み -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <body>
 </html>
