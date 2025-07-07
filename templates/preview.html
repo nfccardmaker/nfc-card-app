@@ -1583,16 +1583,16 @@ function showDetailModal(myMbti, otherMbti) {
         }
       });
 
-const detailText = labels.map((label, i) => `
-  <div style="margin-bottom: 16px;">
-    <div style="font-weight: bold; color: #e91e63; font-size: 16px; text-align: left;">
-      ${label}：${data.scores[i]}%
-    </div>
-    <div style="color: #555; font-size: 14px; text-align: left;">
-      💡${data.comments[i]}
-    </div>
-  </div>
-`).join('');
+      const detailText = labels.map((label, i) => `
+        <div style="margin-bottom: 16px;">
+          <div style="font-weight: bold; color: #e91e63; font-size: 16px; text-align: left;">
+            ${label}：${data.scores[i]}%
+          </div>
+          <div style="color: #555; font-size: 14px; text-align: left;">
+            💡${data.comments[i]}
+          </div>
+        </div>
+      `).join('');
 
       document.getElementById('compat-detail-text').innerHTML = detailText;
     }, 30);
@@ -1625,21 +1625,19 @@ const detailText = labels.map((label, i) => `
     position: relative;
     animation: fadeIn 0.5s ease;
     margin: 0 auto;
-    transform: translateX(-12px); /* 左寄せのみ調整 */
+    text-align: center;
   ">
-
+    <!-- 🔸チャート中央表示 -->
     <canvas id="compat-radar"
-  width="240"
-  height="240"
-  style="display: block;
-         height: 240px;
-         background-color: #fff0f5;
-         border-radius: 20px;
-         box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-         margin: 0 auto;">
-</canvas>
-
-    </div>
+      width="240"
+      height="240"
+      style="display: block;
+             height: 240px;
+             background-color: #fff0f5;
+             border-radius: 20px;
+             box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+             margin: 0 auto;">
+    </canvas>
 
     <!-- ✅ 詳細テキスト -->
     <div id="compat-detail-text" style="
@@ -1667,11 +1665,10 @@ const detailText = labels.map((label, i) => `
       cursor: pointer;
       box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     ">✕</button>
-
   </div>
 </div>
 
 <!-- Chart.js読み込み -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<body>
+</body>
 </html>
