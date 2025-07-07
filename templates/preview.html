@@ -1647,19 +1647,18 @@ const detailText = labels.map((label, i) => `
          box-shadow: 0 2px 6px rgba(0,0,0,0.2);">
 </canvas>
 
-    </div>
-
+    <!-- ✅ テキストは中央に配置しつつ、左寄せで読みやすく -->
 <div id="compat-detail-text" style="
   margin-top: 20px;
   font-size: 15px;
   line-height: 1.8;
   color: #444;
   text-align: left;
-  width: 100%;
-  padding: 0 16px;
-  box-sizing: border-box;
+  width: 90%;
+  max-width: 320px;
+  margin-left: auto;
+  margin-right: auto;
 ">
-
     <button onclick="document.getElementById('compat-detail-modal').style.display='none'" style="
       position: absolute;
       top: 10px; right: 10px;
