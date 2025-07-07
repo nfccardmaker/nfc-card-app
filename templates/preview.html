@@ -1613,7 +1613,7 @@ const detailText = labels.map((label, i) => `
   overflow-y: auto;
   padding: 60px 16px 40px 16px;
 ">
-  <div style="
+   <div style="
     background: #fff0f5;
     padding: 48px 28px 28px 28px;
     border-radius: 20px;
@@ -1622,12 +1622,12 @@ const detailText = labels.map((label, i) => `
     max-width: 90vw;
     width: 360px;
     font-family: 'Kosugi Maru', 'Noto Sans JP', sans-serif;
-    text-align: center;
     position: relative;
     animation: fadeIn 0.5s ease;
     margin: 0 auto;
   ">
-    <!-- ✨ モーダル閉じるボタン -->
+
+    <!-- ✕ ボタンはそのまま -->
     <button onclick="document.getElementById('compat-detail-modal').style.display='none'" style="
       position: absolute;
       top: 10px; right: 10px;
@@ -1642,34 +1642,24 @@ const detailText = labels.map((label, i) => `
       box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     ">✕</button>
 
-    <!-- ✅ 中央配置のためにflexboxでラップ -->
-    <div style="
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      width: 100%;
-      padding: 0;
-      box-sizing: border-box;
-    ">
-      <canvas id="compat-radar"
-        width="240"
-        height="240"
-        style="
-          display: block;
-          background-color: #fff0f5;
-          border-radius: 20px;
-          box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-        ">
-      </canvas>
-    </div>
+    <!-- ✅ チャートを中央に -->
+    <canvas id="compat-radar"
+      width="240"
+      height="240"
+      style="
+        display: block;
+        margin: 0 auto 20px auto;
+        background-color: #fff0f5;
+        border-radius: 20px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    "></canvas>
 
-    <!-- ✅ テキストが正しくチャートの下に来るように修正 -->
+    <!-- ✅ テキストも中央寄せ -->
     <div id="compat-detail-text" style="
-      margin-top: 20px;
       font-size: 15px;
       line-height: 1.8;
       color: #444;
-      text-align: left;
+      text-align: center;
       width: 100%;
       padding: 0 16px;
       box-sizing: border-box;
@@ -1677,7 +1667,6 @@ const detailText = labels.map((label, i) => `
     </div>
 
   </div>
-</div>
 
 <!-- Chart.js読み込み -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
