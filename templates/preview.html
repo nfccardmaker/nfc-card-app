@@ -1390,35 +1390,6 @@ function getCompatibilityComment(mbti1, mbti2) {
 
   return commentMap[key] || '相手の違いを理解しながら、成長できる関係！';
 }
-function getDetailData(my, other) {
-  const key = [my, other].sort().join('-');
-
-  const detailMap = {
-    'INFP-ENFJ': {
-      scores: [90, 85, 80, 95, 70],
-      texts: [
-        '自然体で話せる友達感覚が◎',
-        '一緒にいるだけでドキドキできる相性！',
-        '共に成長し合える最高の相棒！',
-        '価値観が似ていて居心地がとても良い',
-        '盛り上がりすぎず、心地よいテンション感'
-      ]
-    }
-    // 他の組み合わせはあとで追加できる
-  };
-
-  return detailMap[key] || {
-    scores: [60, 60, 60, 60, 60],
-    texts: [
-      '会話を通じて徐々に打ち解ける関係！',
-      'お互いの違いを楽しめる相性！',
-      '一緒に新しい発見ができそう！',
-      '安心感はこれから作っていく感じ！',
-      '刺激より安定感重視な雰囲気！'
-    ]
-  };
-}
-
 function showCompatibilityModal(my, other, message, score) {
   const comment = getCompatibilityComment(my, other); 
   const modal = document.createElement('div');
@@ -1449,6 +1420,7 @@ function showCompatibilityModal(my, other, message, score) {
     ">
       <div style="font-size: 20px; font-weight: bold; color: #e91e63; margin-bottom: 6px;">
        2人の相性度
+      </div>
       <div style="font-size: 36px; font-weight: bold; color: #ff3366; margin-bottom: 12px;">
          ${score}% 
       </div>
@@ -1457,45 +1429,46 @@ function showCompatibilityModal(my, other, message, score) {
       </div>
       <div style="font-size: 20px; color: #e91e63; font-weight: bold;">
         ${message}
-        <div style="font-size: 16px; color: #555; margin-top: 8px; font-style: italic;">
-  ${comment}
-</div>
+      </div>
+      <div style="font-size: 16px; color: #555; margin-top: 8px; font-style: italic;">
+        ${comment}
       </div>
       <div style="margin-top: 24px;">
-  <button onclick="document.getElementById('compat-modal').remove()" style="
-  padding: 8px 16px;
-  background: #ccc;
-  color: #333;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-">閉じる</button>
+        <button onclick="document.getElementById('compat-modal').remove()" style="
+          padding: 8px 16px;
+          background: #ccc;
+          color: #333;
+          border: none;
+          border-radius: 8px;
+          cursor: pointer;
+        ">閉じる</button>
 
-  <button onclick="showDetailModal('${my}', '${other}')" style="
-    margin-left: 12px;
-    padding: 8px 16px;
-    background: #2196f3;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-  ">詳細を見る</button>
-</div>
-
-
+        <button onclick="showDetailModal('${my}', '${other}')" style="
+          margin-left: 12px;
+          padding: 8px 16px;
+          background: #2196f3;
+          color: white;
+          border: none;
+          border-radius: 8px;
+          cursor: pointer;
+        ">詳細を見る</button>
+      </div>
     </div>
   `;
 
   document.body.appendChild(modal);
 
-  // フェードイン
   setTimeout(() => {
     modal.style.opacity = '1';
   }, 50);
 }
+
+function getCompatibilityComment(my, other) {
+  return '一言コメントの例';
+}
+
 function getDetailData(my, other) {
   const key = [my, other].sort().join('-');
-
   const detailMap = {
     'INFP-ENFJ': {
       scores: [90, 85, 80, 95, 70],
@@ -1508,7 +1481,6 @@ function getDetailData(my, other) {
       ]
     }
   };
-
   return detailMap[key] || {
     scores: [60, 60, 60, 60, 60],
     texts: [
@@ -1522,16 +1494,11 @@ function getDetailData(my, other) {
 }
 
 function getCompatibilityRadarData(myMbti, otherMbti) {
-  const scores = [60, 60, 60, 60, 60];
-  const comments = [
-    '会話を通じて徐々に打ち解ける関係！',
-    'お互いの違いを楽しめる相性！',
-    '一緒に新しい発見ができそう！',
-    '安心感はこれから作っていく感じ！',
-    '刺激より安定感重視な雰囲気！'
-  ];
-
-  return { scores, comments };
+  const data = getDetailData(myMbti, otherMbti);
+  return {
+    scores: data.scores,
+    comments: data.texts
+  };
 }
 
 function showDetailModal(myMbti, otherMbti) {
@@ -1583,18 +1550,16 @@ function showDetailModal(myMbti, otherMbti) {
         }
       });
 
-const detailText = labels.map((label, i) => `
-  <div style="margin-bottom: 16px; text-align: left;">  <!-- ← 念のためここにも left を -->
-    <div style="font-weight: bold; color: #e91e63; font-size: 16px;">
-      ${label}：${data.scores[i]}%
-    </div>
-    <div style="color: #555; font-size: 14px;">
-      💡${data.comments[i]}
-    </div>
-  </div>
-`).join('');
-
-
+      const detailText = labels.map((label, i) => `
+        <div style="margin-bottom: 16px; text-align: left;">
+          <div style="font-weight: bold; color: #e91e63; font-size: 16px;">
+            ${label}：${data.scores[i]}%
+          </div>
+          <div style="color: #555; font-size: 14px;">
+            💡${data.comments[i]}
+          </div>
+        </div>
+      `).join('');
 
       document.getElementById('compat-detail-text').innerHTML = detailText;
     }, 30);
@@ -1602,7 +1567,7 @@ const detailText = labels.map((label, i) => `
 }
 </script>
 
-<!-- ▼ 相性の詳細モーダル -->
+<!-- 相性の詳細モーダル -->
 <div id="compat-detail-modal" style="
   display: none;
   position: fixed;
@@ -1621,45 +1586,39 @@ const detailText = labels.map((label, i) => `
     margin: 0 auto;
     font-family: 'Kosugi Maru', 'Noto Sans JP', sans-serif;
   ">
-    
-   <!-- 💖 レーダーチャートブロック（中央揃え） -->
-<div style="
-  background-color: #ffeaf3;
-  padding: 32px 20px;
-  border-radius: 20px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-  margin-bottom: 20px;
-">
-  <canvas id="compat-radar"
-    width="240"
-    height="240"
-    style="
-      display: block;
-      background-color: #fff0f5;
+    <div style="
+      background-color: #ffeaf3;
+      padding: 32px 20px;
       border-radius: 20px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
     ">
-  </canvas>
-</div>
+      <canvas id="compat-radar"
+        width="240"
+        height="240"
+        style="
+          display: block;
+          background-color: #fff0f5;
+          border-radius: 20px;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        ">
+      </canvas>
+    </div>
 
-<!-- 📝 詳細テキストブロック（左揃え） -->
-<div id="compat-detail-text" style="
-  background: linear-gradient(to right, #c7f0f9, #fcd6ec);
-  padding: 24px 20px;
-  border-radius: 20px;
-  font-size: 15px;
-  line-height: 1.8;
-  color: #444;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-">
-  <!-- テキストブロックの内部も明示的に左揃えにする -->
-  <div style="text-align: left;"></div>
-</div>
+    <div id="compat-detail-text" style="
+      background: linear-gradient(to right, #c7f0f9, #fcd6ec);
+      padding: 24px 20px;
+      border-radius: 20px;
+      font-size: 15px;
+      line-height: 1.8;
+      color: #444;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    "></div>
+  </div>
 
-  <!-- ❌ 閉じるボタン -->
   <button onclick="document.getElementById('compat-detail-modal').style.display='none'" style="
     position: absolute;
     top: 10px; right: 10px;
@@ -1675,7 +1634,5 @@ const detailText = labels.map((label, i) => `
   ">✕</button>
 </div>
 
-<!-- Chart.js読み込み -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<body>
+</body>
 </html>
