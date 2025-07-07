@@ -1617,7 +1617,6 @@ const detailText = labels.map((label, i) => `
 ">
   <!-- ▼ モーダルの中身 -->
   <div style="
-    position: relative;
     background: linear-gradient(to right, #c7f0f9, #fcd6ec);
     padding: 48px 16px 28px 16px;
     border-radius: 20px;
@@ -1626,10 +1625,13 @@ const detailText = labels.map((label, i) => `
     max-width: 90vw;
     width: 360px;
     font-family: 'Kosugi Maru', 'Noto Sans JP', sans-serif;
+    position: relative;
     animation: fadeIn 0.5s ease;
+    margin-left: 0;
+    margin-right: auto;
   ">
 
-    <!-- ✕ボタン -->
+    <!-- ✅ ✕ボタンを外側に移動 -->
     <button onclick="document.getElementById('compat-detail-modal').style.display='none'" style="
       position: absolute;
       top: 10px; right: 10px;
@@ -1644,37 +1646,51 @@ const detailText = labels.map((label, i) => `
       box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     ">✕</button>
 
-    <!-- ✅ チャート（位置指定で表示） -->
-    <canvas id="compat-radar"
-      width="240"
-      height="240"
-      style="position: absolute;
-             top: 40px; left: 20px;
-             background-color: #fff0f5;
-             border-radius: 20px;
-             box-shadow: 0 2px 6px rgba(0,0,0,0.2);">
-    </canvas>
-
-    <!-- ✅ テキスト（位置指定で下に表示） -->
-    <div id="compat-detail-text" style="
-      position: absolute;
-      top: 300px; left: 20px;
-      width: 320px;
-      font-size: 15px;
-      line-height: 1.8;
-      color: #444;
-      text-align: left;
+    <!-- ✅ 中央にチャート -->
+    <div style="
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      padding: 0;
       box-sizing: border-box;
     ">
-      <!-- JSで生成 -->
+      <canvas id="compat-radar"
+        width="240"
+        height="240"
+        style="display: block;
+               transform: translate(20px, 0px);
+               background-color: #fff0f5;
+               border-radius: 20px;
+               box-shadow: 0 2px 6px rgba(0,0,0,0.2);">
+      </canvas>
     </div>
 
-    <!-- 余白確保用ダミー（位置絶対指定のぶん高さ稼ぐ） -->
-    <div style="height: 520px;"></div>
+   <!-- ✅ 左揃えテキスト領域 -->
+<div id="compat-detail-text" style="
+  margin-top: 20px;
+  font-size: 15px;
+  line-height: 1.8;
+  color: #444;
+  text-align: left;
+  width: 100%;
+  padding-left: 0;
+  padding-right: 0;  /* ✅ これを追加 */
+  margin-left: 0;
+  margin-right: 0;   /* ✅ これも追加して左右均等に */
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+">
+
+
+
+      <!-- JavaScriptで埋め込まれる -->
+    </div>
 
   </div>
 </div>
-
 
 
 <!-- Chart.js読み込み -->
