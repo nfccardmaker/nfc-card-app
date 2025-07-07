@@ -1606,15 +1606,16 @@ const detailText = labels.map((label, i) => `
   position: fixed;
   top: 0; left: 0;
   width: 100vw; height: 100vh;
-  background-color: rgba(0, 0, 0, 0.7);
+ background: linear-gradient(to right, #c7f0f9, #fcd6ec);
   z-index: 10000;
   align-items: center;
   justify-content: center;
   overflow-y: auto;
   padding: 60px 16px 40px 16px;
 ">
-  <div style="
-  background: linear-gradient(to right, #c3f0ff, #ffd4ec);
+  <!-- ▼ 相性モーダルの中身全体を囲むラッパーに変形 -->
+<div style="
+  background: linear-gradient(to right, #c7f0f9, #fcd6ec);
   padding: 48px 28px 28px 28px;
   border-radius: 20px;
   border: 2px solid #ffcde0;
@@ -1625,7 +1626,11 @@ const detailText = labels.map((label, i) => `
   position: relative;
   animation: fadeIn 0.5s ease;
   margin: 0 auto;
+
+  /* 👇 ここを追加（全体を左へ） */
+  transform: translateX(-12px);
 ">
+
 
 
     <!-- ✅ 中央配置のためにflexboxでラップ -->
