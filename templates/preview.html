@@ -1602,7 +1602,7 @@ const detailText = labels.map((label, i) => `
 
 <!-- ▼ 相性の詳細モーダル -->
 <div id="compat-detail-modal" style="
-  display: flex;
+  display: none;
   position: fixed;
   top: 0; left: 0;
   width: 100vw; height: 100vh;
@@ -1622,12 +1622,44 @@ const detailText = labels.map((label, i) => `
     max-width: 90vw;
     width: 360px;
     font-family: 'Kosugi Maru', 'Noto Sans JP', sans-serif;
+    text-align: center;
     position: relative;
     animation: fadeIn 0.5s ease;
     margin: 0 auto;
   ">
 
-    <!-- ✕ ボタン -->
+    <!-- ✅ 中央配置のためにflexboxでラップ -->
+    <div style="
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      padding: 0;
+      box-sizing: border-box;
+    ">
+     <canvas id="compat-radar"
+  width="240"
+  height="240"
+  style="display: block;
+         transform: translate(30px, 28px);
+         background-color: #fff0f5;
+         border-radius: 20px;
+         box-shadow: 0 2px 6px rgba(0,0,0,0.2);">
+</canvas>
+
+    </div>
+
+<div id="compat-detail-text" style="
+  margin-top: 20px;
+  font-size: 15px;
+  line-height: 1.8;
+  color: #444;
+  text-align: left;
+  width: 100%;
+  padding: 0 16px;
+  box-sizing: border-box;
+">
+
     <button onclick="document.getElementById('compat-detail-modal').style.display='none'" style="
       position: absolute;
       top: 10px; right: 10px;
@@ -1641,31 +1673,6 @@ const detailText = labels.map((label, i) => `
       cursor: pointer;
       box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     ">✕</button>
-
-    <!-- ✅ チャート中央配置 -->
-    <canvas id="compat-radar"
-      width="240"
-      height="240"
-      style="
-        display: block;
-        margin: 0 auto 20px auto;
-        background-color: #fff0f5;
-        border-radius: 20px;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-    "></canvas>
-
-    <!-- ✅ テキストも中央寄せ -->
-    <div id="compat-detail-text" style="
-      font-size: 15px;
-      line-height: 1.8;
-      color: #444;
-      text-align: center;
-      width: 100%;
-      padding: 0 16px;
-      box-sizing: border-box;
-    ">
-    </div>
-
   </div>
 </div>
 
