@@ -1565,7 +1565,7 @@ function showDetailModal(myMbti, otherMbti) {
           pointLabels: {
             font: { size: 14, family: 'Comic Sans MS' },
             color: '#e91e63',
-            padding: 28
+            padding: 20
           },
           grid: { color: 'rgba(0,0,0,0.1)' },
           angleLines: { display: true }
@@ -1617,26 +1617,23 @@ function showDetailModal(myMbti, otherMbti) {
 <div style="
   background: #ffe6f0;
   border-radius: 20px;
-  padding: 16px 16px 32px 16px;  /* ← 上左右ちょい狭め・下に余白 */
+  padding: 32px 20px;
   margin-bottom: 24px;
   box-shadow: 0 6px 16px rgba(0,0,0,0.2);
   display: flex;
   flex-direction: column;
-  align-items: center;         /* 横中央 */
-  justify-content: center;     /* 縦中央 */
+  justify-content: flex-start;
+  align-items: flex-start;  /* ← 中央 → 左上寄せに変更 */
+  max-width: 90vw;
   width: 100%;
-  max-width: 260px;
+  min-height: 160px;
   box-sizing: border-box;
-  margin-left: auto;
-  margin-right: auto;
 ">
   <canvas id="compat-radar" width="200" height="200" style="
     display: block;
-    margin: 0 auto;
+    transform: translate(100px, 20px);  /* ← これで右下にずれるようになる */
   "></canvas>
 </div>
-
-
 
   <!-- 💬 詳細テキスト -->
   <div style="
