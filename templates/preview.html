@@ -1448,41 +1448,45 @@ function showCompatibilityModal(my, other, message, score) {
       animation: popIn 0.6s ease forwards;
     ">
       <div style="font-size: 20px; font-weight: bold; color: #e91e63; margin-bottom: 6px;">
-       2人の相性度
-      <div style="font-size: 36px; font-weight: bold; color: #ff3366; margin-bottom: 12px;">
-         ${score}% 
+        2人の相性度
       </div>
+
+      <div style="font-size: 36px; font-weight: bold; color: #ff3366; margin-bottom: 12px;">
+        ${score}% 
+      </div>
+
       <div style="font-size: 16px; margin-bottom: 6px;">
         あなた（${my}）とこの人（${other}）の相性は…
       </div>
-      <div style="font-size: 20px; color: #e91e63; font-weight: bold;">
+
+      <div style="font-size: 20px; color: #e91e63; font-weight: bold; margin-bottom: 8px;">
         ${message}
-        <div style="font-size: 16px; color: #555; margin-top: 8px; font-style: italic;">
-  ${comment}
-</div>
       </div>
+
+      <div style="font-size: 16px; color: #555; font-style: italic;">
+        ${comment}
+      </div>
+
       <div style="margin-top: 24px;">
-  <button onclick="document.getElementById('compat-modal').remove()" style="
-  padding: 8px 16px;
-  background: #ccc;
-  color: #333;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-">閉じる</button>
+        <button onclick="document.getElementById('compat-modal').remove()" style="
+          padding: 8px 16px;
+          background: #ccc;
+          color: #333;
+          border: none;
+          border-radius: 8px;
+          cursor: pointer;
+        ">閉じる</button>
 
-  <button onclick="showDetailModal('${my}', '${other}')" style="
-    margin-left: 12px;
-    padding: 8px 16px;
-    background: #2196f3;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-  ">詳細を見る</button>
-</div>
-
-
+        <button onclick="showDetailModal('${my}', '${other}')" style="
+          margin-left: 12px;
+          padding: 8px 16px;
+          background: #2196f3;
+          color: white;
+          border: none;
+          border-radius: 8px;
+          cursor: pointer;
+        ">詳細を見る</button>
+      </div>
     </div>
   `;
 
@@ -1493,6 +1497,7 @@ function showCompatibilityModal(my, other, message, score) {
     modal.style.opacity = '1';
   }, 50);
 }
+
 function getDetailData(my, other) {
   const key = [my, other].sort().join('-');
 
