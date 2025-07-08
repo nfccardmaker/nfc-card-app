@@ -1390,6 +1390,52 @@ function getCompatibilityComment(mbti1, mbti2) {
 
   return commentMap[key] || '相手の違いを理解しながら、成長できる関係！';
 }
+function getDetailData(my, other) {
+  const key = [my, other].sort().join('-');
+
+  const detailMap = {
+    'INFP-ENFJ': {
+      scores: [90, 85, 80, 95, 70],
+      texts: [
+        '自然体で話せる友達感覚が◎',
+        '一緒にいるだけでドキドキできる相性！',
+        '共に成長し合える最高の相棒！',
+        '価値観が似ていて居心地がとても良い',
+        '盛り上がりすぎず、心地よいテンション感'
+      ]
+    }
+    // 他の組み合わせはあとで追加できる
+  };
+
+  return detailMap[key] || {
+    scores: [60, 60, 60, 60, 60],
+    texts: [
+      '会話を通じて徐々に打ち解ける関係！',
+      'お互いの違いを楽しめる相性！',
+      '一緒に新しい発見ができそう！',
+      '安心感はこれから作っていく感じ！',
+      '刺激より安定感重視な雰囲気！'
+    ]
+  };
+}
+
+function showCompatibilityModal(my, other, message, score) {
+  const comment = getCompatibilityComment(my, other); 
+  const modal = document.createElement('div');
+  modal.id = 'compat-modal';
+  modal.style.cssText = `
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.8s ease;
+  `;
+
   modal.innerHTML = `
     <div style="
       background: #fff;
@@ -1450,6 +1496,7 @@ function getCompatibilityComment(mbti1, mbti2) {
   setTimeout(() => {
     modal.style.opacity = '1';
   }, 50);
+}
 
 function getDetailData(my, other) {
   const key = [my, other].sort().join('-');
@@ -1542,11 +1589,11 @@ function showDetailModal(myMbti, otherMbti) {
       });
 
 const detailText = labels.map((label, i) => `
-  <div style="margin-bottom: 16px; text-align: left;">
-    <div style="font-weight: bold; color: #e91e63; font-size: 16px; text-align: left;">
+  <div style="margin-bottom: 16px;">
+    <div style="font-weight: bold; color: #e91e63; font-size: 16px;">
       ${label}：${data.scores[i]}%
     </div>
-    <div style="color: #555; font-size: 14px; text-align: left;">
+    <div style="color: #555; font-size: 14px;">
       ${data.comments[i]}
     </div>
   </div>
@@ -1633,8 +1680,7 @@ const detailText = labels.map((label, i) => `
   width: 100%;
   box-sizing: border-box;
   display: block;
-  padding: 0 8px;
-  transform: translateX(-16px);
+  padding: 0 16px; /* ← ここで左に余白追加 */
 ">
 
 
