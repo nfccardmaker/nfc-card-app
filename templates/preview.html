@@ -1504,7 +1504,7 @@ function getDetailData(my, other) {
   const detailMap = {
     'INFP-ENFJ': {
       scores: [90, 85, 80, 95, 70],
-      texts: [
+      comments: [ // ← texts → comments に修正！
         '自然体で話せる友達感覚が◎',
         '一緒にいるだけでドキドキできる相性！',
         '共に成長し合える最高の相棒！',
@@ -1512,11 +1512,12 @@ function getDetailData(my, other) {
         '盛り上がりすぎず、心地よいテンション感'
       ]
     }
+    // 他の組み合わせはあとで追加OK
   };
 
   return detailMap[key] || {
     scores: [60, 60, 60, 60, 60],
-    texts: [
+    comments: [
       '会話を通じて徐々に打ち解ける関係！',
       'お互いの違いを楽しめる相性！',
       '一緒に新しい発見ができそう！',
@@ -1526,19 +1527,6 @@ function getDetailData(my, other) {
   };
 }
 
-function getCompatibilityRadarData(myMbti, otherMbti) {
-  const scores = [60, 60, 60, 60, 60];
-  const comments = [
-    '会話を通じて徐々に打ち解ける関係！',
-    'お互いの違いを楽しめる相性！',
-    '一緒に新しい発見ができそう！',
-    '安心感はこれから作っていく感じ！',
-    '刺激より安定感重視な雰囲気！'
-  ];
-
-  return { scores, comments };
-}
-
 function showDetailModal(myMbti, otherMbti) {
   const modal = document.getElementById('compat-detail-modal');
   modal.style.display = 'flex';
@@ -1546,7 +1534,7 @@ function showDetailModal(myMbti, otherMbti) {
   requestAnimationFrame(() => {
     setTimeout(() => {
       const ctx = document.getElementById('compat-radar').getContext('2d');
-      const data = getDetailData(myMbti, otherMbti);
+      const data = getDetailData(myMbti, otherMbti); // ← 修正済
       const labels = ['仲良し度', 'ときめき度', '相棒力', '落ち着き度', '盛り上がり度'];
 
       if (window.currentRadarChart) {
@@ -1588,23 +1576,29 @@ function showDetailModal(myMbti, otherMbti) {
         }
       });
 
-const detailText = labels.map((label, i) => `
-  <div style="margin-bottom: 16px;">
-    <div style="font-weight: bold; color: #e91e63; font-size: 16px;">
-      ${label}：${data.scores[i]}%
-    </div>
-    <div style="color: #555; font-size: 14px;">
-      ${data.comments[i]}
-    </div>
-  </div>
-`).join('');
+      const detailText = labels.map((label, i) => `
+        <div style="margin-bottom: 16px;">
+          <div style="font-weight: bold; color: #e91e63; font-size: 16px;">
+            ${label}：${data.scores[i]}%
+          </div>
+          <div style="color: #555; font-size: 14px;">
+            ${data.comments[i]}
+          </div>
+        </div>
+      `).join('');
 
-
-
-      document.getElementById('compat-detail-text').innerHTML = detailText;
+      const detailBox = document.getElementById('compat-detail-text');
+      if (detailBox) {
+        detailBox.innerHTML = detailText;
+        detailBox.style.textAlign = 'left';
+        detailBox.style.paddingLeft = '16px';
+      } else {
+        console.error('compat-detail-text が見つからなかったよ！');
+      }
     }, 100);
   });
 }
+
 </script>
 
 <!-- ▼ 相性の詳細モーダル -->
