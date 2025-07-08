@@ -1614,19 +1614,21 @@ function showDetailModal(myMbti, otherMbti) {
   overflow-y: auto;
   padding: 60px 16px 40px 16px;
 ">
- <div style="
-  position: absolute;
-  top: 80px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 360px;
+<div style="
   background: linear-gradient(to right, #c7f0f9, #fcd6ec);
   padding: 48px 16px 28px 16px;
   border-radius: 20px;
   border: 2px solid #ffcde0;
   box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  max-width: 90vw;
+  width: 360px;
   font-family: 'Kosugi Maru', 'Noto Sans JP', sans-serif;
+  position: relative;
   animation: fadeIn 0.5s ease;
+
+  /* ← ここ修正！ */
+  margin-left: auto;
+  margin-right: auto;
 ">
 
 
