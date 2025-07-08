@@ -1546,7 +1546,7 @@ function showDetailModal(myMbti, otherMbti) {
   requestAnimationFrame(() => {
     setTimeout(() => {
       const ctx = document.getElementById('compat-radar').getContext('2d');
-      const data = getCompatibilityRadarData(myMbti, otherMbti);
+      const data = getDetailData(myMbti, otherMbti);
       const labels = ['仲良し度', 'ときめき度', '相棒力', '落ち着き度', '盛り上がり度'];
 
       if (window.currentRadarChart) {
