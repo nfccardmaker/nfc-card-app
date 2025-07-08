@@ -1451,5 +1451,202 @@ function getCompatibilityComment(mbti1, mbti2) {
     modal.style.opacity = '1';
   }, 50);
 
+function getDetailData(my, other) {
+  const key = [my, other].sort().join('-');
+
+  const detailMap = {
+    'INFP-ENFJ': {
+      scores: [90, 85, 80, 95, 70],
+      texts: [
+        '自然体で話せる友達感覚が◎',
+        '一緒にいるだけでドキドキできる相性！',
+        '共に成長し合える最高の相棒！',
+        '価値観が似ていて居心地がとても良い',
+        '盛り上がりすぎず、心地よいテンション感'
+      ]
+    }
+  };
+
+  return detailMap[key] || {
+    scores: [60, 60, 60, 60, 60],
+    texts: [
+      '会話を通じて徐々に打ち解ける関係！',
+      'お互いの違いを楽しめる相性！',
+      '一緒に新しい発見ができそう！',
+      '安心感はこれから作っていく感じ！',
+      '刺激より安定感重視な雰囲気！'
+    ]
+  };
+}
+
+function getCompatibilityRadarData(myMbti, otherMbti) {
+  const scores = [60, 60, 60, 60, 60];
+  const comments = [
+    '会話を通じて徐々に打ち解ける関係！',
+    'お互いの違いを楽しめる相性！',
+    '一緒に新しい発見ができそう！',
+    '安心感はこれから作っていく感じ！',
+    '刺激より安定感重視な雰囲気！'
+  ];
+
+  return { scores, comments };
+}
+
+function showDetailModal(myMbti, otherMbti) {
+  const modal = document.getElementById('compat-detail-modal');
+  modal.style.display = 'flex';
+
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      const ctx = document.getElementById('compat-radar').getContext('2d');
+      const data = getCompatibilityRadarData(myMbti, otherMbti);
+      const labels = ['仲良し度', 'ときめき度', '相棒力', '落ち着き度', '盛り上がり度'];
+
+      if (window.currentRadarChart) {
+        window.currentRadarChart.destroy();
+      }
+
+      window.currentRadarChart = new Chart(ctx, {
+        type: 'radar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: '相性スコア',
+            data: data.scores,
+            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+            borderColor: '#e91e63',
+            pointBackgroundColor: '#e91e63'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            r: {
+              suggestedMin: 0,
+              suggestedMax: 100,
+              ticks: { display: false },
+              pointLabels: {
+                font: { size: 14, family: 'Comic Sans MS' },
+                color: '#e91e63',
+                padding: 20
+              },
+              grid: { color: 'rgba(0,0,0,0.1)' },
+              angleLines: { display: true }
+            }
+          }
+        }
+      });
+
+const detailText = labels.map((label, i) => `
+  <div style="margin-bottom: 16px; text-align: left;">
+    <div style="font-weight: bold; color: #e91e63; font-size: 16px; text-align: left;">
+      ${label}：${data.scores[i]}%
+    </div>
+    <div style="color: #555; font-size: 14px; text-align: left;">
+      ${data.comments[i]}
+    </div>
+  </div>
+`).join('');
+
+
+
+      document.getElementById('compat-detail-text').innerHTML = detailText;
+    }, 30);
+  });
+}
+</script>
+
+<!-- ▼ 相性の詳細モーダル -->
+<div id="compat-detail-modal" style="
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 10000;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+  padding: 60px 16px 40px 16px;
+">
+  <!-- ▼ モーダルの中身 -->
+  <div style="
+    background: linear-gradient(to right, #c7f0f9, #fcd6ec);
+    padding: 48px 16px 28px 16px;
+    border-radius: 20px;
+    border: 2px solid #ffcde0;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    max-width: 90vw;
+    width: 360px;
+    font-family: 'Kosugi Maru', 'Noto Sans JP', sans-serif;
+    position: relative;
+    animation: fadeIn 0.5s ease;
+    margin-left: 0;
+    margin-right: auto;
+  ">
+
+    <!-- ✅ ✕ボタンを外側に移動 -->
+    <button onclick="document.getElementById('compat-detail-modal').style.display='none'" style="
+      position: absolute;
+      top: 10px; right: 10px;
+      width: 32px; height: 32px;
+      background: #ffccd5;
+      border: none;
+      border-radius: 50%;
+      font-size: 18px;
+      color: #a00;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    ">✕</button>
+
+    <!-- ✅ 中央にチャート -->
+    <div style="
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      padding: 0;
+      box-sizing: border-box;
+    ">
+      <canvas id="compat-radar"
+        width="240"
+        height="240"
+        style="display: block;
+               transform: translate(20px, 0px);
+               background-color: #fff0f5;
+               border-radius: 20px;
+               box-shadow: 0 2px 6px rgba(0,0,0,0.2);">
+      </canvas>
+    </div>
+
+<div id="compat-detail-text" style="
+  margin-top: 20px;
+  font-size: 15px;
+  line-height: 1.8;
+  color: #444;
+  text-align: left;
+  width: 100%;
+  box-sizing: border-box;
+  display: block;
+  padding: 0 8px;
+  transform: translateX(-16px);
+">
+
+
+
+      <!-- JavaScriptで埋め込まれる -->
+    </div>
+
+  </div>
+</div>
+
+
+<!-- Chart.js読み込み -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <body>
 </html>
