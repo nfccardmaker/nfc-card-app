@@ -1587,16 +1587,14 @@ function showDetailModal(myMbti, otherMbti) {
         </div>
       `).join('');
 
-      const detailBox = document.getElementById('compat-detail-text');
-      if (detailBox) {
-        detailBox.innerHTML = detailText;
-        detailBox.style.textAlign = 'left';
-        detailBox.style.paddingLeft = '16px';
-      } else {
-        console.error('compat-detail-text が見つからなかったよ！');
-      }
-    }, 100);
-  });
+     // ⛔ 不要：requestAnimationFrame や setTimeout
+const detailBox = document.getElementById('compat-detail-text');
+if (detailBox) {
+  detailBox.innerHTML = detailText;
+  detailBox.style.textAlign = 'left';
+  detailBox.style.paddingLeft = '16px';
+} else {
+  console.error('compat-detail-text が見つからなかったよ！');
 }
 
 </script>
@@ -1650,6 +1648,8 @@ function showDetailModal(myMbti, otherMbti) {
     <!-- ✅ 中央にチャート -->
     <div style="
       display: flex;
+      justify-content: center;
+      align-items: center;
       width: 100%;
       padding: 0;
       box-sizing: border-box;
