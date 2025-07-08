@@ -1613,7 +1613,8 @@ function showDetailModal(myMbti, otherMbti) {
   flex-direction: column;
 ">
 
- <div style="
+ <!-- 🔴 チャートボックス -->
+<div style="
   background: #ffe6f0;
   border-radius: 20px;
   padding: 32px 20px;
@@ -1622,18 +1623,17 @@ function showDetailModal(myMbti, otherMbti) {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  align-items: center;
+  align-items: flex-start;  /* ← 中央 → 左上寄せに変更 */
   max-width: 90vw;
   width: 100%;
-  min-height: 160px;  /* ← 高さを確保してチャートを収める */
+  min-height: 160px;
   box-sizing: border-box;
 ">
-
-    <canvas id="compat-radar" width="260" height="260" style="
-      display: block;
-      transform: translate(30px, 20px); 
-    "></canvas>
-  </div>
+  <canvas id="compat-radar" width="260" height="260" style="
+    display: block;
+    transform: translate(30px, 20px);  /* ← これで右下にずれるようになる */
+  "></canvas>
+</div>
 
   <!-- 💬 詳細テキスト -->
   <div style="
