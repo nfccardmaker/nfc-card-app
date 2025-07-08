@@ -1531,70 +1531,68 @@ function showDetailModal(myMbti, otherMbti) {
   const modal = document.getElementById('compat-detail-modal');
   modal.style.display = 'flex';
 
-  requestAnimationFrame(() => {
-    setTimeout(() => {
-      const ctx = document.getElementById('compat-radar').getContext('2d');
-      const data = getDetailData(myMbti, otherMbti); // ← 修正済
-      const labels = ['仲良し度', 'ときめき度', '相棒力', '落ち着き度', '盛り上がり度'];
+  const ctx = document.getElementById('compat-radar').getContext('2d');
+  const data = getDetailData(myMbti, otherMbti);
+  const labels = ['仲良し度', 'ときめき度', '相棒力', '落ち着き度', '盛り上がり度'];
 
-      if (window.currentRadarChart) {
-        window.currentRadarChart.destroy();
-      }
+  if (window.currentRadarChart) {
+    window.currentRadarChart.destroy();
+  }
 
-      window.currentRadarChart = new Chart(ctx, {
-        type: 'radar',
-        data: {
-          labels: labels,
-          datasets: [{
-            label: '相性スコア',
-            data: data.scores,
-            backgroundColor: 'rgba(255, 99, 132, 0.2)',
-            borderColor: '#e91e63',
-            pointBackgroundColor: '#e91e63'
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false }
+  window.currentRadarChart = new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: '相性スコア',
+        data: data.scores,
+        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+        borderColor: '#e91e63',
+        pointBackgroundColor: '#e91e63'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        r: {
+          suggestedMin: 0,
+          suggestedMax: 100,
+          ticks: { display: false },
+          pointLabels: {
+            font: { size: 14, family: 'Comic Sans MS' },
+            color: '#e91e63',
+            padding: 20
           },
-          scales: {
-            r: {
-              suggestedMin: 0,
-              suggestedMax: 100,
-              ticks: { display: false },
-              pointLabels: {
-                font: { size: 14, family: 'Comic Sans MS' },
-                color: '#e91e63',
-                padding: 20
-              },
-              grid: { color: 'rgba(0,0,0,0.1)' },
-              angleLines: { display: true }
-            }
-          }
+          grid: { color: 'rgba(0,0,0,0.1)' },
+          angleLines: { display: true }
         }
-      });
+      }
+    }
+  });
 
-      const detailText = labels.map((label, i) => `
-        <div style="margin-bottom: 16px;">
-          <div style="font-weight: bold; color: #e91e63; font-size: 16px;">
-            ${label}：${data.scores[i]}%
-          </div>
-          <div style="color: #555; font-size: 14px;">
-            ${data.comments[i]}
-          </div>
-        </div>
-      `).join('');
+  const detailText = labels.map((label, i) => `
+    <div style="margin-bottom: 16px;">
+      <div style="font-weight: bold; color: #e91e63; font-size: 16px;">
+        ${label}：${data.scores[i]}%
+      </div>
+      <div style="color: #555; font-size: 14px;">
+        ${data.comments[i]}
+      </div>
+    </div>
+  `).join('');
 
-     // ⛔ 不要：requestAnimationFrame や setTimeout
-const detailBox = document.getElementById('compat-detail-text');
-if (detailBox) {
-  detailBox.innerHTML = detailText;
-  detailBox.style.textAlign = 'left';
-  detailBox.style.paddingLeft = '16px';
-} else {
-  console.error('compat-detail-text が見つからなかったよ！');
+  const detailBox = document.getElementById('compat-detail-text');
+  if (detailBox) {
+    detailBox.innerHTML = detailText;
+    detailBox.style.textAlign = 'left';
+    detailBox.style.paddingLeft = '16px';
+  } else {
+    console.error('compat-detail-text が見つからなかったよ！');
+  }
 }
 
 </script>
