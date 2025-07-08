@@ -1620,11 +1620,15 @@ function showDetailModal(myMbti, otherMbti) {
   margin-bottom: 24px;
   box-shadow: 0 6px 16px rgba(0,0,0,0.2);
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  justify-content: flex-start;
   align-items: center;
-  max-width: 90vw;       /* ← ここ広げる！ */
+  max-width: 90vw;
   width: 100%;
+  min-height: 400px;  /* ← 高さを確保してチャートを収める */
+  box-sizing: border-box;
 ">
+
   <canvas id="compat-radar" width="260" height="260" style="display: block;"></canvas>
 </div>
 
