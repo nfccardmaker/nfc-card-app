@@ -1622,19 +1622,20 @@ const detailText = labels.map((label, i) => `
 ">
   <!-- ▼ モーダルの中身 -->
   <div style="
-    background: linear-gradient(to right, #c7f0f9, #fcd6ec);
-    padding: 48px 16px 28px 16px;
-    border-radius: 20px;
-    border: 2px solid #ffcde0;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-    max-width: 90vw;
-    width: 360px;
-    font-family: 'Kosugi Maru', 'Noto Sans JP', sans-serif;
-    position: relative;
-    animation: fadeIn 0.5s ease;
-    margin-left: 0;
-    margin-right: auto;
-  ">
+  background: linear-gradient(to right, #c7f0f9, #fcd6ec);
+  padding: 48px 24px 28px 24px;         /* ← 左右のpaddingを増やす！ */
+  border-radius: 20px;
+  border: 2px solid #ffcde0;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  max-width: 95vw;                      /* ← スマホに合わせて少し広げる！ */
+  width: 420px;                         /* ← 実幅も広げて左寄りが効くように！ */
+  font-family: 'Kosugi Maru', 'Noto Sans JP', sans-serif;
+  position: relative;
+  animation: fadeIn 0.5s ease;
+  margin-left: 0;
+  margin-right: auto;
+  text-align: left;                     /* ← これも追記して万全に！ */
+">
 
     <!-- ✅ ✕ボタンを外側に移動 -->
     <button onclick="document.getElementById('compat-detail-modal').style.display='none'" style="
