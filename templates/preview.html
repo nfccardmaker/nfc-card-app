@@ -1640,6 +1640,7 @@ function showDetailModal(myMbti, otherMbti) {
     background: linear-gradient(to right, #d3f2f9, #fcd8ee);
     border-radius: 24px;
     padding: 12px 20px;
+    margin-top: -12px;
     max-width: 360px;
     width: 100%;
     font-family: 'Kosugi Maru', 'Noto Sans JP', sans-serif;
@@ -1672,7 +1673,17 @@ function showDetailModal(myMbti, otherMbti) {
     </div>
   </div>
 </div>
+<script>
+  function openCompatModal() {
+    document.getElementById('compat-detail-modal').style.display = 'flex';
+    document.body.style.overflow = 'hidden'; // ✅ スクロール防止
+  }
 
+  function closeCompatModal() {
+    document.getElementById('compat-detail-modal').style.display = 'none';
+    document.body.style.overflow = 'auto'; // ✅ スクロール復活
+  }
+</script>
 <!-- Chart.js 読み込み -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
