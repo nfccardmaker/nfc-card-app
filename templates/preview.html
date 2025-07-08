@@ -1597,7 +1597,7 @@ function showDetailModal(myMbti, otherMbti) {
 
 </script>
 
-<!-- ▼ 相性の詳細モーダル -->
+<!-- 🔳 相性診断 詳細モーダル（チャート＋テキスト） -->
 <div id="compat-detail-modal" style="
   display: none;
   position: fixed;
@@ -1605,81 +1605,87 @@ function showDetailModal(myMbti, otherMbti) {
   width: 100vw; height: 100vh;
   background-color: rgba(0, 0, 0, 0.7);
   z-index: 10000;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   overflow-y: auto;
   padding: 60px 16px 40px 16px;
-  flex-direction: column;
 ">
 
-  <!-- ✅ チャートブロック -->
   <div style="
-    background: #ffeaf5;
-    padding: 32px 24px;
+    background: linear-gradient(to right, #d1f2ff, #ffd1f2);
     border-radius: 20px;
-    border: 2px solid #ffcde0;
-    box-shadow: 0 6px 16px rgba(0,0,0,0.2);
-    margin: 0 auto 24px auto;
-    max-width: 90vw;
-    width: 360px;
-    display: flex;
-    justify-content: center;
-  ">
-    <canvas id="compat-radar"
-      width="240"
-      height="240"
-      style="
-        display: block;
-        background-color: #fff0f5;
-        border-radius: 20px;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.2);">
-    </canvas>
-  </div>
-
-  <!-- ✅ テキストブロック -->
-  <div style="
-    background: linear-gradient(to right, #c7f0f9, #fcd6ec);
-    padding: 40px 16px 28px 16px;
-    border-radius: 20px;
-    border: 2px solid #ffcde0;
-    box-shadow: 0 6px 16px rgba(0,0,0,0.2);
-    max-width: 90vw;
-    width: 360px;
+    padding: 32px 16px 24px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+    width: 90%;
+    max-width: 400px;
     font-family: 'Kosugi Maru', 'Noto Sans JP', sans-serif;
-    margin: 0 auto 40px auto;
     position: relative;
-    animation: fadeIn 0.5s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   ">
-    <!-- ✕ボタン -->
-    <button onclick="document.getElementById('compat-detail-modal').style.display='none'" style="
-      position: absolute;
-      top: 10px; right: 10px;
-      width: 32px; height: 32px;
-      background: #ffccd5;
-      border: none;
-      border-radius: 50%;
-      font-size: 18px;
-      color: #a00;
-      font-weight: bold;
-      cursor: pointer;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    ">✕</button>
 
-    <div id="compat-detail-text" style="
-      margin-top: 12px;
-      font-size: 15px;
-      line-height: 1.8;
-      color: #444;
-      text-align: left;
-      width: 100%;
-      box-sizing: border-box;
-      display: block;
-      padding: 0 8px;
+    <!-- ❌ 閉じるボタン -->
+    <div onclick="document.getElementById('compat-detail-modal').style.display='none'" style="
+      position: absolute;
+      top: 12px; right: 12px;
+      width: 32px; height: 32px;
+      background-color: #fff0f0;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 18px;
+      font-weight: bold;
+      color: #e91e63;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    ">×</div>
+
+    <!-- 📊 チャート＋テキスト全体ラッパー -->
+    <div id="compat-detail-content" style="
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0; /* ← 余白完全ゼロ */
+      padding: 0;
+      margin: 0;
     ">
-      <!-- JavaScriptでテキスト挿入される -->
+
+      <!-- 🕸 チャート -->
+      <canvas id="compat-radar"
+        width="240"
+        height="240"
+        style="
+          display: block;
+          margin: 0 auto;
+          background-color: #ffeef8;
+          border-radius: 20px;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        ">
+      </canvas>
+
+      <!-- 📝 テキスト -->
+      <div id="compat-detail-text" style="
+        font-size: 15px;
+        line-height: 1.8;
+        color: #444;
+        text-align: left;
+        max-width: 320px;
+        width: 100%;
+        box-sizing: border-box;
+        padding: 0 12px;
+        margin-top: 12px;
+      ">
+        <!-- ← JSで内容挿入される -->
+      </div>
+
     </div>
+
   </div>
 </div>
+
 
 
 <!-- Chart.js読み込み -->
