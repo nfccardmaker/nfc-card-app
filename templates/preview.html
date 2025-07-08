@@ -1617,23 +1617,25 @@ function showDetailModal(myMbti, otherMbti) {
 <div style="
   background: #ffe6f0;
   border-radius: 20px;
-  padding: 32px 20px;
+  padding: 24px 20px 24px 20px;  /* ← 上下左右とも余白整える */
   margin-bottom: 24px;
   box-shadow: 0 6px 16px rgba(0,0,0,0.2);
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
-  align-items: flex-start;  /* ← 中央 → 左上寄せに変更 */
+  align-items: center;         /* ← 中央寄せ（横方向） */
+  justify-content: center;     /* ← 中央寄せ（縦方向） */
   max-width: 90vw;
   width: 100%;
-  min-height: 160px;
+  min-height: 240px;
   box-sizing: border-box;
 ">
-  <canvas id="compat-radar" width="200" height="200" style="
+  <canvas id="compat-radar" width="180" height="180" style="
     display: block;
-    transform: translate(60px, 40px);  /* ← これで右下にずれるようになる */
+    margin: 0 auto;
+    transform: none;           /* ← translate使わず自然に中央に */
   "></canvas>
 </div>
+
 
   <!-- 💬 詳細テキスト -->
   <div style="
