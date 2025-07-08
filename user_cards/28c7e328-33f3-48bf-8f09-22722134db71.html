@@ -1,0 +1,1640 @@
+<html lang="ja"><head>
+  <meta charset="UTF-8">
+  <title>名刺プレビュー</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: 'Helvetica Neue', sans-serif;
+      background-color: #ffffff;
+      overflow: auto;
+    }
+
+    body {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  overflow-x: hidden; /* 👈 横スクロール禁止！ */
+  padding-bottom: 0px; 
+}
+    .main-wrapper {
+      position: relative;
+      min-height: 100vh;
+      padding-bottom: 140px; /* ツールバーを考慮 */
+      box-sizing: border-box;
+    }
+    .card {
+      width: 90%;
+      max-width: 700px;
+      margin: 30px auto;
+      border: 2px solid #ccc;
+      border-radius: 10px;
+      background-color: white;
+      overflow-y: auto;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+    }
+
+   .header-bar {
+  background: linear-gradient(90deg, #ffc1e3, #c1f0f6);
+  height: 40px;
+}
+
+    .student-id {
+      display: flex;
+      flex-direction: row;
+      padding: 20px;
+      gap: 20px;
+    }
+
+    .left-section {
+      width: 40%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .left-section img {
+      width: 125px;
+      height: 125px;
+      object-fit: cover;
+      border-radius: 15px;
+      cursor: pointer;
+    }
+
+    .info-section {
+      width: 60%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .editable-text {
+      border: none;
+      background: transparent;
+      border-bottom: 1px solid #ccc;
+      font-size: 14px;
+      width: 100%;
+    }
+body {
+  padding-bottom: 10px;
+  box-sizing: border-box;
+}
+
+    .toolbar {
+      position: fixed;
+      bottom: 5px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      padding: 10px 16px;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      display: flex;
+      gap: 16px;
+      z-index: 1000;
+      align-items: center;
+      
+    }
+
+    .toolbar img {
+      width: 28spx;
+      height: 28px;
+      cursor: pointer;
+    }
+
+    .toolbar button {
+      padding: 4px 12px;
+      border: none;
+      background: #eee;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+        .hidden-input {
+      opacity: 0;
+      position: absolute;
+      pointer-events: auto;
+    }
+
+
+    .sns-bar {
+      margin: 20px auto;
+      padding-left: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      z-index: 900;
+    }
+
+    .sns-item {
+      background: white;
+      border-radius: 12px;
+      padding: 10px 16px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 16px;
+      max-width: fit-content;
+    }
+
+    .sns-item img {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+    }
+
+    .sns-input {
+      margin-left: 36px;
+      margin-top: 8px;
+      display: none;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 5px 10px;
+      width: 220px;
+      font-size: 14px;
+    }
+
+    .sns-wrapper {
+      display: flex;
+      flex-direction: column;
+    }
+
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 800;
+      display: none;
+    }
+
+    .deco-img {
+      position: fixed;
+      width: 100px;
+      height: auto;
+      cursor: move;
+      z-index: 950;
+      user-select: none;
+      touch-action: none;
+    }
+  .text-sticker {
+  position: absolute;
+  font-size: 20px;
+  font-weight: bold;
+  color: #222;
+  background: transparent;
+  border: none;
+  padding: 0;
+  z-index: 970;
+  max-width: 80vw;
+  word-break: break-word;
+  user-select: none;
+  cursor: move;
+}
+.sns-item {
+  position: relative; /* ボタンを上に重ねるために必要 */
+}
+
+.sns-delete-btn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  z-index: 10;
+}
+#bg-template-list::-webkit-scrollbar {
+  display: none;
+}
+.youtube-section {
+  margin-top: 10px;
+  margin-bottom: 60px; /* ← 追加！ */
+  text-align: center;
+}
+#youtube-url {
+  width: 70%;
+  max-width: 500px;
+  padding: 5px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  margin-top: 5px;
+}
+#youtube-player {
+  margin: 0;
+  padding: 0;
+  line-height: 0;
+}
+iframe {
+  width: 100%;
+  height: 200px; /* ← aspect-ratioと併用せず明示指定で高さ固定 */
+  border: none;
+  margin: 0 auto;
+  padding: 0;
+}
+body {
+  box-sizing: border-box;
+}
+body {
+  overscroll-behavior: contain; /* ← iOSスクロール跳ね返りを抑制 */
+  padding-bottom: 80px;
+}
+#page-wrapper {
+  position: relative;
+  min-height: 100vh;
+  overflow: visible;
+}
+
+  </style>
+</head>
+<body>
+  <div id="page-wrapper">
+  <div class="main-wrapper">
+  <div class="card">
+    <div class="header-bar"></div>
+    <div class="student-id">
+      <div class="left-section">
+        <img id="profile-img" src="/static/profile_icon.jpeg" alt="プロフィール画像">
+        <input type="file" accept="image/*" id="profile-input" class="hidden-input">
+      </div>
+      <div class="info-section">
+        <input type="text" class="editable-text" placeholder="名前" value="">
+        <input type="text" class="editable-text" placeholder="誕生日" value="">
+        <input type="text" class="editable-text" placeholder="年齢" value="">
+        <input type="text" class="editable-text" placeholder="出身地" value="">
+        <input type="text" class="editable-text" placeholder="趣味" value="">
+      </div>
+    </div>
+  </div>
+
+ <!-- ▼ SNSアイコンと入力欄 -->
+<div class="sns-bar">
+  <div class="sns-wrapper">
+    <div class="sns-item" style="position: relative; background: linear-gradient(45deg, #feda75, #fa7e1e, #d62976, #962fbf, #4f5bd5); color: white; padding: 10px 15px; border-radius: 10px; font-weight: bold; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.15);">
+      <img src="/static/instagram_icon.jpeg" alt="Instagram" onclick="handleIconClick('instagram')" style="width: 30px; height: 30px;">
+      Instagram
+      
+    </div>
+    <input id="input-instagram" class="sns-input" placeholder="https://www.instagram.com/yourid" onblur="handleBlur('instagram')">
+  </div>
+
+  <div class="sns-wrapper">
+    <div class="sns-item" style="position: relative; background: #000000; color: white; padding: 10px 15px; border-radius: 10px; font-weight: bold; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.15);">
+      <img src="/static/X_icon.jpeg" alt="X" onclick="handleIconClick('x')" style="width: 28px; height: 28px;">
+    （旧Twitter）
+      
+    </div>
+    <input id="input-x" class="sns-input" placeholder="https://twitter.com/yourid" onblur="handleBlur('x')">
+  </div>
+
+  <div class="sns-wrapper">
+    <div class="sns-item" style="position: relative; background: linear-gradient(45deg, #25F4EE, #FE2C55); color: white; padding: 10px 15px; border-radius: 10px; font-weight: bold; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.15);">
+      <img src="/static/tiktok_icon.jpeg" alt="TikTok" onclick="handleIconClick('tiktok')" style="width: 22px; height: 22px;">
+      TikTok
+      
+    </div>
+    <input id="input-tiktok" class="sns-input" placeholder="https://www.tiktok.com/@yourid" onblur="handleBlur('tiktok')">
+  </div>
+</div>
+
+<!-- ▼ 自由記入欄（バツ付き） -->
+<div id="extra-text-wrapper" class="sns-wrapper" style="margin-top: 20px; position: relative;">
+  
+  <textarea id="extra-text" class="editable-text" placeholder="記入欄" style="
+    margin-top: 3px;
+    margin-left: 20px;
+    padding: 14px 18px;
+    border-radius: 14px;
+    border: 1px solid #ccc;
+    width: 90vw;
+    max-width: 650px;
+    height: 150px;
+    font-size: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    resize: none;
+    line-height: 1.6;
+    background-color: #fff;
+    box-sizing: border-box;
+  " value="スポーツ好き">スポーツ好き</textarea>
+<input type="hidden" id="hidden-extra-text" name="extra-text" value="スポーツ好き"></div>
+
+
+
+
+<!-- ▼ YouTube入力欄 -->
+<div class="youtube-section" style="position: relative; margin-top: 20px;">
+  <img src="/static/batu.jpeg" alt="削除" class="sns-delete-btn" onclick="hideYouTubeSection()" style="position: absolute; top: 15px; right: 20px; width: 18px; height: 18px; cursor: pointer; z-index: 10; display: none;">
+
+  <!-- ここを先に -->
+  <div id="youtube-player" style="padding: 0; text-align: center;"></div>
+
+  <!-- 見出し -->
+  <div style="font-weight: bold; font-size: 14px; margin-bottom: 6px; text-align: left; padding-left: 5vw;">
+    URL<br><span style="font-size: 12px; color: #555;">YouTube</span>
+  </div>
+
+  <!-- 入力欄とボタン -->
+  <input type="text" id="youtube-url" placeholder="YouTubeのURLを入力" style="width: 84vw; max-width: 500px; padding: 10px; border: 1px solid rgb(204, 204, 204); border-radius: 10px; font-size: 14px; display: none;">
+  <button onclick="embedYouTubeVideo()" style="margin-left: 20px; padding: 8px 12px; font-size: 14px; border-radius: 8px; background: rgb(240, 240, 240); display: none;">反映</button>
+</div>
+
+
+  <canvas id="draw-canvas" width="390" height="663" style="display: none;"></canvas>
+  <input type="file" id="background-input" class="hidden-input" accept="image/*" onchange="loadBackgroundImage(event)">
+  <input type="file" id="deco-input" class="hidden-input" accept="image/*" onchange="addDecoImage(event)">
+  <input type="color" id="color-picker" class="hidden-input" onchange="changeBarColor(event)">
+<button id="finish-button" style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgb(238, 238, 238); border: medium; padding: 6px 16px; font-size: 16px; border-radius: 10px; box-shadow: rgba(0, 0, 0, 0.2) 0px 2px 6px; z-index: 1001; cursor: pointer; display: none;" disabled="">生成中...</button>
+ <div class="toolbar" id="toolbar" style="display: none;">
+    <img src="/static/upload.jpeg" onclick="toggleBackgroundList()">
+    <img src="/static/pen_off.jpeg" onclick="toggleTextMode()" id="text-toggle-icon">
+    <div style="position: relative; width: 28px; height: 28px;">
+  <img src="/static/student.jpeg" style="width: 100%; height: 100%; cursor: pointer;">
+  <input type="color" id="color-picker" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+                opacity: 0; cursor: pointer;" onchange="changeBarColor(event)">
+</div>
+<img src="/static/restore.jpeg" onclick="restoreSNS()" style="width: 28px; height: 28px; cursor: pointer;">
+    <img src="/static/photo_icon.jpeg" onclick="document.getElementById('deco-input').click()">
+    <button onclick="togglePreview()" id="check-button">確認</button>
+  </div>
+
+  <script>
+    const urls = { instagram: '', x: '', tiktok: '' };
+    const canvas = document.getElementById('draw-canvas');
+    const ctx = canvas.getContext('2d');
+  function togglePreview() {
+  const toolbar = document.getElementById('toolbar');
+  const finalBtn = document.getElementById('finish-button');
+
+  toolbar.style.display = 'none';
+  finalBtn.style.display = 'block';
+}
+    let drawing = false, drawEnabled = false;
+    let paths = [], currentPath = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      redraw();
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function redraw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 2;
+      for (const path of paths) {
+        ctx.beginPath();
+        path.forEach(([x, y], i) => i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y));
+        ctx.stroke();
+      }
+      if (currentPath.length) {
+        ctx.beginPath();
+        currentPath.forEach(([x, y], i) => i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y));
+        ctx.stroke();
+      }
+    }
+
+    canvas.addEventListener('mousedown', e => {
+      if (!drawEnabled) return;
+      drawing = true;
+      currentPath = [[e.offsetX, e.offsetY]];
+    });
+
+    canvas.addEventListener('mousemove', e => {
+      if (!drawing || !drawEnabled) return;
+      currentPath.push([e.offsetX, e.offsetY]);
+      redraw();
+    });
+
+    canvas.addEventListener('mouseup', () => {
+      if (!drawing || !drawEnabled) return;
+      drawing = false;
+      paths.push(currentPath);
+      currentPath = [];
+    });
+
+    function toggleTextMode() {
+      drawEnabled = !drawEnabled;
+      canvas.style.display = drawEnabled ? 'block' : 'none';
+      const icon = document.getElementById('text-toggle-icon');
+      icon.src = drawEnabled ? '/static/pen_on.jpeg' : '/static/pen_off.jpeg';
+    }
+
+    function loadBackgroundImage(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        document.body.style.backgroundImage = `url('${reader.result}')`;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function changeBarColor(e) {
+      document.documentElement.style.setProperty('--bar-color', e.target.value);
+    }
+
+    function handleIconClick(service) {
+      const input = document.getElementById(`input-${service}`);
+      if (urls[service]) {
+        window.open(urls[service], '_blank');
+      } else {
+        input.style.display = 'block';
+        input.focus();
+      }
+    }
+
+    function handleBlur(service) {
+      const input = document.getElementById(`input-${service}`);
+      const value = input.value.trim();
+      if (value) urls[service] = value;
+      input.style.display = 'none';
+    }
+
+   function addDecoImage(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const img = document.createElement('img');
+  const reader = new FileReader();
+reader.onload = () => {
+  img.src = reader.result;
+};
+reader.readAsDataURL(file);
+
+ const scrollX = window.scrollX;
+const scrollY = window.scrollY;
+
+img.className = 'deco-img';
+img.style.position = 'absolute';
+img.style.left = '150px';
+img.style.top = '300px';
+
+img.style.transform = 'rotate(0deg) scale(1)';
+img.style.touchAction = 'none';
+img.draggable = false;
+
+const container = document.getElementById('page-wrapper') || document.body;
+container.appendChild(img);
+
+let posX = 150 + scrollX, posY = 300 + scrollY, scale = 1, rotation = 0;
+let isDragging = false, offsetX = 0, offsetY = 0;
+let longPressTimer = null;
+
+  // PC用マウス操作
+  img.addEventListener('mousedown', e => {
+    isDragging = true;
+    offsetX = e.offsetX;
+    offsetY = e.offsetY;
+    longPressTimer = setTimeout(() => img.remove(), 1000);
+  });
+
+  document.addEventListener('mousemove', e => {
+    if (!isDragging) return;
+    clearTimeout(longPressTimer);
+    posX = e.pageX - offsetX;
+    posY = e.pageY - offsetY;
+    img.style.left = `${posX}px`;
+    img.style.top = `${posY}px`;
+  });
+
+  document.addEventListener('mouseup', () => {
+    isDragging = false;
+    clearTimeout(longPressTimer);
+  });
+
+  // スマホ用タッチ操作
+  let initialDistance = null;
+  let initialAngle = null;
+  let startScale = 1;
+  let startRotation = 0;
+
+  img.addEventListener('touchstart', e => {
+    if (e.touches.length === 1) {
+      offsetX = e.touches[0].clientX - posX;
+      offsetY = e.touches[0].clientY - posY;
+      longPressTimer = setTimeout(() => img.remove(), 1000);
+    } else if (e.touches.length === 2) {
+      clearTimeout(longPressTimer);
+      initialDistance = getDistance(e.touches[0], e.touches[1]);
+      initialAngle = getAngle(e.touches[0], e.touches[1]);
+      startScale = scale;
+      startRotation = rotation;
+    }
+  }, { passive: false });
+
+  img.addEventListener('touchmove', e => {
+    e.preventDefault();
+    if (e.touches.length === 1) {
+      clearTimeout(longPressTimer);
+      posX = e.touches[0].clientX - offsetX;
+      posY = e.touches[0].clientY - offsetY;
+      img.style.left = `${posX}px`;
+      img.style.top = `${posY}px`;
+    } else if (e.touches.length === 2) {
+      const newDistance = getDistance(e.touches[0], e.touches[1]);
+      const newAngle = getAngle(e.touches[0], e.touches[1]);
+
+      scale = startScale * (newDistance / initialDistance);
+      if (scale < 0.2) scale = 0.2;
+
+      rotation = startRotation + (newAngle - initialAngle);
+      img.style.transform = `rotate(${rotation}deg) scale(${scale})`;
+    }
+  }, { passive: false });
+
+  img.addEventListener('touchend', () => {
+    clearTimeout(longPressTimer);
+  });
+
+  function getDistance(t1, t2) {
+    return Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+  }
+
+  function getAngle(t1, t2) {
+    return Math.atan2(t2.clientY - t1.clientY, t2.clientX - t1.clientX) * 180 / Math.PI;
+  }
+}
+
+    function downloadCard() {
+      alert("この部分で画像化＆ZIP化などの処理を行います");
+    }
+
+    window.onload = () => {
+      canvas.style.display = 'none';
+      const profileImg = document.getElementById("profile-img");
+      const profileInput = document.getElementById("profile-input");
+
+      profileImg.addEventListener("click", () => {
+        profileInput.click();
+      });
+
+      profileInput.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = () => {
+          profileImg.src = reader.result;
+        };
+            fetch('/upload_profile_image', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ image: reader.result })
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log('保存成功:', data);
+    })
+    .catch(error => {
+      console.error('アップロード失敗:', error);
+    });
+
+        reader.readAsDataURL(file);
+      });
+    };
+let textEnabled = false;
+let textFirstTapDone = false; // ← 追加：初回スキップフラグ
+
+document.getElementById("text-toggle-icon").addEventListener("click", () => {
+  textEnabled = !textEnabled;
+  textFirstTapDone = false; // ONにしたときにリセット
+});
+
+document.body.addEventListener("click", (e) => {
+  if (!textEnabled) return;
+
+  if (!textFirstTapDone) {
+    textFirstTapDone = true;
+    return; // ← 初回はスキップして反応なし
+  }
+
+  if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+ const margin = 20;
+const inputWidth = 150;
+const maxX = window.innerWidth - inputWidth - margin;
+const x = Math.min(e.pageX, maxX);
+const y = e.pageY;
+
+const input = document.createElement("input");
+input.type = "text";
+input.placeholder = "テキストを入力";
+input.className = "text-sticker";
+input.style.position = "absolute";
+input.style.left = `${x}px`;
+input.style.top = `${y}px`;
+input.style.width = '150px';  // 固定サイズで横スクロール防止
+input.style.maxWidth = 'calc(100vw - 40px)';  // 念のための安全策
+const container = document.getElementById('page-wrapper');
+container.appendChild(input);
+
+// 入力が空のままフォーカスが外れたら消す処理
+input.addEventListener("blur", () => {
+  if (input.value.trim() === "") {
+    input.remove();
+  }
+});
+input.focus();
+  let offsetX, offsetY, dragging = false;
+
+  input.addEventListener("mousedown", (ev) => {
+    dragging = true;
+    offsetX = ev.offsetX;
+    offsetY = ev.offsetY;
+  });
+
+  document.addEventListener("mousemove", (ev) => {
+    if (!dragging) return;
+    input.style.left = `${ev.pageX - offsetX}px`;
+    input.style.top = `${ev.pageY - offsetY}px`;
+  });
+
+  document.addEventListener("mouseup", () => {
+    dragging = false;
+  });
+
+  // 長押しで削除（スマホ用）
+  let longPressTimer;
+  input.addEventListener("touchstart", () => {
+    longPressTimer = setTimeout(() => {
+      input.remove();
+    }, 1000);
+  });
+
+  input.addEventListener("touchend", () => {
+    clearTimeout(longPressTimer);
+  });
+});
+// SNS項目を非表示にする関数
+function hideSNS(service) {
+  const wrapper = document.querySelector(`.sns-wrapper:has(#input-${service})`);
+  if (wrapper) wrapper.style.display = 'none';
+}
+function showHiddenSNS() {
+  ['instagram', 'x', 'tiktok'].forEach(service => {
+    const wrapper = document.querySelector(`.sns-wrapper:has(#input-${service})`);
+    if (wrapper && wrapper.style.display === 'none') {
+      wrapper.style.display = 'block';
+    }
+  });
+}
+
+function toggleBackgroundList() {
+  const list = document.getElementById('bg-template-list');
+  list.style.display = (list.style.display === 'none' || list.style.display === '') ? 'flex' : 'none';
+}
+
+function setBackground(url) {
+  document.body.style.backgroundImage = `url('${url}')`;
+  document.getElementById('bg-template-list').style.display = 'none';
+}
+function hideAddLink(event) {
+  event.stopPropagation(); // 「showHiddenSNS()」が動かないように
+  const addBtn = document.getElementById('add-link-button');
+  if (addBtn) addBtn.style.display = 'none';
+}function restoreSNS() {
+  ['instagram', 'x', 'tiktok'].forEach(service => {
+    const wrapper = document.querySelector(`.sns-wrapper:has(#input-${service})`);
+    if (wrapper) wrapper.style.display = 'flex';
+  });
+
+  const addBtn = document.getElementById('add-link-button');
+  if (addBtn) addBtn.style.display = 'flex';
+  const extraTextWrapper = document.getElementById('extra-text-wrapper');
+  if (extraTextWrapper) extraTextWrapper.style.display = 'block';
+  const youtubeSection = document.querySelector('.youtube-section');
+  if (youtubeSection) youtubeSection.style.display = 'block';
+  const diagnosisWrapper = document.getElementById("diagnosis-wrapper");
+  if (diagnosisWrapper) diagnosisWrapper.style.display = "block";
+}
+function hideExtraText() {
+  const wrapper = document.getElementById('extra-text-wrapper');
+  if (wrapper) wrapper.style.display = 'none';
+}
+function hideDiagnosisButton() {
+  const diagnosisWrapper = document.getElementById("diagnosis-wrapper");
+  if (diagnosisWrapper) diagnosisWrapper.style.display = "none";
+}
+
+function restoreDiagnosisButton() {
+  const diagnosisWrapper = document.getElementById("diagnosis-wrapper");
+  if (diagnosisWrapper) diagnosisWrapper.style.display = "block";
+}
+
+document.getElementById('finish-button').addEventListener('click', async () => {
+  const finishBtn = document.getElementById('finish-button');
+  
+  finishBtn.disabled = true;
+  finishBtn.textContent = '生成中...';
+  
+// 入力値を表示用の要素に反映
+// 入力値を表示エリアに反映する（完成前に必要！）
+// 入力値を value 属性に反映（Firebaseに反映されるように）
+function escapeHTML(str) {
+  return str.replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+}
+
+const editableTexts = document.querySelectorAll('.editable-text, textarea');
+editableTexts.forEach(input => {
+  const val = input.value.trim();
+  input.setAttribute('value', escapeHTML(val));
+  if (input.tagName === 'TEXTAREA') {
+    input.textContent = escapeHTML(val);
+  }
+});
+
+editableTexts.forEach((input) => {
+  input.setAttribute('value', input.value.trim());
+});
+
+// 記入欄（textarea）の値を value に反映
+const extraInput = document.getElementById('extra-text');
+if (extraInput) {
+  const text = extraInput.value.trim();
+  extraInput.setAttribute('value', text);
+
+  let hidden = document.getElementById('hidden-extra-text');
+  if (!hidden) {
+    hidden = document.createElement('input');
+    hidden.type = 'hidden';
+    hidden.id = 'hidden-extra-text';
+    hidden.name = 'extra-text';
+    extraInput.parentNode.appendChild(hidden); // ✅ 修正！
+  }
+  hidden.value = text;
+   extraInput.textContent = text;
+}
+
+  const toolbar = document.getElementById('toolbar');
+  if (toolbar) toolbar.style.display = 'none';
+
+
+  const youtubeBatsu = document.querySelector('.youtube-section .sns-delete-btn');
+  if (youtubeBatsu) youtubeBatsu.style.display = 'none';
+  // ✅ YouTube入力欄と反映ボタンを非表示にする
+const youtubeInput = document.getElementById('youtube-url');
+const youtubeButton = document.querySelector('.youtube-section button');
+if (youtubeInput) youtubeInput.style.display = 'none';
+if (youtubeButton) youtubeButton.style.display = 'none';
+
+// SNSバツ削除
+document.querySelectorAll('.sns-wrapper .sns-delete-btn').forEach(btn => {
+  if (btn.parentNode) {
+    btn.parentNode.removeChild(btn);
+  }
+});
+
+  const extraBatsu = document.querySelector('#extra-text-wrapper .sns-delete-btn');
+  if (extraBatsu) extraBatsu.style.display = 'none';
+  const diagnosisBatsu = document.querySelector('#diagnosis-wrapper .sns-delete-btn');
+  if (diagnosisBatsu) diagnosisBatsu.style.display = 'none';
+  // SNSリンクをHTMLに埋め込む処理（完成ボタン処理の中に追加）
+['instagram', 'x', 'tiktok'].forEach(service => {
+  const wrapper = document.querySelector(`.sns-wrapper:has(#input-${service})`);
+  const link = urls[service];
+  if (wrapper && link) {
+    const snsItem = wrapper.querySelector('.sns-item');
+    if (snsItem) {
+      const img = snsItem.querySelector('img'); // アイコン画像
+      const label = snsItem.childNodes[1]?.textContent?.trim() || service;
+
+      // aタグでラップしてクリック可能に
+      const anchor = document.createElement('a');
+      anchor.href = link;
+      anchor.target = '_blank';
+      anchor.style.display = 'flex';
+      anchor.style.alignItems = 'center';
+      anchor.style.gap = '10px';
+      anchor.style.textDecoration = 'none';
+      anchor.style.color = 'inherit';
+
+      anchor.appendChild(img);
+      anchor.appendChild(document.createTextNode(label));
+
+      snsItem.innerHTML = '';
+      snsItem.appendChild(anchor);
+    }
+  }
+});
+
+
+  // ✅ プロフィール画像が blob: だったら保存済みのURLに書き換える
+  const profileImg = document.getElementById("profile-img");
+  if (profileImg && profileImg.src.startsWith("blob:")) {
+    profileImg.src = "/static/uploads/profile.jpeg";
+  }
+  if (profileImg && profileImg.src.startsWith("data:image/")) {
+    profileImg.src = await compressImage(profileImg.src);
+  }
+
+  const decoImgs = document.querySelectorAll("img.deco-img");
+  for (const img of decoImgs) {
+    if (img.src.startsWith("data:image/")) {
+      img.src = await compressImage(img.src);
+    }
+  }
+    finishBtn.style.display = 'none';
+
+    const html = document.documentElement.outerHTML;
+
+  // ✅ base64画像のうち、プロフィール画像とデコ画像だけは削除対象から除外！
+  const cleanedHTML = html.replace(/<img[^>]+src="data:image\/[^"]+"[^>]*>/g, (match) => {
+    if (match.includes('id="profile-img"') || match.includes('class="deco-img"')) {
+      return match; // → プロフィール画像 or デコ画像はそのまま残す
+    } else {
+      return match.replace(/src="data:image\/[^"]+"/, 'src="/static/deleted_image.jpeg"');
+    }
+  });
+
+  const formData = new FormData();
+  formData.append('html', cleanedHTML);
+
+  const res = await fetch('/generate_url', {
+    method: 'POST',
+    body: formData
+  });
+
+  const data = await res.json();
+  if (data.url) {
+    finishBtn.textContent = '生成完了';
+    finishBtn.style.display = 'block';
+
+    const output = document.createElement('div');
+    output.id = 'shared-url-box';
+    output.innerHTML = `<p>このURLを共有できます👇</p><a href="${data.url}" target="_blank">${data.url}</a>`;
+    output.style.cssText = `...`; // スタイル省略可
+    document.body.appendChild(output);
+
+    setTimeout(() => {
+      const box = document.getElementById('shared-url-box');
+      if (box) box.remove();
+    }, 600000);
+  } else {
+    alert('URLの発行に失敗しました');
+    finishBtn.disabled = false;
+    finishBtn.textContent = '完成';
+    finishBtn.style.display = 'block';
+  }
+});
+
+
+
+function embedYouTubeVideo() {
+  const input = document.getElementById('youtube-url');
+  const player = document.getElementById('youtube-player');
+  let url = input.value.trim();
+
+  // m.youtube → www.youtube に変換
+  url = url.replace("m.youtube.com", "www.youtube.com");
+
+  const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/);
+  if (match && match[1]) {
+    const videoId = match[1];
+    player.innerHTML = `
+      <iframe width="100%" height="200" 
+      style="max-width: 90vw;"  
+        src="https://www.youtube.com/embed/${videoId}" 
+        frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+        allowfullscreen>
+      </iframe>
+    `;
+  } else {
+    player.innerHTML = "<p style='color:red;'>正しいYouTubeのURLを入力してください。</p>";
+  }
+}
+function hideYouTubeSection() {
+    const section = document.querySelector('.youtube-section');
+    if (section) {
+      section.style.display = 'none';
+    }
+  }
+  // base64画像をリサイズ＋圧縮する関数
+async function compressImage(base64, maxSize = 300) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+
+      const scale = Math.min(maxSize / img.width, maxSize / img.height, 1);
+      canvas.width = img.width * scale;
+      canvas.height = img.height * scale;
+
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      const compressed = canvas.toDataURL("image/jpeg", 0.6); // 60%圧縮
+      resolve(compressed);
+    };
+    img.src = base64;
+  });
+}
+function startDiagnosis() {
+  const textInputs = Array.from(document.querySelectorAll('.editable-text')).map(i => i.value).join(' ');
+  const extra = document.getElementById('extra-text')?.value || '';
+  const combined = (textInputs + ' ' + extra).toLowerCase();
+
+  let type = 'INFP'; // デフォルト
+
+  if (combined.includes('計画') || combined.includes('整理')) type = 'J';
+  else if (combined.includes('ひらめき') || combined.includes('自由')) type = 'P';
+
+  if (combined.includes('ひとり') || combined.includes('静か')) type = 'I';
+  else if (combined.includes('仲間') || combined.includes('ワイワイ')) type = 'E';
+
+  if (combined.includes('直感') || combined.includes('想像')) type = 'N';
+  else if (combined.includes('現実') || combined.includes('実用')) type = 'S';
+
+  if (combined.includes('共感') || combined.includes('優し')) type += 'F';
+  else if (combined.includes('論理') || combined.includes('分析')) type += 'T';
+
+  if (type.length < 4) type = 'INFP'; // 不完全なら初期値に
+
+  const resultText = `あなたは「${type}タイプ」かも！？`;
+
+  document.getElementById('diagnosis-result').textContent = resultText;
+  document.getElementById('diagnosis-modal').style.display = 'flex';
+
+  // タップで閉じる
+  document.getElementById('diagnosis-modal').addEventListener('click', () => {
+    document.getElementById('diagnosis-modal').style.display = 'none';
+  });
+}
+
+  </script>
+<!-- 横スクロール可能な背景テンプレ一覧 -->
+<div id="bg-template-list" style="
+  display: none;
+  position: fixed;
+  bottom: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: white;
+  padding: 10px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  z-index: 1100;
+  max-width: 90vw;
+  overflow-x: auto;
+  gap: 10px;
+  scrollbar-width: none; /* Firefox用 */
+  -ms-overflow-style: none; /* IE用 */
+">
+<!-- ▼ カメラアイコン付きテンプレ追加ここから -->
+<img src="/static/camera.jpeg" onclick="document.getElementById('background-input').click()" style="width:50px; height:50px; cursor:pointer; border-radius:8px; flex-shrink:0;">
+<!-- ▼ カメラアイコン付きテンプレ追加ここまで -->
+  <img src="/static/haikei_1.jpeg" onclick="setBackground('/static/haikei_1.jpeg')" style="width:50px; height:50px; cursor:pointer; border-radius:8px; flex-shrink:0;">
+<img src="/static/haikei_2.jpeg" onclick="setBackground('/static/haikei_2.jpeg')" style="width:50px; height:50px; cursor:pointer; border-radius:8px; flex-shrink:0;">
+<img src="/static/haikei_3.jpeg" onclick="setBackground('/static/haikei_3.jpeg')" style="width:50px; height:50px; cursor:pointer; border-radius:8px; flex-shrink:0;">
+<img src="/static/haikei_4.jpeg" onclick="setBackground('/static/haikei_4.jpeg')" style="width:50px; height:50px; cursor:pointer; border-radius:8px; flex-shrink:0;">
+<img src="/static/haikei_5.jpeg" onclick="setBackground('/static/haikei_5.jpeg')" style="width:50px; height:50px; cursor:pointer; border-radius:8px; flex-shrink:0;">
+<img src="/static/haikei_6.jpeg" onclick="setBackground('/static/haikei_6.jpeg')" style="width:50px; height:50px; cursor:pointer; border-radius:8px; flex-shrink:0;">
+<img src="/static/haikei_7.jpeg" onclick="setBackground('/static/haikei_7.jpeg')" style="width:50px; height:50px; cursor:pointer; border-radius:8px; flex-shrink:0;">
+<img src="/static/haikei_8.jpeg" onclick="setBackground('/static/haikei_8.jpeg')" style="width:50px; height:50px; cursor:pointer; border-radius:8px; flex-shrink:0;">
+<img src="/static/haikei_9.jpeg" onclick="setBackground('/static/haikei_9.jpeg')" style="width:50px; height:50px; cursor:pointer; border-radius:8px; flex-shrink:0;">
+<img src="/static/haikei_10.jpeg" onclick="setBackground('/static/haikei_10.jpeg')" style="width:50px; height:50px; cursor:pointer; border-radius:8px; flex-shrink:0;">
+<!-- さらに追加してもOK！ -->
+
+</div>
+<!-- ▼ 先にボタンのスタイル定義！ -->
+<style>
+  #diagnosis-button {
+    padding: 12px 24px;
+    font-size: 17px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #ffffff 0%, #d6f2f9 40%, #ffd1e9 100%);
+    color: #fff;
+    font-weight: bold;
+    font-family: 'Rounded Mplus 1c', 'Hiragino Maru Gothic ProN', sans-serif;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    letter-spacing: 1px;
+    transition: all 0.2s ease-in-out;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3); /* ← ここで視認性UP */
+  }
+
+  #diagnosis-button:hover {
+    background: linear-gradient(135deg, #ffd1e9, #d6f2f9, #ffffff);
+    transform: scale(1.05);
+  }
+</style>
+
+<!-- ▼ 診断ボタン（バツ付き） -->
+<div id="diagnosis-wrapper" style="position: relative; margin-top: 20px; text-align: center;">
+  <img src="/static/batu.jpeg" alt="削除" class="sns-delete-btn" onclick="hideDiagnosisButton()" style="position: absolute; top: -8px; right: 90px; width: 18px; height: 18px; cursor: pointer; z-index: 10; display: none;">
+  <button id="diagnosis-button" onclick="startDiagnosis()">〇〇さんの特徴！</button>
+</div>
+
+
+<!-- ▼ モーダル表示部分 -->
+<div id="diagnosis-modal" style="display: none; position: fixed; top: 0px; left: 0px; width: 100vw; height: 100vh; background-color: rgba(0, 0, 0, 0.7); z-index: 9999; align-items: center; justify-content: center;">
+  <div style="
+    background: white;
+    padding: 28px 24px;
+    border-radius: 20px;
+    max-width: 90vw;
+    font-size: 13px;
+    font-weight: bold;
+    text-align: center;
+    font-family: 'Comic Sans MS', 'Arial Rounded MT Bold', sans-serif;
+    animation: fadeIn 0.6s ease-in-out;
+    line-height: 1.6;
+  " id="diagnosis-result"><div style="font-size: 20px;">〇〇さんは「INTPタイプ」かも！？</div><div>MBTI的には：論理的で探究心が強い思索家タイプ！</div><div>カラー診断：中間色 → 多様性を受け入れる柔軟なタイプ！</div><div>〇〇さんは スポーツ が好きな傾向があるよ！</div><div>→ 傾向：外向的でエネルギッシュ</div><div style="margin-top:12px;">この話題を振ってみよう👇</div><div>⚽ 観戦派かプレイ派か聞いてみると意外な話が聞けるかも！</div></div>
+</div>
+
+<style>
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+</style>
+
+<script>
+function startDiagnosis() {
+  const textInputs = Array.from(document.querySelectorAll('.editable-text')).map(i => i.value).join(' ');
+  const extra = document.getElementById('extra-text')?.value || '';
+  const combined = (textInputs + ' ' + extra).toLowerCase();
+  const barColor = getComputedStyle(document.documentElement).getPropertyValue('--bar-color').trim().toLowerCase();
+
+  let type = '';
+
+// I / E 判定
+if (combined.match(/ひとり|静か|本|ソロ|家|落ち着く|アニメ|内省|黙る|マイペース/)) {
+  type += 'I';
+} else if (combined.match(/仲間|みんな|カラオケ|イベント|旅行|飲み会|おしゃべり|騒ぐ|SNS/)) {
+  type += 'E';
+} else {
+  type += 'I';
+}
+
+// N / S 判定
+if (combined.match(/空想|ひらめき|想像|クリエイティブ|アート|創作|哲学|直感|夢/)) {
+  type += 'N';
+} else if (combined.match(/現実|実用|旅行|運動|料理|アウトドア|具体|体験|五感/)) {
+  type += 'S';
+} else {
+  type += 'N';
+}
+
+// T / F 判定（スコア式）
+let tfScore = 0;
+if (combined.match(/論理|分析|効率|数字|プログラミング|理屈|戦略|データ/)) tfScore += 1;
+if (combined.match(/共感|やさしい|応援|思いやり|ケア|感情|涙|相談/)) tfScore -= 1;
+if (barColor.includes('pink') || barColor.includes('#f')) tfScore -= 1;
+if (barColor.includes('blue') || barColor.includes('#00f') || barColor.includes('navy')) tfScore += 1;
+
+type += tfScore >= 0 ? 'T' : 'F';
+
+// J / P 判定
+if (combined.match(/計画|整理|スケジュール|時間管理|リスト|準備|管理|目標|段取り/)) {
+  type += 'J';
+} else if (combined.match(/自由|気まま|柔軟|マイペース|その場|思いつき|即興/)) {
+  type += 'P';
+} else {
+  type += 'P';
+}
+
+
+  const mbtiDescriptions = {
+    INFP: "理想主義で感受性豊かな癒し系タイプ！",
+    INTP: "論理的で探究心が強い思索家タイプ！",
+    INFJ: "人の心に寄り添う静かなカリスマタイプ！",
+    INTJ: "戦略的で未来志向な構想派タイプ！",
+    ENFP: "ひらめきと人間関係が得意な冒険家タイプ！",
+    ENTP: "機転が利いて挑戦を恐れないアイデアマン！",
+    ENFJ: "人を巻き込む力があるリーダータイプ！",
+    ENTJ: "目標達成に一直線な司令塔タイプ！",
+    ISFP: "感性と調和を重視するやさしさ派！",
+    ISTP: "冷静沈着な実践派！",
+    ISFJ: "支えることに喜びを感じるサポーター！",
+    ISTJ: "責任感の強いしっかり者！",
+    ESFP: "ムードメーカーなエンタメ好き！",
+    ESTP: "行動力抜群な体験型リーダー！",
+    ESFJ: "人の役に立ちたい親しみ派！",
+    ESTJ: "効率的で実務に強い頼れる人！"
+  };
+
+  const displayName = "〇〇さん";
+  const resultLines = [];
+
+  resultLines.push(`<div style="font-size: 20px;">${displayName}は「${type}タイプ」かも！？</div>`);
+  resultLines.push(`<div>MBTI的には：${mbtiDescriptions[type] || "バランス型タイプ！"}</div>`);
+
+  if (barColor.includes('pink') || barColor.includes('#f') || barColor.includes('rose')) {
+  resultLines.push("<div>カラー診断：ピンク系 → 感受性豊かでやさしい性格！</div>");
+} else if (barColor.includes('blue') || barColor.includes('navy') || barColor.includes('#00f') || barColor.includes('sky')) {
+  resultLines.push("<div>カラー診断：青系 → 冷静で誠実、知的な性格！</div>");
+} else if (barColor.includes('green') || barColor.includes('lime') || barColor.includes('olive')) {
+  resultLines.push("<div>カラー診断：緑系 → 自然や平和を大切にする穏やかタイプ！</div>");
+} else if (barColor.includes('yellow') || barColor.includes('gold') || barColor.includes('#ff0')) {
+  resultLines.push("<div>カラー診断：黄色系 → 明るく前向きで社交的な性格！</div>");
+} else if (barColor.includes('orange') || barColor.includes('#ffa')) {
+  resultLines.push("<div>カラー診断：オレンジ系 → 活動的で人懐っこいエネルギー派！</div>");
+} else if (barColor.includes('red') || barColor.includes('crimson') || barColor.includes('#f00')) {
+  resultLines.push("<div>カラー診断：赤系 → 情熱的でリーダーシップを持つ人！</div>");
+} else if (barColor.includes('purple') || barColor.includes('violet') || barColor.includes('indigo')) {
+  resultLines.push("<div>カラー診断：紫系 → 感性豊かでミステリアスな魅力！</div>");
+} else if (barColor.includes('black') || barColor.includes('#000')) {
+  resultLines.push("<div>カラー診断：黒系 → 意志が強く、落ち着いた雰囲気！</div>");
+} else if (barColor.includes('white') || barColor.includes('#fff') || barColor.includes('ivory')) {
+  resultLines.push("<div>カラー診断：白系 → 純粋で素直、調和を大切にするタイプ！</div>");
+} else if (barColor.includes('gray') || barColor.includes('grey') || barColor.includes('#888')) {
+  resultLines.push("<div>カラー診断：グレー系 → 冷静で大人びたバランスタイプ！</div>");
+} else {
+  resultLines.push("<div>カラー診断：中間色 → 多様性を受け入れる柔軟なタイプ！</div>");
+}
+
+
+  const hobbyTags = {
+  'ゲーム': '戦略派 or マイペース派',
+  'アニメ': '感性豊かで内向型寄り',
+  '旅行': '好奇心旺盛な冒険好き',
+  'カフェ': '癒し重視・感性タイプ',
+  '音楽': '感情と結びつきが強い人',
+  '読書': '思索型・想像力が豊か',
+  'スポーツ': '外向的でエネルギッシュ',
+  '美術': 'クリエイティブ志向',
+  '料理': '繊細で家庭的な気質',
+  '筋トレ': '自己成長意識が強いタイプ',
+  'ファッション': '自己表現と流行に敏感なタイプ',
+  'ダンス': '身体で感情を表現する情熱派',
+  'カラオケ': '社交的で表現が好きな盛り上げ役',
+  'ボードゲーム': '頭脳派でみんなと楽しむことが好き',
+  'ペット': '愛情深く、癒しやつながりを大事にする人',
+  'イラスト': '繊細で感受性が豊か、想像力も高い',
+  'カメラ': '観察眼に優れ、感情を写真で表現したいタイプ',
+  '映画': '物語や世界観に没入するエモ派',
+  'カラフルな雑貨': '明るく個性的なセンスの持ち主',
+  '手芸': '丁寧で集中力が高く、ものづくり好き',
+  '散歩': '自然との調和を大切にするマイペース派'
+};
+
+  const detectedHobbies = Object.keys(hobbyTags).filter(word => combined.includes(word));
+  if (detectedHobbies.length > 0) {
+    resultLines.push(`<div>${displayName}は ${detectedHobbies.join('・')} が好きな傾向があるよ！</div>`);
+    resultLines.push(`<div>→ 傾向：${detectedHobbies.map(h => hobbyTags[h]).join(' ／ ')}</div>`);
+  }
+
+const hobbyExtensions = [];
+if (combined.includes('ゲーム')) hobbyExtensions.push("🎮 サバゲーやボードゲームも好きな可能性あり！");
+if (combined.includes('音楽')) hobbyExtensions.push("🎵 作曲やライブ参戦にも興味あるかも！");
+if (combined.includes('カフェ')) hobbyExtensions.push("☕ カフェ巡りブログ始めてるかも？");
+if (combined.includes('読書')) hobbyExtensions.push("📚 最近読んだ本の話をしてみると盛り上がるかも！");
+if (combined.includes('アニメ')) hobbyExtensions.push("📺 推しキャラやアニメある？って聞くと喜ぶタイプかも！");
+if (combined.includes('スポーツ')) hobbyExtensions.push("⚽ 観戦派かプレイ派か聞いてみると意外な話が聞けるかも！");
+if (combined.includes('旅行')) hobbyExtensions.push("✈️ 行ってみたい国とか語り合うと楽しいかも！");
+if (combined.includes('美術')) hobbyExtensions.push("🎨 美術館トークや推し画家の話がハマるかも！");
+if (combined.includes('料理')) hobbyExtensions.push("🍳 得意料理とか聞くとテンション上がりそう！");
+if (combined.includes('筋トレ')) hobbyExtensions.push("💪 プロテインの話で盛り上がれるかも…！？");
+if (combined.includes('ファッション')) hobbyExtensions.push("👗 好きなブランドや服の系統、話してみよう！");
+if (combined.includes('カラオケ')) hobbyExtensions.push("🎤 定番ソングある？って聞くと一気に距離縮まるかも！");
+if (combined.includes('ペット')) hobbyExtensions.push("🐾 飼ってる動物の話をすると嬉しそうに話してくれるかも！");
+if (combined.includes('イラスト')) hobbyExtensions.push("🖌️ SNSに投稿してるかも？見せてもらってみよう！");
+if (combined.includes('映画')) hobbyExtensions.push("🎬 好きなジャンルや推し俳優の話で盛り上がれるかも！");
+if (combined.includes('ダンス')) hobbyExtensions.push("💃 好きなジャンルや振り付けの話をすると盛り上がりそう！");
+if (combined.includes('ボードゲーム')) hobbyExtensions.push("🎲 どのゲーム派か聞くと盛り上がれるかも！");
+if (combined.includes('カラフルな雑貨')) hobbyExtensions.push("🌈 センス光るアイテムの話題で盛り上がりそう！");
+if (combined.includes('手芸')) hobbyExtensions.push("🧵 ハンドメイド作品の話をすると嬉しそうに話すかも！");
+if (combined.includes('散歩')) hobbyExtensions.push("🚶‍♂️ 散歩コースの話から自然トークに広がるかも！");
+if (combined.includes('カメラ')) hobbyExtensions.push("📷 撮った写真を見せてもらうと会話が弾むかも！");
+if (combined.includes('プログラミング')) hobbyExtensions.push("💻 どんなアプリやコード書いてるか聞いてみよう！");
+if (combined.includes('写真')) hobbyExtensions.push("📸 SNSやアルバムに素敵な構図があるかも！");
+if (combined.includes('アウトドア')) hobbyExtensions.push("🏕️ キャンプや登山など自然体験の話題が合いそう！");
+
+  if (hobbyExtensions.length > 0) {
+    resultLines.push(`<div style="margin-top:12px;">この話題を振ってみよう👇</div>`);
+    resultLines.push(`<div>${hobbyExtensions.join('<br>')}</div>`);
+  }
+
+  localStorage.setItem('my_mbti', type);
+  const mbtiEl = document.getElementById('mbti-type');
+if (mbtiEl) mbtiEl.innerText = type;
+
+  document.getElementById('diagnosis-result').innerHTML = resultLines.join('');
+  document.getElementById('diagnosis-modal').style.display = 'flex';
+
+  document.getElementById('diagnosis-modal').addEventListener('click', () => {
+    document.getElementById('diagnosis-modal').style.display = 'none';
+  });
+}
+window.dispatchEvent(new Event('DOMContentLoaded'));
+
+</script>
+
+<!-- ↓ ここがMBTIタイプが表示される非表示エリア -->
+<div id="mbti-type" style="display:none;">INTP</div>
+
+<!-- ▼ 相性診断スクリプト -->
+<script>
+window.addEventListener('DOMContentLoaded', () => {
+  const myMbti = localStorage.getItem('my_mbti');
+  const otherMbti = document.getElementById('mbti-type')?.innerText ||
+                    document.getElementById('hidden-mbti')?.value || '';
+
+  if (myMbti && otherMbti && myMbti.length === 4 && otherMbti.length === 4) {
+    const compatibility = getCompatibility(myMbti, otherMbti);
+    const score = getCompatibilityScore(myMbti, otherMbti);
+    showCompatibilityModal(myMbti, otherMbti, compatibility, score);
+  }
+});
+
+function getCompatibility(mbti1, mbti2) {
+  const perfectPairs = [
+    ['INFP', 'ENFJ'], ['ENFP', 'INFJ'], ['INFJ', 'INTP'], ['INFP', 'INFJ'],
+    ['ENFP', 'INTP'], ['ENTP', 'INFJ'], ['ENFJ', 'INFP'], ['ISFJ', 'ENFP'],
+    ['ISTJ', 'ISFJ'], ['ISFP', 'INFP'], ['ESTP', 'ENFP'], ['ESFP', 'ENFJ'],
+    ['ISTP', 'INFP'], ['INTP', 'ENTJ'], ['ENTP', 'INTJ'], ['ISFP', 'ESFJ'],
+    ['ISTP', 'ESTJ'], ['ISFJ', 'ESFP'], ['ISTJ', 'ESTP'], ['INTJ', 'ENFP'],
+    ['INTP', 'INFJ'], ['ESFJ', 'ISFP'], ['ESTJ', 'ISTP'], ['ESFP', 'ISFJ'],
+    ['ESTP', 'ISTJ'], ['ENFJ', 'ISFP'], ['ENFP', 'ISFJ'], ['ENTJ', 'INFP'],
+    ['INTJ', 'ENFJ'], ['ENFP', 'ENFP'], ['ENTP', 'ENTP'], ['INFP', 'INTP'],
+    // ⬇ 拡張ここから
+    ['ISFJ', 'ISTP'], ['INFJ', 'ENFJ'], ['ISFP', 'ENFP'], ['ENFP', 'ISFP'],
+    ['ISTJ', 'ENTP'], ['ISTP', 'ENFP'], ['ESTJ', 'ENFJ'], ['INTP', 'ENTP'],
+    ['ENTP', 'ISFJ'], ['ESFP', 'ISFP'], ['ISFP', 'ISFP'], ['INTP', 'ISFP'],
+    ['INFP', 'INFP'], ['ENFJ', 'ENFJ'], ['ESTJ', 'ISTJ'], ['ISTP', 'ISFJ'],
+    ['INFJ', 'ISFP'], ['ISFJ', 'INFJ'], ['ENFP', 'ISTP'], ['INTJ', 'INFP']
+  ];
+
+
+  if (mbti1 === mbti2) return '似たもの同士で安心感バッチリ！';
+  for (const [a, b] of perfectPairs) {
+    if ((mbti1 === a && mbti2 === b) || (mbti1 === b && mbti2 === a)) {
+      return 'バランス最高！理想のペア！';
+    }
+  }
+  return '価値観の違いも楽しめる関係！';
+}
+
+
+function getCompatibilityScore(m1, m2) {
+  let score = 50;
+  if (m1 === m2) return 90;
+  const pairs = ['IE', 'NS', 'TF', 'JP'];
+  for (let i = 0; i < 4; i++) {
+    if (m1[i] === m2[i]) score += 10;
+    else score -= 5;
+  }
+  return Math.max(0, Math.min(100, score));
+}
+function getCompatibilityComment(mbti1, mbti2) {
+  const key = [mbti1, mbti2].sort().join('-');
+
+  const commentMap = {
+    'INFP-ENFJ': 'お互いの感性に惹かれ合い、自然と支え合える関係！',
+    'ENFP-INFJ': '自由と深さのバランスが絶妙な相性！',
+    'INFJ-INTP': '理想と論理の融合で、深い対話が止まらない！',
+    'INFP-INFJ': '感受性の波長がぴったり合う癒し系コンビ！',
+    'ENFP-INTP': '突飛なアイデアを一緒に飛躍させられる関係！',
+    'ENTP-INFJ': '発想力と共感力が交差する刺激的な関係！',
+    'ENFJ-INFP': '思いやりと柔らかさが共鳴するあったかペア！',
+    'ISFJ-ENFP': '慎重さと冒険心のいいバランス！',
+    'ISTJ-ISFJ': '安定と安心を生む王道ペア！',
+    'ISFP-INFP': '共感力に溢れたやさしさ全開コンビ！',
+    'ESTP-ENFP': '行動派と夢想家がぶつかりながらも惹かれ合う！',
+    'ESFP-ENFJ': '明るさと面倒見の良さで周りも笑顔に！',
+    'ISTP-INFP': '静と動の組み合わせが意外と心地いい！',
+    'INTP-ENTJ': '計画と構想が噛み合う戦略的パートナー！',
+    'ENTP-INTJ': '未来を語りたくなる知的ペア！',
+    'ISFP-ESFJ': '自然体と気配りの絶妙なコンビ！',
+    'ISTP-ESTJ': '現実的かつ信頼できるタッグ！',
+    'ISFJ-ESFP': '穏やか×社交的の癒しと元気セット！',
+    'ISTJ-ESTP': '冷静と情熱の間に意外な調和！',
+    'INTJ-ENFP': '内なる情熱を共有できる変化推進コンビ！',
+    'INTP-INFJ': '深い思索を楽しめる精神的つながり！',
+    'ESFJ-ISFP': '柔らかくて安心できる包容力ペア！',
+    'ESTJ-ISTP': '頼れる実務家同士で仕事バッチリ！',
+    'ESFP-ISFJ': '感情と安定感が寄り添うあたたかペア！',
+    'ESTP-ISTJ': '信頼とスピードのパートナーシップ！',
+    'ENFJ-ISFP': '面倒見の良さと感性が溶け合う！',
+    'ENFP-ISFJ': '冒険と安心が交差するほのぼの関係！',
+    'ENTJ-INFP': 'カリスマと癒しの不思議な化学反応！',
+    'INTJ-ENFJ': '論理と人情のハイブリッドパートナー！',
+    'ENFP-ENFP': 'ノリと勢いが止まらない無限ループ！',
+    'ENTP-ENTP': '話が尽きない刺激的なペア！',
+    'INFP-INTP': '繊細さと探究心で静かに盛り上がる！'
+  };
+
+  return commentMap[key] || '相手の違いを理解しながら、成長できる関係！';
+}
+function getDetailData(my, other) {
+  const key = [my, other].sort().join('-');
+
+  const detailMap = {
+    'INFP-ENFJ': {
+      scores: [90, 85, 80, 95, 70],
+      texts: [
+        '自然体で話せる友達感覚が◎',
+        '一緒にいるだけでドキドキできる相性！',
+        '共に成長し合える最高の相棒！',
+        '価値観が似ていて居心地がとても良い',
+        '盛り上がりすぎず、心地よいテンション感'
+      ]
+    }
+    // 他の組み合わせはあとで追加できる
+  };
+
+  return detailMap[key] || {
+    scores: [60, 60, 60, 60, 60],
+    texts: [
+      '会話を通じて徐々に打ち解ける関係！',
+      'お互いの違いを楽しめる相性！',
+      '一緒に新しい発見ができそう！',
+      '安心感はこれから作っていく感じ！',
+      '刺激より安定感重視な雰囲気！'
+    ]
+  };
+}
+
+function showCompatibilityModal(my, other, message, score) {
+  const comment = getCompatibilityComment(my, other); 
+  const modal = document.createElement('div');
+  modal.id = 'compat-modal';
+  modal.style.cssText = `
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.8s ease;
+  `;
+
+  modal.innerHTML = `
+    <div style="
+      background: #fff;
+      padding: 24px;
+      border-radius: 16px;
+      font-family: 'Comic Sans MS', cursive;
+      text-align: center;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.25);
+      max-width: 90vw;
+      animation: popIn 0.6s ease forwards;
+    ">
+      <div style="font-size: 20px; font-weight: bold; color: #e91e63; margin-bottom: 6px;">
+        2人の相性度
+      </div>
+
+      <div style="font-size: 36px; font-weight: bold; color: #ff3366; margin-bottom: 12px;">
+        ${score}% 
+      </div>
+
+      <div style="font-size: 16px; margin-bottom: 6px;">
+        あなた（${my}）とこの人（${other}）の相性は…
+      </div>
+
+      <div style="font-size: 20px; color: #e91e63; font-weight: bold; margin-bottom: 8px;">
+        ${message}
+      </div>
+
+      <div style="font-size: 16px; color: #555; font-style: italic;">
+        ${comment}
+      </div>
+
+      <div style="margin-top: 24px;">
+        <button onclick="document.getElementById('compat-modal').remove()" style="
+          padding: 8px 16px;
+          background: #ccc;
+          color: #333;
+          border: none;
+          border-radius: 8px;
+          cursor: pointer;
+        ">閉じる</button>
+
+        <button onclick="showDetailModal('${my}', '${other}')" style="
+          margin-left: 12px;
+          padding: 8px 16px;
+          background: #2196f3;
+          color: white;
+          border: none;
+          border-radius: 8px;
+          cursor: pointer;
+        ">詳細を見る</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  // フェードイン
+  setTimeout(() => {
+    modal.style.opacity = '1';
+  }, 50);
+}
+
+function getDetailData(my, other) {
+  const key = [my, other].sort().join('-');
+
+  const detailMap = {
+    'INFP-ENFJ': {
+      scores: [90, 85, 80, 95, 70],
+      texts: [
+        '自然体で話せる友達感覚が◎',
+        '一緒にいるだけでドキドキできる相性！',
+        '共に成長し合える最高の相棒！',
+        '価値観が似ていて居心地がとても良い',
+        '盛り上がりすぎず、心地よいテンション感'
+      ]
+    }
+  };
+
+  return detailMap[key] || {
+    scores: [60, 60, 60, 60, 60],
+    texts: [
+      '会話を通じて徐々に打ち解ける関係！',
+      'お互いの違いを楽しめる相性！',
+      '一緒に新しい発見ができそう！',
+      '安心感はこれから作っていく感じ！',
+      '刺激より安定感重視な雰囲気！'
+    ]
+  };
+}
+
+function getCompatibilityRadarData(myMbti, otherMbti) {
+  const scores = [60, 60, 60, 60, 60];
+  const comments = [
+    '会話を通じて徐々に打ち解ける関係！',
+    'お互いの違いを楽しめる相性！',
+    '一緒に新しい発見ができそう！',
+    '安心感はこれから作っていく感じ！',
+    '刺激より安定感重視な雰囲気！'
+  ];
+
+  return { scores, comments };
+}
+
+function showDetailModal(myMbti, otherMbti) {
+  const modal = document.getElementById('compat-detail-modal');
+  modal.style.display = 'flex';
+
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      const ctx = document.getElementById('compat-radar').getContext('2d');
+      const data = getCompatibilityRadarData(myMbti, otherMbti);
+      const labels = ['仲良し度', 'ときめき度', '相棒力', '落ち着き度', '盛り上がり度'];
+
+      if (window.currentRadarChart) {
+        window.currentRadarChart.destroy();
+      }
+
+      window.currentRadarChart = new Chart(ctx, {
+        type: 'radar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: '相性スコア',
+            data: data.scores,
+            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+            borderColor: '#e91e63',
+            pointBackgroundColor: '#e91e63'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            r: {
+              suggestedMin: 0,
+              suggestedMax: 100,
+              ticks: { display: false },
+              pointLabels: {
+                font: { size: 14, family: 'Comic Sans MS' },
+                color: '#e91e63',
+                padding: 20
+              },
+              grid: { color: 'rgba(0,0,0,0.1)' },
+              angleLines: { display: true }
+            }
+          }
+        }
+      });
+
+const detailText = labels.map((label, i) => `
+  <div style="margin-bottom: 16px; text-align: left;">
+    <div style="font-weight: bold; color: #e91e63; font-size: 16px; text-align: left;">
+      ${label}：${data.scores[i]}%
+    </div>
+    <div style="color: #555; font-size: 14px; text-align: left;">
+      ${data.comments[i]}
+    </div>
+  </div>
+`).join('');
+
+
+
+      document.getElementById('compat-detail-text').innerHTML = detailText;
+    }, 30);
+  });
+}
+</script>
+
+<!-- ▼ 相性の詳細モーダル -->
+<div id="compat-detail-modal" style="
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 10000;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+  padding: 60px 16px 40px 16px;
+">
+  <!-- ▼ モーダルの中身 -->
+  <div style="
+    background: linear-gradient(to right, #c7f0f9, #fcd6ec);
+    padding: 48px 16px 28px 16px;
+    border-radius: 20px;
+    border: 2px solid #ffcde0;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    max-width: 90vw;
+    width: 360px;
+    font-family: 'Kosugi Maru', 'Noto Sans JP', sans-serif;
+    position: relative;
+    animation: fadeIn 0.5s ease;
+    margin-left: 0;
+    margin-right: auto;
+  ">
+
+    <!-- ✅ ✕ボタンを外側に移動 -->
+    <button onclick="document.getElementById('compat-detail-modal').style.display='none'" style="
+      position: absolute;
+      top: 10px; right: 10px;
+      width: 32px; height: 32px;
+      background: #ffccd5;
+      border: none;
+      border-radius: 50%;
+      font-size: 18px;
+      color: #a00;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    ">✕</button>
+
+    <!-- ✅ 中央にチャート -->
+    <div style="
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      padding: 0;
+      box-sizing: border-box;
+    ">
+      <canvas id="compat-radar" width="240" height="240" style="display: block;
+               transform: translate(20px, 0px);
+               background-color: #fff0f5;
+               border-radius: 20px;
+               box-shadow: 0 2px 6px rgba(0,0,0,0.2);">
+      </canvas>
+    </div>
+
+   <!-- ✅ 完全左揃えテキスト領域 -->
+<div id="compat-detail-text" style="
+  margin-top: 20px;
+  font-size: 15px;
+  line-height: 1.8;
+  color: #444;
+  text-align: left;
+  width: 100%;
+  box-sizing: border-box;
+  display: block;
+  padding: 0 8px;
+">
+
+
+
+      <!-- JavaScriptで埋め込まれる -->
+    </div>
+
+  </div>
+</div>
+
+
+<!-- Chart.js読み込み -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</div></div></body></html>
