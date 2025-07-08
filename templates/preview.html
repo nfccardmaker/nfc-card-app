@@ -1565,7 +1565,7 @@ function showDetailModal(myMbti, otherMbti) {
           pointLabels: {
             font: { size: 14, family: 'Comic Sans MS' },
             color: '#e91e63',
-            padding: 20
+            padding: 28
           },
           grid: { color: 'rgba(0,0,0,0.1)' },
           angleLines: { display: true }
@@ -1617,24 +1617,25 @@ function showDetailModal(myMbti, otherMbti) {
 <div style="
   background: #ffe6f0;
   border-radius: 20px;
-  padding: 24px 20px 24px 20px;  /* ← 上下左右とも余白整える */
+  padding: 16px 16px 32px 16px;  /* ← 上左右ちょい狭め・下に余白 */
   margin-bottom: 24px;
   box-shadow: 0 6px 16px rgba(0,0,0,0.2);
   display: flex;
   flex-direction: column;
-  align-items: center;         /* ← 中央寄せ（横方向） */
-  justify-content: center;     /* ← 中央寄せ（縦方向） */
-  max-width: 90vw;
+  align-items: center;         /* 横中央 */
+  justify-content: center;     /* 縦中央 */
   width: 100%;
-  min-height: 240px;
+  max-width: 260px;
   box-sizing: border-box;
+  margin-left: auto;
+  margin-right: auto;
 ">
-  <canvas id="compat-radar" width="180" height="180" style="
+  <canvas id="compat-radar" width="200" height="200" style="
     display: block;
     margin: 0 auto;
-    transform: none;           /* ← translate使わず自然に中央に */
   "></canvas>
 </div>
+
 
 
   <!-- 💬 詳細テキスト -->
