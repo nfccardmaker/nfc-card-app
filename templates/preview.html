@@ -1522,84 +1522,75 @@ function getDetailData(my, other) {
 }
 
 function getCompatibilityRadarData(myMbti, otherMbti) {
-  const scores = [60, 60, 60, 60, 60];
-  const comments = [
-    '会話を通じて徐々に打ち解ける関係！',
-    'お互いの違いを楽しめる相性！',
-    '一緒に新しい発見ができそう！',
-    '安心感はこれから作っていく感じ！',
-    '刺激より安定感重視な雰囲気！'
-  ];
-
-  return { scores, comments };
+  // getDetailData からスコアとコメントを取得
+  return getDetailData(myMbti, otherMbti);
 }
 
 function showDetailModal(myMbti, otherMbti) {
   const modal = document.getElementById('compat-detail-modal');
   modal.style.display = 'flex';
 
-  requestAnimationFrame(() => {
-    setTimeout(() => {
-      const ctx = document.getElementById('compat-radar').getContext('2d');
-      const data = getCompatibilityRadarData(myMbti, otherMbti);
-      const labels = ['仲良し度', 'ときめき度', '相棒力', '落ち着き度', '盛り上がり度'];
+  // DOMリフローを強制してレイアウト確定させる
+  modal.offsetHeight;
 
-      if (window.currentRadarChart) {
-        window.currentRadarChart.destroy();
-      }
+  const ctx = document.getElementById('compat-radar').getContext('2d');
+  const data = getCompatibilityRadarData(myMbti, otherMbti);
+  const labels = ['仲良し度', 'ときめき度', '相棒力', '落ち着き度', '盛り上がり度'];
 
-      window.currentRadarChart = new Chart(ctx, {
-        type: 'radar',
-        data: {
-          labels: labels,
-          datasets: [{
-            label: '相性スコア',
-            data: data.scores,
-            backgroundColor: 'rgba(255, 99, 132, 0.2)',
-            borderColor: '#e91e63',
-            pointBackgroundColor: '#e91e63'
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false }
+  if (window.currentRadarChart) {
+    window.currentRadarChart.destroy();
+  }
+
+  window.currentRadarChart = new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: '相性スコア',
+        data: data.scores,
+        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+        borderColor: '#e91e63',
+        pointBackgroundColor: '#e91e63'
+      }]
+    },
+    options: {
+      animation: false, // ← 動きを消す
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        r: {
+          suggestedMin: 0,
+          suggestedMax: 100,
+          ticks: { display: false },
+          pointLabels: {
+            font: { size: 14, family: 'Comic Sans MS' },
+            color: '#e91e63',
+            padding: 20
           },
-          scales: {
-            r: {
-              suggestedMin: 0,
-              suggestedMax: 100,
-              ticks: { display: false },
-              pointLabels: {
-                font: { size: 14, family: 'Comic Sans MS' },
-                color: '#e91e63',
-                padding: 20
-              },
-              grid: { color: 'rgba(0,0,0,0.1)' },
-              angleLines: { display: true }
-            }
-          }
+          grid: { color: 'rgba(0,0,0,0.1)' },
+          angleLines: { display: true }
         }
-      });
-
-const detailText = labels.map((label, i) => `
-  <div style="margin-bottom: 16px; text-align: left;">
-    <div style="font-weight: bold; color: #e91e63; font-size: 16px; text-align: left;">
-      ${label}：${data.scores[i]}%
-    </div>
-    <div style="color: #555; font-size: 14px; text-align: left;">
-      ${data.comments[i]}
-    </div>
-  </div>
-`).join('');
-
-
-
-      document.getElementById('compat-detail-text').innerHTML = detailText;
-    }, 30);
+      }
+    }
   });
+
+  const detailText = labels.map((label, i) => `
+    <div style="margin-bottom: 16px; text-align: left;">
+      <div style="font-weight: bold; color: #e91e63; font-size: 16px;">
+        ${label}：${data.scores[i]}%
+      </div>
+      <div style="color: #555; font-size: 14px;">
+        ${data.comments[i]}
+      </div>
+    </div>
+  `).join('');
+
+  document.getElementById('compat-detail-text').innerHTML = detailText;
 }
+
 </script>
 
 <!-- ▼ 相性の詳細モーダル -->
