@@ -779,11 +779,8 @@ document.getElementById('finish-button').addEventListener('click', async () => {
   finishBtn.disabled = true;
   finishBtn.textContent = '生成中...';
   await compressAllImagesBeforeSend(); 
-  // ✅ 不要UIを完全削除して軽量化
-document.getElementById('toolbar')?.remove(); // ツールバー
-document.getElementById('background-list')?.remove(); // 背景一覧
-document.querySelectorAll('.sns-delete-btn, .text-delete-btn, .youtube-delete-btn')
-  .forEach(btn => btn.remove()); // バツボタン類
+  document.querySelectorAll('#background-list img').forEach(img => {
+  img.remove();
 });
 // 入力値を表示用の要素に反映
 // 入力値を表示エリアに反映する（完成前に必要！）
