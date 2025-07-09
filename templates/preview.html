@@ -778,6 +778,9 @@ document.getElementById('finish-button').addEventListener('click', async () => {
   
   finishBtn.disabled = true;
   finishBtn.textContent = '生成中...';
+document.querySelectorAll('#background-list img').forEach(img => {
+  img.remove();
+});
   
 // 入力値を表示用の要素に反映
 // 入力値を表示エリアに反映する（完成前に必要！）
