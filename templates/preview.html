@@ -778,10 +778,9 @@ document.getElementById('finish-button').addEventListener('click', async () => {
   
   finishBtn.disabled = true;
   finishBtn.textContent = '生成中...';
-document.querySelectorAll('#background-list img').forEach(img => {
+  document.querySelectorAll('#background-list img').forEach(img => {
   img.remove();
 });
-  
 // 入力値を表示用の要素に反映
 // 入力値を表示エリアに反映する（完成前に必要！）
 // 入力値を value 属性に反映（Firebaseに反映されるように）
@@ -967,7 +966,8 @@ function hideYouTubeSection() {
       section.style.display = 'none';
     }
   }
- async function compressImage(base64, maxSize = 200) {
+  // base64画像をリサイズ＋圧縮する関数
+async function compressImage(base64, maxSize = 300) {
   return new Promise((resolve) => {
     const img = new Image();
     img.onload = () => {
@@ -978,17 +978,13 @@ function hideYouTubeSection() {
       canvas.height = img.height * scale;
 
       const ctx = canvas.getContext("2d");
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-      const compressed = canvas.toDataURL("image/webp", 0.6); // 軽い＆透明OK
+      const compressed = canvas.toDataURL("image/jpeg", 0.6); // 60%圧縮
       resolve(compressed);
     };
     img.src = base64;
   });
 }
-
-
 function startDiagnosis() {
   const textInputs = Array.from(document.querySelectorAll('.editable-text')).map(i => i.value).join(' ');
   const extra = document.getElementById('extra-text')?.value || '';
