@@ -404,8 +404,19 @@ body {
     <img src="/static/photo_icon.jpeg" onclick="document.getElementById('deco-input').click()">
     <button onclick="togglePreview()" id="check-button">確認</button>
   </div>
+<script>
+  const agreeCheckbox = document.getElementById('agree-checkbox');
+  const createButton = document.getElementById('create-button');
 
-  <script>
+  agreeCheckbox.addEventListener('change', () => {
+    createButton.style.display = agreeCheckbox.checked ? 'inline-block' : 'none';
+  });
+
+  function closeTermsModal() {
+    document.getElementById('terms-modal').style.display = 'none';
+  }
+
+
     const urls = { instagram: '', x: '', tiktok: '' };
     const canvas = document.getElementById('draw-canvas');
     const ctx = canvas.getContext('2d');
@@ -775,115 +786,106 @@ function restoreDiagnosisButton() {
 
 document.getElementById('finish-button').addEventListener('click', async () => {
   const finishBtn = document.getElementById('finish-button');
- const checkbox = document.getElementById('agree-checkbox');
-if (!checkbox.checked) {
-  alert('利用規約に同意してください。');
-  document.getElementById('terms-modal').style.display = 'flex';
-  return;
-}
- 
+  const checkbox = document.getElementById('agree-checkbox');
+  if (!checkbox.checked) {
+    alert('利用規約に同意してください。');
+    document.getElementById('terms-modal').style.display = 'flex';
+    return;
+  }
+
   finishBtn.disabled = true;
   finishBtn.textContent = '生成中...';
   await compressAllImagesBeforeSend(); 
   document.querySelectorAll('#background-list img').forEach(img => {
-  img.remove();
-});
-// 入力値を表示用の要素に反映
-// 入力値を表示エリアに反映する（完成前に必要！）
-// 入力値を value 属性に反映（Firebaseに反映されるように）
-function escapeHTML(str) {
-  return str.replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#39;");
-}
+    img.remove();
+  });
 
-const editableTexts = document.querySelectorAll('.editable-text, textarea');
-editableTexts.forEach(input => {
-  const val = input.value.trim();
-  input.setAttribute('value', escapeHTML(val));
-  if (input.tagName === 'TEXTAREA') {
-    input.textContent = escapeHTML(val);
+  function escapeHTML(str) {
+    return str.replace(/&/g, "&amp;")
+              .replace(/</g, "&lt;")
+              .replace(/>/g, "&gt;")
+              .replace(/"/g, "&quot;")
+              .replace(/'/g, "&#39;");
   }
-});
 
-editableTexts.forEach((input) => {
-  input.setAttribute('value', input.value.trim());
-});
+  const editableTexts = document.querySelectorAll('.editable-text, textarea');
+  editableTexts.forEach(input => {
+    const val = input.value.trim();
+    input.setAttribute('value', escapeHTML(val));
+    if (input.tagName === 'TEXTAREA') {
+      input.textContent = escapeHTML(val);
+    }
+  });
 
-// 記入欄（textarea）の値を value に反映
-const extraInput = document.getElementById('extra-text');
-if (extraInput) {
-  const text = extraInput.value.trim();
-  extraInput.setAttribute('value', text);
+  editableTexts.forEach((input) => {
+    input.setAttribute('value', input.value.trim());
+  });
 
-  let hidden = document.getElementById('hidden-extra-text');
-  if (!hidden) {
-    hidden = document.createElement('input');
-    hidden.type = 'hidden';
-    hidden.id = 'hidden-extra-text';
-    hidden.name = 'extra-text';
-    extraInput.parentNode.appendChild(hidden); // ✅ 修正！
+  const extraInput = document.getElementById('extra-text');
+  if (extraInput) {
+    const text = extraInput.value.trim();
+    extraInput.setAttribute('value', text);
+
+    let hidden = document.getElementById('hidden-extra-text');
+    if (!hidden) {
+      hidden = document.createElement('input');
+      hidden.type = 'hidden';
+      hidden.id = 'hidden-extra-text';
+      hidden.name = 'extra-text';
+      extraInput.parentNode.appendChild(hidden);
+    }
+    hidden.value = text;
+    extraInput.textContent = text;
   }
-  hidden.value = text;
-   extraInput.textContent = text;
-}
 
   const toolbar = document.getElementById('toolbar');
   if (toolbar) toolbar.style.display = 'none';
 
-
   const youtubeBatsu = document.querySelector('.youtube-section .sns-delete-btn');
   if (youtubeBatsu) youtubeBatsu.style.display = 'none';
-  // ✅ YouTube入力欄と反映ボタンを非表示にする
-const youtubeInput = document.getElementById('youtube-url');
-const youtubeButton = document.querySelector('.youtube-section button');
-if (youtubeInput) youtubeInput.style.display = 'none';
-if (youtubeButton) youtubeButton.style.display = 'none';
+  const youtubeInput = document.getElementById('youtube-url');
+  const youtubeButton = document.querySelector('.youtube-section button');
+  if (youtubeInput) youtubeInput.style.display = 'none';
+  if (youtubeButton) youtubeButton.style.display = 'none';
 
-// SNSバツ削除
-document.querySelectorAll('.sns-wrapper .sns-delete-btn').forEach(btn => {
-  if (btn.parentNode) {
-    btn.parentNode.removeChild(btn);
-  }
-});
+  document.querySelectorAll('.sns-wrapper .sns-delete-btn').forEach(btn => {
+    if (btn.parentNode) {
+      btn.parentNode.removeChild(btn);
+    }
+  });
 
   const extraBatsu = document.querySelector('#extra-text-wrapper .sns-delete-btn');
   if (extraBatsu) extraBatsu.style.display = 'none';
   const diagnosisBatsu = document.querySelector('#diagnosis-wrapper .sns-delete-btn');
   if (diagnosisBatsu) diagnosisBatsu.style.display = 'none';
-  // SNSリンクをHTMLに埋め込む処理（完成ボタン処理の中に追加）
-['instagram', 'x', 'tiktok'].forEach(service => {
-  const wrapper = document.querySelector(`.sns-wrapper:has(#input-${service})`);
-  const link = urls[service];
-  if (wrapper && link) {
-    const snsItem = wrapper.querySelector('.sns-item');
-    if (snsItem) {
-      const img = snsItem.querySelector('img'); // アイコン画像
-      const label = snsItem.childNodes[1]?.textContent?.trim() || service;
 
-      // aタグでラップしてクリック可能に
-      const anchor = document.createElement('a');
-      anchor.href = link;
-      anchor.target = '_blank';
-      anchor.style.display = 'flex';
-      anchor.style.alignItems = 'center';
-      anchor.style.gap = '10px';
-      anchor.style.textDecoration = 'none';
-      anchor.style.color = 'inherit';
+  ['instagram', 'x', 'tiktok'].forEach(service => {
+    const wrapper = document.querySelector(`.sns-wrapper:has(#input-${service})`);
+    const link = urls[service];
+    if (wrapper && link) {
+      const snsItem = wrapper.querySelector('.sns-item');
+      if (snsItem) {
+        const img = snsItem.querySelector('img');
+        const label = snsItem.childNodes[1]?.textContent?.trim() || service;
 
-      anchor.appendChild(img);
-      anchor.appendChild(document.createTextNode(label));
+        const anchor = document.createElement('a');
+        anchor.href = link;
+        anchor.target = '_blank';
+        anchor.style.display = 'flex';
+        anchor.style.alignItems = 'center';
+        anchor.style.gap = '10px';
+        anchor.style.textDecoration = 'none';
+        anchor.style.color = 'inherit';
 
-      snsItem.innerHTML = '';
-      snsItem.appendChild(anchor);
+        anchor.appendChild(img);
+        anchor.appendChild(document.createTextNode(label));
+
+        snsItem.innerHTML = '';
+        snsItem.appendChild(anchor);
+      }
     }
-  }
-});
+  });
 
-
-  // ✅ プロフィール画像が blob: だったら保存済みのURLに書き換える
   const profileImg = document.getElementById("profile-img");
   if (profileImg && profileImg.src.startsWith("blob:")) {
     profileImg.src = "/static/uploads/profile.jpeg";
@@ -898,14 +900,14 @@ document.querySelectorAll('.sns-wrapper .sns-delete-btn').forEach(btn => {
       img.src = await compressImage(img.src);
     }
   }
-    finishBtn.style.display = 'none';
 
-    const html = document.documentElement.outerHTML;
+  finishBtn.style.display = 'none';
 
-  // ✅ base64画像のうち、プロフィール画像とデコ画像だけは削除対象から除外！
+  const html = document.documentElement.outerHTML;
+
   const cleanedHTML = html.replace(/<img[^>]+src="data:image\/[^"]+"[^>]*>/g, (match) => {
     if (match.includes('id="profile-img"') || match.includes('class="deco-img"')) {
-      return match; // → プロフィール画像 or デコ画像はそのまま残す
+      return match;
     } else {
       return match.replace(/src="data:image\/[^"]+"/, 'src="/static/deleted_image.jpeg"');
     }
@@ -927,7 +929,7 @@ document.querySelectorAll('.sns-wrapper .sns-delete-btn').forEach(btn => {
     const output = document.createElement('div');
     output.id = 'shared-url-box';
     output.innerHTML = `<p>このURLを共有できます👇</p><a href="${data.url}" target="_blank">${data.url}</a>`;
-    output.style.cssText = `...`; // スタイル省略可
+    output.style.cssText = `...`;
     document.body.appendChild(output);
 
     setTimeout(() => {
@@ -941,8 +943,6 @@ document.querySelectorAll('.sns-wrapper .sns-delete-btn').forEach(btn => {
     finishBtn.style.display = 'block';
   }
 });
-
-
 
 function embedYouTubeVideo() {
   const input = document.getElementById('youtube-url');
@@ -1839,20 +1839,6 @@ async function compressAllImagesBeforeSend() {
   </div>
 </div>
 
-<!-- ✅ JS -->
-<script>
-  const agreeCheckbox = document.getElementById('agree-checkbox');
-  const createButton = document.getElementById('create-button');
-
-  agreeCheckbox.addEventListener('change', () => {
-    createButton.style.display = agreeCheckbox.checked ? 'inline-block' : 'none';
-  });
-
-  function closeTermsModal() {
-    document.getElementById('terms-modal').style.display = 'none';
-    // チェック状態によって作成ボタンの表示は変えない（維持）
-  }
-</script>
 
 </body>
 </html>
