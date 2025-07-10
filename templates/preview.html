@@ -388,7 +388,7 @@ body {
   cursor: pointer;
   display: none;
 ">
-  完成
+  同意する
 </button>
  <div class="toolbar" id="toolbar">
     <img src="/static/upload.jpeg" onclick="toggleBackgroundList()">
@@ -773,34 +773,21 @@ function restoreDiagnosisButton() {
   if (diagnosisWrapper) diagnosisWrapper.style.display = "block";
 }
 
-// ✅ 完成ボタンはモーダルを表示するだけに変更
-document.getElementById('finish-button').addEventListener('click', () => {
+document.getElementById('finish-button').addEventListener('click', async () => {
+  const finishBtn = document.getElementById('finish-button');
+ const checkbox = document.getElementById('agree-checkbox');
+if (!checkbox.checked) {
+  alert('利用規約に同意してください。');
   document.getElementById('terms-modal').style.display = 'flex';
+  return;
+}
+ 
+  finishBtn.disabled = true;
+  finishBtn.textContent = '生成中...';
+  await compressAllImagesBeforeSend(); 
+  document.querySelectorAll('#background-list img').forEach(img => {
+  img.remove();
 });
-
-window.addEventListener('DOMContentLoaded', () => {
-  const createBtn = document.getElementById('create-button');
-  if (!createBtn) return;
-
-  createBtn.addEventListener('click', async () => {
-    createBtn.disabled = true;
-    createBtn.textContent = '生成中...';
-
-    await compressAllImagesBeforeSend();
-
-    document.querySelectorAll('#background-list img').forEach(img => {
-      img.remove();
-    });
-
-    // ... ここから escapeHTML や SNSリンク埋め込み、
-    //     compressImage、fetch('/generate_url') まで続く！
-    // 最後にエラー処理や URL 表示などを入れる
-
-  }); // ← ✅ このカッコ忘れてると赤になる！
-});
-
-
-
 // 入力値を表示用の要素に反映
 // 入力値を表示エリアに反映する（完成前に必要！）
 // 入力値を value 属性に反映（Firebaseに反映されるように）
@@ -934,8 +921,8 @@ document.querySelectorAll('.sns-wrapper .sns-delete-btn').forEach(btn => {
 
   const data = await res.json();
   if (data.url) {
-    createBtn.textContent = '生成完了';
-    createBtn.style.display = 'block';
+    finishBtn.textContent = '生成完了';
+    finishBtn.style.display = 'block';
 
     const output = document.createElement('div');
     output.id = 'shared-url-box';
@@ -953,6 +940,7 @@ document.querySelectorAll('.sns-wrapper .sns-delete-btn').forEach(btn => {
     finishBtn.textContent = '完成';
     finishBtn.style.display = 'block';
   }
+});
 
 
 
