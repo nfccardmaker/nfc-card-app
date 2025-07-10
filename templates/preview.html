@@ -1753,7 +1753,6 @@ async function compressAllImagesBeforeSend() {
   z-index: 9999;
   padding: 40px 16px;
   box-sizing: border-box;
-  display: flex;
   justify-content: center;
   align-items: center;
 ">
@@ -1800,12 +1799,12 @@ async function compressAllImagesBeforeSend() {
     </div>
 
     <div style="margin-top: 20px;">
-      <label style="display: flex; align-items: center;">
-        <input type="checkbox" id="agree-checkbox" style="margin-right: 10px;"> 利用規約に同意します
-      </label>
-      <div style="text-align: center; margin-top: 20px;">
-        <button onclick="closeTermsModal()" style="padding: 10px 20px; border-radius: 8px; background: #4caf50; color: white; font-weight: bold; border: none;">閉じる</button>
-      </div>
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 20px;">
+  <label style="display: flex; align-items: center;">
+    <input type="checkbox" id="agree-checkbox" style="margin-right: 10px;"> 利用規約に同意します
+  </label>
+  <button onclick="closeTermsModal()" style="padding: 8px 16px; border-radius: 8px; background: #4caf50; color: white; font-weight: bold; border: none;">閉じる</button>
+</div>
     </div>
 
   </div>
