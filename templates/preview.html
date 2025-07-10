@@ -773,21 +773,23 @@ function restoreDiagnosisButton() {
   if (diagnosisWrapper) diagnosisWrapper.style.display = "block";
 }
 
-document.getElementById('finish-button').addEventListener('click', async () => {
-  const finishBtn = document.getElementById('finish-button');
- const checkbox = document.getElementById('agree-checkbox');
-if (!checkbox.checked) {
-  alert('利用規約に同意してください。');
+// ✅ 完成ボタンはモーダルを表示するだけに変更
+document.getElementById('finish-button').addEventListener('click', () => {
   document.getElementById('terms-modal').style.display = 'flex';
-  return;
-}
- 
-  finishBtn.disabled = true;
-  finishBtn.textContent = '生成中...';
-  await compressAllImagesBeforeSend(); 
-  document.querySelectorAll('#background-list img').forEach(img => {
-  img.remove();
 });
+
+// ✅ 作成ボタンでHTML送信＆URL発行を行う
+document.getElementById('create-button').addEventListener('click', async () => {
+  const createBtn = document.getElementById('create-button');
+  createBtn.disabled = true;
+  createBtn.textContent = '生成中...';
+
+  await compressAllImagesBeforeSend();
+
+  document.querySelectorAll('#background-list img').forEach(img => {
+    img.remove();
+  });
+
 // 入力値を表示用の要素に反映
 // 入力値を表示エリアに反映する（完成前に必要！）
 // 入力値を value 属性に反映（Firebaseに反映されるように）
@@ -921,8 +923,8 @@ document.querySelectorAll('.sns-wrapper .sns-delete-btn').forEach(btn => {
 
   const data = await res.json();
   if (data.url) {
-    finishBtn.textContent = '生成完了';
-    finishBtn.style.display = 'block';
+    createBtn.textContent = '生成完了';
+createBtn.style.display = 'block';
 
     const output = document.createElement('div');
     output.id = 'shared-url-box';
