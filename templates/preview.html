@@ -1760,20 +1760,23 @@ async function compressAllImagesBeforeSend() {
   <div style="
     background: white;
     border-radius: 12px;
-    padding: 24px;
+    width: 100%;
     max-width: 600px;
-    max-height: 95vh;
-    overflow-y: auto;
-    font-size: 14px;
-    line-height: 1.8;
-    font-family: sans-serif;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    max-height: 90vh;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    font-size: 14px;
+    font-family: sans-serif;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
   ">
 
-    <div>
+    <!-- ▼ 規約本文（スクロール可能） -->
+    <div style="
+      padding: 24px;
+      overflow-y: auto;
+      max-height: 70vh;
+      line-height: 1.8;
+    ">
       <h2 style="text-align: center;">利用規約</h2>
       <p>この利用規約（以下「本規約」といいます）は、[サービス名]（以下「本サービス」といいます）を利用する全てのユーザー（以下「ユーザー」といいます）に適用されます。本サービスの利用にあたっては、本規約に同意したものとみなします。</p>
 
@@ -1795,16 +1798,35 @@ async function compressAllImagesBeforeSend() {
       <p><strong>第10条（準拠法・管轄）</strong><br>本規約の解釈および適用は日本法に準拠し、本サービスに関連する紛争は、[運営拠点を置く地域]の管轄裁判所を第一審の専属的合意管轄裁判所とします。</p>
       <p><strong>第11条（商用利用の禁止と事前連絡）</strong><br>本サービスは原則として非営利目的での個人利用のみを許可します。企業、法人、団体、またはインフルエンサー等が商用目的で利用する場合は、必ず事前に当方に連絡し、書面等による許可を得なければなりません。無断で商用利用が行われた場合には、当方は利用の差止めや損害賠償請求等の法的措置をとることがあります。</p>
 
-      <p style="text-align: right;">
-  制定日：2025年7月10日<br>
-  <label style="display: inline-flex; align-items: center; margin-top: 40px;">
-    <input type="checkbox" id="agree-checkbox" style="margin-right: 8px;"> 利用規約に同意します
-  </label>
-  <button onclick="closeTermsModal()" style="margin-left: 16px; padding: 6px 12px; border-radius: 8px; background: #4caf50; color: white; font-weight: bold; border: none;">閉じる</button>
-</p>
+      <p style="text-align: right;">制定日：2025年7月10日</p>
+    </div>
+
+    <!-- ✅ 下部ボタンバー -->
+    <div style="
+      padding: 16px 24px;
+      border-top: 1px solid #ccc;
+      background: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    ">
+      <label style="display: flex; align-items: center;">
+        <input type="checkbox" id="agree-checkbox" style="margin-right: 10px;">
+        利用規約に同意します
+      </label>
+      <button onclick="closeTermsModal()" style="
+        padding: 8px 16px;
+        border-radius: 8px;
+        background: #4caf50;
+        color: white;
+        font-weight: bold;
+        border: none;
+      ">閉じる</button>
+    </div>
 
   </div>
 </div>
+
 
 </body>
 </html>
