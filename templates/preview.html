@@ -783,9 +783,11 @@ function restoreDiagnosisButton() {
   const diagnosisWrapper = document.getElementById("diagnosis-wrapper");
   if (diagnosisWrapper) diagnosisWrapper.style.display = "block";
 }
-
-document.getElementById('finish-button').addEventListener('click', async () => {
-  const finishBtn = document.getElementById('finish-button');
+document.getElementById('finish-button').addEventListener('click', () => {
+  document.getElementById('terms-modal').style.display = 'flex';
+});
+document.getElementById('create-button').addEventListener('click', async () => {
+  const createBtn = document.getElementById('create-button');
   const checkbox = document.getElementById('agree-checkbox');
   if (!checkbox.checked) {
     alert('利用規約に同意してください。');
@@ -793,8 +795,8 @@ document.getElementById('finish-button').addEventListener('click', async () => {
     return;
   }
 
-  finishBtn.disabled = true;
-  finishBtn.textContent = '生成中...';
+  createBtn.disabled = true;
+createBtn.textContent = '生成中...';
   await compressAllImagesBeforeSend(); 
   document.querySelectorAll('#background-list img').forEach(img => {
     img.remove();
@@ -923,8 +925,8 @@ document.getElementById('finish-button').addEventListener('click', async () => {
 
   const data = await res.json();
   if (data.url) {
-    finishBtn.textContent = '生成完了';
-    finishBtn.style.display = 'block';
+    createBtn.textContent = '生成完了';
+createBtn.style.display = 'block';
 
     const output = document.createElement('div');
     output.id = 'shared-url-box';
@@ -938,9 +940,10 @@ document.getElementById('finish-button').addEventListener('click', async () => {
     }, 600000);
   } else {
     alert('URLの発行に失敗しました');
-    finishBtn.disabled = false;
-    finishBtn.textContent = '完成';
-    finishBtn.style.display = 'block';
+   createBtn.disabled = false;
+createBtn.textContent = '作成';
+createBtn.style.display = 'block';
+
   }
 });
 
