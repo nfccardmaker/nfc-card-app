@@ -1826,7 +1826,25 @@ async function compressAllImagesBeforeSend() {
 
   </div>
 </div>
+<script>
+  const agreeCheckbox = document.getElementById('agree-checkbox');
+  const createButton = document.getElementById('create-button');
 
+  agreeCheckbox.addEventListener('change', () => {
+    if (agreeCheckbox.checked) {
+      createButton.style.display = 'block';
+    } else {
+      createButton.style.display = 'none';
+    }
+  });
+
+  function closeTermsModal() {
+    document.getElementById('terms-modal').style.display = 'none';
+    if (!agreeCheckbox.checked) {
+      createButton.style.display = 'none';
+    }
+  }
+</script>
 
 </body>
 </html>
