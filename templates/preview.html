@@ -1801,7 +1801,7 @@ async function compressAllImagesBeforeSend() {
       <p style="text-align: right;">制定日：2025年7月10日</p>
     </div>
 
-    <!-- ✅ 下部ボタンバー -->
+   <!-- ✅ 下部ボタンバー -->
     <div style="
       padding: 16px 24px;
       border-top: 1px solid #ccc;
@@ -1809,11 +1809,22 @@ async function compressAllImagesBeforeSend() {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
     ">
-      <label style="display: flex; align-items: center;">
+      <label style="display: flex; align-items: center; flex: 1;">
         <input type="checkbox" id="agree-checkbox" style="margin-right: 10px;">
         利用規約に同意します
       </label>
+      <button id="create-button" style="
+        padding: 8px 16px;
+        border-radius: 8px;
+        background: #2196f3;
+        color: white;
+        font-weight: bold;
+        border: none;
+        display: none;
+      ">作成</button>
       <button onclick="closeTermsModal()" style="
         padding: 8px 16px;
         border-radius: 8px;
@@ -1826,23 +1837,19 @@ async function compressAllImagesBeforeSend() {
 
   </div>
 </div>
+
+<!-- ✅ JS -->
 <script>
   const agreeCheckbox = document.getElementById('agree-checkbox');
   const createButton = document.getElementById('create-button');
 
   agreeCheckbox.addEventListener('change', () => {
-    if (agreeCheckbox.checked) {
-      createButton.style.display = 'block';
-    } else {
-      createButton.style.display = 'none';
-    }
+    createButton.style.display = agreeCheckbox.checked ? 'inline-block' : 'none';
   });
 
   function closeTermsModal() {
     document.getElementById('terms-modal').style.display = 'none';
-    if (!agreeCheckbox.checked) {
-      createButton.style.display = 'none';
-    }
+    // チェック状態によって作成ボタンの表示は変えない（維持）
   }
 </script>
 
