@@ -1858,19 +1858,24 @@ async function compressAllImagesBeforeSend() {
   function closeCuteAlert() {
     document.getElementById('cute-alert').style.display = 'none';
   }
-  document.getElementById('create-button').addEventListener('click', () => {
-  document.getElementById('terms-notice').style.display = 'flex';
-});
 
-document.getElementById('notice-agree-btn').addEventListener('click', () => {
-  document.getElementById('terms-notice').style.display = 'none';
-  document.getElementById('terms-modal').style.display = 'flex';
-});
+  document.addEventListener('DOMContentLoaded', () => {
+    // 作成ボタン（＝finish-button）を押したとき、先に通知モーダルを表示
+    document.getElementById('finish-button').addEventListener('click', () => {
+      document.getElementById('terms-notice').style.display = 'flex';
+    });
 
-document.getElementById('notice-close-btn').addEventListener('click', () => {
-  document.getElementById('terms-notice').style.display = 'none';
-});
+    // 通知内「同意する」 → 利用規約モーダルへ
+    document.getElementById('notice-agree-btn').addEventListener('click', () => {
+      document.getElementById('terms-notice').style.display = 'none';
+      document.getElementById('terms-modal').style.display = 'flex';
+    });
 
+    // 通知内「閉じる」 → 通知だけ閉じる
+    document.getElementById('notice-close-btn').addEventListener('click', () => {
+      document.getElementById('terms-notice').style.display = 'none';
+    });
+  });
 </script>
 
 </body>
