@@ -1800,16 +1800,18 @@ async function compressAllImagesBeforeSend() {
       <p style="text-align: right;">制定日：2025年7月10日</p>
     </div>
 
-  <div style="
-  padding: 16px 24px 40px 24px; /* ⬅ 下だけ+40pxに！ */
-  border-top: 1px solid #ccc;
-  background: #fff;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 12px;
-">
+   <!-- ✅ 下部ボタンバー -->
+    <div style="
+      padding: 16px 24px 40px 24px; 
+      border-top: 1px solid #ccc;
+      background: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 24px;
+    ">
       <label style="display: flex; align-items: center; flex: 1;">
         <input type="checkbox" id="agree-checkbox" style="margin-right: 10px;">
         利用規約に同意します
