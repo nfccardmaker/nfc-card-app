@@ -781,7 +781,6 @@ if (!checkbox.checked) {
   document.getElementById('terms-modal').style.display = 'flex';
   return;
 }
- 
   finishBtn.disabled = true;
   finishBtn.textContent = '生成中...';
   await compressAllImagesBeforeSend(); 
@@ -1817,15 +1816,6 @@ async function compressAllImagesBeforeSend() {
         <input type="checkbox" id="agree-checkbox" style="margin-right: 10px;">
         利用規約に同意します
       </label>
-      <button id="create-button" style="
-        padding: 8px 16px;
-        border-radius: 8px;
-        background: #2196f3;
-        color: white;
-        font-weight: bold;
-        border: none;
-        display: none;
-      ">作成</button>
       <button onclick="closeTermsModal()" style="
         padding: 8px 16px;
         border-radius: 8px;
@@ -1841,12 +1831,6 @@ async function compressAllImagesBeforeSend() {
 
 <!-- ✅ JS -->
 <script>
-  const agreeCheckbox = document.getElementById('agree-checkbox');
-  const createButton = document.getElementById('create-button');
-
-  agreeCheckbox.addEventListener('change', () => {
-    createButton.style.display = agreeCheckbox.checked ? 'inline-block' : 'none';
-  });
 
   function closeTermsModal() {
     document.getElementById('terms-modal').style.display = 'none';
