@@ -1860,23 +1860,31 @@ async function compressAllImagesBeforeSend() {
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    // 作成ボタン（＝finish-button）を押したとき、先に通知モーダルを表示
+    // 作成ボタン（＝finish-button）を押したとき
     document.getElementById('finish-button').addEventListener('click', () => {
-      document.getElementById('terms-notice').style.display = 'flex';
+      const checkbox = document.getElementById('agree-checkbox');
+      if (checkbox && checkbox.checked) {
+        // ✅ チェックが入ってたら直接利用規約モーダルへ
+        document.getElementById('terms-modal').style.display = 'flex';
+      } else {
+        // ❌ チェックがなければまず通知モーダルを表示
+        document.getElementById('terms-notice').style.display = 'flex';
+      }
     });
 
-    // 通知内「同意する」 → 利用規約モーダルへ
+    // 通知モーダルの「同意する」 → 通知閉じて規約モーダル表示
     document.getElementById('notice-agree-btn').addEventListener('click', () => {
       document.getElementById('terms-notice').style.display = 'none';
       document.getElementById('terms-modal').style.display = 'flex';
     });
 
-    // 通知内「閉じる」 → 通知だけ閉じる
+    // 通知モーダルの「閉じる」 → 通知だけ非表示に
     document.getElementById('notice-close-btn').addEventListener('click', () => {
       document.getElementById('terms-notice').style.display = 'none';
     });
   });
 </script>
+
 
 </body>
 </html>
