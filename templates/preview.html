@@ -775,12 +775,17 @@ function restoreDiagnosisButton() {
 
 document.getElementById('finish-button').addEventListener('click', async () => {
   const finishBtn = document.getElementById('finish-button');
- const checkbox = document.getElementById('agree-checkbox');
-if (!checkbox.checked) {
-  alert('利用規約に同意してください。');
-  document.getElementById('terms-modal').style.display = 'flex';
-  return;
-}
+  const checkbox = document.getElementById('agree-checkbox');
+
+  if (!checkbox.checked) {
+    // ❌ 規約モーダルを再度出すのではなく、❗可愛いアラート用モーダルを出す
+    document.getElementById('terms-alert-modal').style.display = 'flex';
+    return;
+  }
+
+  // ✅ 同意済みなら、ここから先の作成処理へ進む（このままでOK）
+});
+
   finishBtn.disabled = true;
   finishBtn.textContent = '生成中...';
   await compressAllImagesBeforeSend(); 
@@ -1830,6 +1835,41 @@ async function compressAllImagesBeforeSend() {
 ">閉じる</button>
     </div>
 
+  </div>
+</div>
+<!-- ✅ 利用規約 未同意モーダル -->
+<div id="terms-alert-modal" style="
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background-color: rgba(0, 0, 0, 0.6);
+  z-index: 10000;
+  justify-content: center;
+  align-items: center;
+">
+  <div style="
+    background: white;
+    border-radius: 16px;
+    padding: 32px 24px;
+    max-width: 300px;
+    width: 80%;
+    text-align: center;
+    font-family: 'Rounded Mplus 1c', 'Hiragino Maru Gothic ProN', sans-serif;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+  ">
+    <p style="font-size: 16px; color: #d81b60; font-weight: bold;">利用規約に同意してください。</p>
+    <button onclick="document.getElementById('terms-alert-modal').style.display='none'" style="
+      margin-top: 20px;
+      padding: 10px 20px;
+      background: linear-gradient(135deg, #ffe6f0, #d6f2f9);
+      color: #d81b60;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    ">閉じる</button>
   </div>
 </div>
 
