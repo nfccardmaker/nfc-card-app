@@ -777,7 +777,7 @@ document.getElementById('finish-button').addEventListener('click', async () => {
   const finishBtn = document.getElementById('finish-button');
  const checkbox = document.getElementById('agree-checkbox');
 if (!checkbox.checked) {
-  alert('利用規約に同意してください。');
+showCuteAlert('利用規約に同意してください。');
   document.getElementById('terms-modal').style.display = 'flex';
   return;
 }
@@ -1832,13 +1832,34 @@ async function compressAllImagesBeforeSend() {
 
   </div>
 </div>
+<div id="cute-alert" style="display: none; position: fixed; top: 30%; left: 50%; transform: translate(-50%, -50%);
+  background: #fff0f5; border-radius: 12px; padding: 20px 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 10001;
+  font-family: 'Rounded Mplus 1c', 'Hiragino Maru Gothic ProN', sans-serif; text-align: center;">
+  <div id="cute-alert-message" style="font-size: 16px; margin-bottom: 16px;">
+    メッセージが入ります
+  </div>
+  <button id="agree-btn" style="margin-right: 12px; background: #ffb6c1; border: none; padding: 8px 16px; border-radius: 8px;
+    color: white; font-weight: bold; cursor: pointer;">
+    同意する
+  </button>
+  <button onclick="closeCuteAlert()" style="background: #ccc; border: none; padding: 8px 16px; border-radius: 8px;
+    color: #333; font-weight: bold; cursor: pointer;">
+    閉じる
+  </button>
+</div>
 
-<!-- ✅ JS -->
 <script>
-
   function closeTermsModal() {
     document.getElementById('terms-modal').style.display = 'none';
-    // チェック状態によって作成ボタンの表示は変えない（維持）
+  }
+
+  function showCuteAlert(message) {
+    document.getElementById('cute-alert-message').textContent = message;
+    document.getElementById('cute-alert').style.display = 'flex';
+  }
+
+  function closeCuteAlert() {
+    document.getElementById('cute-alert').style.display = 'none';
   }
 </script>
 
