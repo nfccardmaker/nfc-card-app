@@ -1864,8 +1864,9 @@ async function compressAllImagesBeforeSend() {
     document.getElementById('finish-button').addEventListener('click', () => {
       const checkbox = document.getElementById('agree-checkbox');
       if (checkbox && checkbox.checked) {
-        // ✅ チェックが入ってたら直接利用規約モーダルへ
-        document.getElementById('terms-modal').style.display = 'flex';
+        // ✅ チェックが入ってたら直接作成ボタン処理へ（モーダル開かず）
+        document.getElementById('terms-modal').style.display = 'none';
+        document.getElementById('create-button').click(); // ← 🔴 これが追加された部分！
       } else {
         // ❌ チェックがなければまず通知モーダルを表示
         document.getElementById('terms-notice').style.display = 'flex';
@@ -1884,6 +1885,7 @@ async function compressAllImagesBeforeSend() {
     });
   });
 </script>
+
 
 
 </body>
