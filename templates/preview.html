@@ -179,15 +179,6 @@ body {
       display: none;
     }
 
-    .deco-img {
-      position: fixed;
-      width: 100px;
-      height: auto;
-      cursor: move;
-      z-index: 950;
-      user-select: none;
-      touch-action: none;
-    }
   .text-sticker {
   position: absolute;
   font-size: 20px;
@@ -371,7 +362,6 @@ body {
 
   <canvas id="draw-canvas"></canvas>
   <input type="file" id="background-input" class="hidden-input" accept="image/*" onchange="loadBackgroundImage(event)">
-  <input type="file" id="deco-input" class="hidden-input" accept="image/*" onchange="addDecoImage(event)">
   <input type="color" id="color-picker" class="hidden-input" onchange="changeBarColor(event)">
 <button id="finish-button" style="
   position: fixed;
@@ -401,7 +391,6 @@ body {
          onchange="changeBarColor(event)">
 </div>
 <img src="/static/restore.jpeg" onclick="restoreSNS()" style="width: 28px; height: 28px; cursor: pointer;">
-    <img src="/static/photo_icon.jpeg" onclick="document.getElementById('deco-input').click()">
     <button onclick="togglePreview()" id="check-button">確認</button>
   </div>
 
@@ -500,111 +489,6 @@ body {
       if (value) urls[service] = value;
       input.style.display = 'none';
     }
-
-   function addDecoImage(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  const img = document.createElement('img');
-  const reader = new FileReader();
-reader.onload = () => {
-  img.src = reader.result;
-};
-reader.readAsDataURL(file);
-
- const scrollX = window.scrollX;
-const scrollY = window.scrollY;
-
-img.className = 'deco-img';
-img.style.position = 'absolute';
-img.style.left = '150px';
-img.style.top = '300px';
-
-img.style.transform = 'rotate(0deg) scale(1)';
-img.style.touchAction = 'none';
-img.draggable = false;
-
-const container = document.getElementById('page-wrapper') || document.body;
-container.appendChild(img);
-
-let posX = 150 + scrollX, posY = 300 + scrollY, scale = 1, rotation = 0;
-let isDragging = false, offsetX = 0, offsetY = 0;
-let longPressTimer = null;
-
-  // PC用マウス操作
-  img.addEventListener('mousedown', e => {
-    isDragging = true;
-    offsetX = e.offsetX;
-    offsetY = e.offsetY;
-    longPressTimer = setTimeout(() => img.remove(), 1000);
-  });
-
-  document.addEventListener('mousemove', e => {
-    if (!isDragging) return;
-    clearTimeout(longPressTimer);
-    posX = e.pageX - offsetX;
-    posY = e.pageY - offsetY;
-    img.style.left = `${posX}px`;
-    img.style.top = `${posY}px`;
-  });
-
-  document.addEventListener('mouseup', () => {
-    isDragging = false;
-    clearTimeout(longPressTimer);
-  });
-
-  // スマホ用タッチ操作
-  let initialDistance = null;
-  let initialAngle = null;
-  let startScale = 1;
-  let startRotation = 0;
-
-  img.addEventListener('touchstart', e => {
-    if (e.touches.length === 1) {
-      offsetX = e.touches[0].clientX - posX;
-      offsetY = e.touches[0].clientY - posY;
-      longPressTimer = setTimeout(() => img.remove(), 1000);
-    } else if (e.touches.length === 2) {
-      clearTimeout(longPressTimer);
-      initialDistance = getDistance(e.touches[0], e.touches[1]);
-      initialAngle = getAngle(e.touches[0], e.touches[1]);
-      startScale = scale;
-      startRotation = rotation;
-    }
-  }, { passive: false });
-
-  img.addEventListener('touchmove', e => {
-    e.preventDefault();
-    if (e.touches.length === 1) {
-      clearTimeout(longPressTimer);
-      posX = e.touches[0].clientX - offsetX;
-      posY = e.touches[0].clientY - offsetY;
-      img.style.left = `${posX}px`;
-      img.style.top = `${posY}px`;
-    } else if (e.touches.length === 2) {
-      const newDistance = getDistance(e.touches[0], e.touches[1]);
-      const newAngle = getAngle(e.touches[0], e.touches[1]);
-
-      scale = startScale * (newDistance / initialDistance);
-      if (scale < 0.2) scale = 0.2;
-
-      rotation = startRotation + (newAngle - initialAngle);
-      img.style.transform = `rotate(${rotation}deg) scale(${scale})`;
-    }
-  }, { passive: false });
-
-  img.addEventListener('touchend', () => {
-    clearTimeout(longPressTimer);
-  });
-
-  function getDistance(t1, t2) {
-    return Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
-  }
-
-  function getAngle(t1, t2) {
-    return Math.atan2(t2.clientY - t1.clientY, t2.clientX - t1.clientX) * 180 / Math.PI;
-  }
-}
 
     function downloadCard() {
       alert("この部分で画像化＆ZIP化などの処理を行います");
@@ -889,13 +773,6 @@ document.querySelectorAll('.sns-wrapper .sns-delete-btn').forEach(btn => {
   }
   if (profileImg && profileImg.src.startsWith("data:image/")) {
     profileImg.src = await compressImage(profileImg.src);
-  }
-
-  const decoImgs = document.querySelectorAll("img.deco-img");
-  for (const img of decoImgs) {
-    if (img.src.startsWith("data:image/")) {
-      img.src = await compressImage(img.src);
-    }
   }
     finishBtn.style.display = 'none';
 
@@ -1702,23 +1579,6 @@ function showDetailModal(myMbti, otherMbti) {
     });
   }
 
-  // ✅ デコ素材用（透過あり → PNG）
-  async function compressToPNG(base64, maxSize = 180) {
-    return new Promise((resolve) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        const scale = Math.min(maxSize / img.width, maxSize / img.height, 1);
-        canvas.width = img.width * scale;
-        canvas.height = img.height * scale;
-        const ctx = canvas.getContext("2d");
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        resolve(canvas.toDataURL("image/png"));
-      };
-      img.src = base64;
-    });
-  }
   // 🔄 ページ内の画像を送信前に圧縮（base64のまま）
 async function compressAllImagesBeforeSend() {
   const imageElements = document.querySelectorAll('img');
@@ -1726,8 +1586,7 @@ async function compressAllImagesBeforeSend() {
   for (const img of imageElements) {
     if (!img.src.startsWith('data:image/')) continue;
 
-    const isPng = img.src.startsWith('data:image/png');
-    const compressFn = isPng ? compressToPNG : compressToJPEG;
+   const compressFn = compressToJPEG;
 
     try {
       const compressed = await compressFn(img.src, 180);
@@ -1885,8 +1744,6 @@ async function compressAllImagesBeforeSend() {
     });
   });
 </script>
-
-
 
 </body>
 </html>
