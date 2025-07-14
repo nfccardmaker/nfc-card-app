@@ -44,12 +44,33 @@
 <body>
 
   <video autoplay muted loop playsinline id="bg-video">
-   <source src="/static/fureta.mp4" type="video/mp4">
+    <source src="/static/fureta.mp4" type="video/mp4">
     お使いのブラウザは動画に対応していません。
   </video>
 
   <!-- 動画内のボタンに被せて透明なクリック領域 -->
   <button class="click-button" onclick="location.href='/preview'"></button>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const video = document.getElementById('bg-video');
+      video.play().catch(e => {
+        const unlock = () => {
+          video.play();
+          document.removeEventListener('touchstart', unlock);
+          document.removeEventListener('click', unlock);
+        };
+        document.addEventListener('touchstart', unlock);
+        document.addEventListener('click', unlock);
+      });
+    });
+
+    window.addEventListener('pageshow', function(event) {
+      if (event.persisted) {
+        document.getElementById('bg-video').play();
+      }
+    });
+  </script>
 
 </body>
 </html>
