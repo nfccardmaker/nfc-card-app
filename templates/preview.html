@@ -40,10 +40,15 @@
       flex-direction: column;
     }
 
-   .header-bar {
-  background: linear-gradient(90deg, #ffc1e3, #c1f0f6);
+   :root {
+  --bar-color: #add8e6; /* 最初は水色とかでOK */
+}
+
+.header-bar {
+  background-color: var(--bar-color);  /* ← background-imageは使わない */
   height: 40px;
 }
+
 
     .student-id {
       display: flex;
@@ -181,18 +186,15 @@ body {
 
   .text-sticker {
   position: absolute;
-  font-size: 20px;
-  font-weight: bold;
-  color: #222;
-  background: transparent;
   border: none;
-  padding: 0;
-  z-index: 970;
-  max-width: 80vw;
-  word-break: break-word;
-  user-select: none;
-  cursor: move;
+  outline: none;
+  background: transparent;
+  font-size: 16px;
+  font-weight: bold;
+  pointer-events: auto;
+  /* color: black; ← 削除かコメントアウトしてください */
 }
+
 .sns-item {
   position: relative; /* ボタンを上に重ねるために必要 */
 }
@@ -247,7 +249,84 @@ body {
   min-height: 100vh;
   overflow: visible;
 }
+#text-tools {
+  display: none;
+  position: fixed;
+  bottom: 80px;
+  left: 10px;
+  background: #fff;
+  padding: 8px 10px;
+  border-radius: 12px;
+  box-shadow: 0 0 8px rgba(0,0,0,0.1);
+  z-index: 9999;
+  font-family: sans-serif;
+  min-width: 230px;
+}
 
+.tool-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 6px;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.tool-label {
+  font-weight: bold;
+  font-size: 13px;
+  color: #444;
+  width: 50px;
+}
+
+.tool-input {
+  flex: 1;
+  font-size: 13px;
+}
+
+#text-color-picker {
+  width: 30px;
+  height: 30px;
+  border: none;
+  padding: 0;
+  background: none;
+}
+
+.font-scroll {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  flex: 1;
+}
+
+.font-btn {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 20px;
+  border: 1px solid #ddd;
+  background: #f0f0f0;
+  font-family: sans-serif;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.font-btn:hover {
+  background: #e0f7ff;
+}
+
+.font-btn.active {
+  background: #c2e9ff;
+  border-color: #56c5ff;
+  font-weight: bold;
+}
+ #edit-toggle.floating-eye {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9999;
+    width: 40px;
+    height: 40px;
+  }
   </style>
 </head>
 <body>
@@ -264,6 +343,7 @@ body {
         <input type="text" class="editable-text" placeholder="名前">
         <input type="text" class="editable-text" placeholder="誕生日">
         <input type="text" class="editable-text" placeholder="年齢">
+        <input type="text" class="editable-text" placeholder="学部">
         <input type="text" class="editable-text" placeholder="出身地">
         <input type="text" class="editable-text" placeholder="趣味">
       </div>
@@ -391,9 +471,17 @@ body {
          onchange="changeBarColor(event)">
 </div>
 <img src="/static/restore.jpeg" onclick="restoreSNS()" style="width: 28px; height: 28px; cursor: pointer;">
+<!-- ツールバー内の確認ボタンの左あたりに追加 -->
+ <img id="edit-toggle" src="/static/open_eye.jpeg" style="width: 28px; height: 28px; margin-right: 10px; cursor: pointer;" alt="編集モード">
+
     <button onclick="togglePreview()" id="check-button">確認</button>
   </div>
-
+<img id="return-toggle" src="/static/closed_eye.jpeg"
+     style="width: 50px; height: 50px; position: fixed; bottom: 20px; right: 20px;
+            cursor: pointer; display: none; z-index: 9999;
+            border-radius: 50%; background: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+            animation: pulse 2s infinite;" alt="戻る">
   <script>
     const urls = { instagram: '', x: '', tiktok: '' };
     const canvas = document.getElementById('draw-canvas');
@@ -405,113 +493,113 @@ body {
   toolbar.style.display = 'none';
   finalBtn.style.display = 'block';
 }
-    let drawing = false, drawEnabled = false;
-    let paths = [], currentPath = [];
+ let drawing = false, drawEnabled = false;
+let paths = [], currentPath = [];
 
-    function resizeCanvas() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      redraw();
-    }
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  redraw();
+}
 
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
 
-    function redraw() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.strokeStyle = '#000';
-      ctx.lineWidth = 2;
-      for (const path of paths) {
-        ctx.beginPath();
-        path.forEach(([x, y], i) => i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y));
-        ctx.stroke();
-      }
-      if (currentPath.length) {
-        ctx.beginPath();
-        currentPath.forEach(([x, y], i) => i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y));
-        ctx.stroke();
-      }
-    }
+function redraw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 2;
+  for (const path of paths) {
+    ctx.beginPath();
+    path.forEach(([x, y], i) => i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y));
+    ctx.stroke();
+  }
+  if (currentPath.length) {
+    ctx.beginPath();
+    currentPath.forEach(([x, y], i) => i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y));
+    ctx.stroke();
+  }
+}
 
-    canvas.addEventListener('mousedown', e => {
-      if (!drawEnabled) return;
-      drawing = true;
-      currentPath = [[e.offsetX, e.offsetY]];
-    });
+canvas.addEventListener('mousedown', e => {
+  if (!drawEnabled) return;
+  drawing = true;
+  currentPath = [[e.offsetX, e.offsetY]];
+});
 
-    canvas.addEventListener('mousemove', e => {
-      if (!drawing || !drawEnabled) return;
-      currentPath.push([e.offsetX, e.offsetY]);
-      redraw();
-    });
+canvas.addEventListener('mousemove', e => {
+  if (!drawing || !drawEnabled) return;
+  currentPath.push([e.offsetX, e.offsetY]);
+  redraw();
+});
 
-    canvas.addEventListener('mouseup', () => {
-      if (!drawing || !drawEnabled) return;
-      drawing = false;
-      paths.push(currentPath);
-      currentPath = [];
-    });
+canvas.addEventListener('mouseup', () => {
+  if (!drawing || !drawEnabled) return;
+  drawing = false;
+  paths.push(currentPath);
+  currentPath = [];
+});
 
-    function toggleTextMode() {
-      drawEnabled = !drawEnabled;
-      canvas.style.display = drawEnabled ? 'block' : 'none';
-      const icon = document.getElementById('text-toggle-icon');
-      icon.src = drawEnabled ? '/static/pen_on.jpeg' : '/static/pen_off.jpeg';
-    }
+function toggleTextMode() {
+  drawEnabled = !drawEnabled;
+  canvas.style.display = drawEnabled ? 'block' : 'none';
+  const icon = document.getElementById('text-toggle-icon');
+  icon.src = drawEnabled ? '/static/pen_on.jpeg' : '/static/pen_off.jpeg';
+}
 
-    function loadBackgroundImage(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = () => {
-        document.body.style.backgroundImage = `url('${reader.result}')`;
-      };
-      reader.readAsDataURL(file);
-    }
+function loadBackgroundImage(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    document.body.style.backgroundImage = `url('${reader.result}')`;
+  };
+  reader.readAsDataURL(file);
+}
 
-    function changeBarColor(e) {
-      document.documentElement.style.setProperty('--bar-color', e.target.value);
-    }
+function changeBarColor(e) {
+  document.documentElement.style.setProperty('--bar-color', e.target.value);
+}
 
-    function handleIconClick(service) {
-      const input = document.getElementById(`input-${service}`);
-      if (urls[service]) {
-        window.open(urls[service], '_blank');
-      } else {
-        input.style.display = 'block';
-        input.focus();
-      }
-    }
+function handleIconClick(service) {
+  const input = document.getElementById(`input-${service}`);
+  if (urls[service]) {
+    window.open(urls[service], '_blank');
+  } else {
+    input.style.display = 'block';
+    input.focus();
+  }
+}
 
-    function handleBlur(service) {
-      const input = document.getElementById(`input-${service}`);
-      const value = input.value.trim();
-      if (value) urls[service] = value;
-      input.style.display = 'none';
-    }
+function handleBlur(service) {
+  const input = document.getElementById(`input-${service}`);
+  const value = input.value.trim();
+  if (value) urls[service] = value;
+  input.style.display = 'none';
+}
 
-    function downloadCard() {
-      alert("この部分で画像化＆ZIP化などの処理を行います");
-    }
+function downloadCard() {
+  alert("この部分で画像化＆ZIP化などの処理を行います");
+}
 
-    window.onload = () => {
-      canvas.style.display = 'none';
-      const profileImg = document.getElementById("profile-img");
-      const profileInput = document.getElementById("profile-input");
+window.onload = () => {
+  canvas.style.display = 'none';
+  const profileImg = document.getElementById("profile-img");
+  const profileInput = document.getElementById("profile-input");
 
-      profileImg.addEventListener("click", () => {
-        profileInput.click();
-      });
+  profileImg.addEventListener("click", () => {
+    profileInput.click();
+  });
 
-      profileInput.addEventListener("change", (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
+  profileInput.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-        const reader = new FileReader();
-        reader.onload = () => {
-          profileImg.src = reader.result;
-        };
-            fetch('/upload_profile_image', {
+    const reader = new FileReader();
+    reader.onload = () => {
+      profileImg.src = reader.result;
+    };
+    fetch('/upload_profile_image', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -526,15 +614,22 @@ body {
       console.error('アップロード失敗:', error);
     });
 
-        reader.readAsDataURL(file);
-      });
-    };
+    reader.readAsDataURL(file);
+  });
+};
+
 let textEnabled = false;
-let textFirstTapDone = false; // ← 追加：初回スキップフラグ
+let textFirstTapDone = false;
 
 document.getElementById("text-toggle-icon").addEventListener("click", () => {
   textEnabled = !textEnabled;
-  textFirstTapDone = false; // ONにしたときにリセット
+  textFirstTapDone = false;
+
+  const toolsPanel = document.getElementById("text-tools");
+  toolsPanel.style.display = textEnabled ? "block" : "none";
+
+  const icon = document.getElementById("text-toggle-icon");
+  icon.src = textEnabled ? "/static/pen_on.jpeg" : "/static/pen_off.jpeg";
 });
 
 document.body.addEventListener("click", (e) => {
@@ -542,35 +637,45 @@ document.body.addEventListener("click", (e) => {
 
   if (!textFirstTapDone) {
     textFirstTapDone = true;
-    return; // ← 初回はスキップして反応なし
+    return;
   }
 
-  if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
- const margin = 20;
-const inputWidth = 150;
-const maxX = window.innerWidth - inputWidth - margin;
-const x = Math.min(e.pageX, maxX);
-const y = e.pageY;
+  if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT") return;
 
-const input = document.createElement("input");
-input.type = "text";
-input.placeholder = "テキストを入力";
-input.className = "text-sticker";
-input.style.position = "absolute";
-input.style.left = `${x}px`;
-input.style.top = `${y}px`;
-input.style.width = '150px';  // 固定サイズで横スクロール防止
-input.style.maxWidth = 'calc(100vw - 40px)';  // 念のための安全策
-const container = document.getElementById('page-wrapper');
-container.appendChild(input);
+  const margin = 20;
+  const inputWidth = 150;
+  const maxX = window.innerWidth - inputWidth - margin;
+  const x = Math.min(e.pageX, maxX);
+  const y = e.pageY;
 
-// 入力が空のままフォーカスが外れたら消す処理
-input.addEventListener("blur", () => {
-  if (input.value.trim() === "") {
-    input.remove();
-  }
-});
-input.focus();
+  const input = document.createElement("input");
+  input.type = "text";
+  input.placeholder = "テキストを入力";
+  input.className = "text-sticker";
+  input.style.position = "absolute";
+  input.style.left = `${x}px`;
+  input.style.top = `${y}px`;
+  input.style.width = '150px';
+  input.style.maxWidth = 'calc(100vw - 40px)';
+
+  const textColorPicker = document.getElementById("text-color-picker");
+  const fontSelector = document.getElementById("font-selector");
+  const fontSizeSlider = document.getElementById("font-size-slider");
+
+  if (textColorPicker) input.style.setProperty('color', textColorPicker.value, 'important');
+  if (fontSelector) input.style.fontFamily = fontSelector.value;
+  if (fontSizeSlider) input.style.fontSize = fontSizeSlider.value + "px";
+
+  const container = document.getElementById('page-wrapper');
+  container.appendChild(input);
+
+  input.addEventListener("blur", () => {
+    if (input.value.trim() === "") {
+      input.remove();
+    }
+  });
+  input.focus();
+
   let offsetX, offsetY, dragging = false;
 
   input.addEventListener("mousedown", (ev) => {
@@ -589,7 +694,6 @@ input.focus();
     dragging = false;
   });
 
-  // 長押しで削除（スマホ用）
   let longPressTimer;
   input.addEventListener("touchstart", () => {
     longPressTimer = setTimeout(() => {
@@ -601,6 +705,22 @@ input.focus();
     clearTimeout(longPressTimer);
   });
 });
+
+// ✅ テキストスタイルリアルタイム反映
+const textColorPicker = document.getElementById("text-color-picker");
+const fontSelector = document.getElementById("font-selector");
+const fontSizeSlider = document.getElementById("font-size-slider");
+
+function applyTextStyles() {
+  document.querySelectorAll(".text-sticker").forEach(input => {
+    if (textColorPicker) input.style.color = textColorPicker.value;
+    if (fontSelector) input.style.fontFamily = fontSelector.value;
+    if (fontSizeSlider) input.style.fontSize = fontSizeSlider.value + "px";
+  });
+}
+if (textColorPicker) textColorPicker.addEventListener("input", applyTextStyles);
+if (fontSelector) fontSelector.addEventListener("change", applyTextStyles);
+if (fontSizeSlider) fontSizeSlider.addEventListener("input", applyTextStyles);
 // SNS項目を非表示にする関数
 function hideSNS(service) {
   const wrapper = document.querySelector(`.sns-wrapper:has(#input-${service})`);
@@ -869,6 +989,50 @@ function hideYouTubeSection() {
     img.src = base64;
   });
 }
+
+  const editToggle = document.getElementById('edit-toggle');
+  const returnToggle = document.getElementById('return-toggle');
+  let editMode = true;
+
+  editToggle.addEventListener('click', () => {
+    editMode = !editMode;
+
+    // アイコン画像切り替え
+    editToggle.src = editMode ? '/static/open_eye.jpeg' : '/static/closed_eye.jpeg';
+
+    // ツールバー、削除ボタン類の表示切替
+    const toolbars = document.querySelectorAll('.toolbar, .text-style-toolbar');
+    const deleteButtons = document.querySelectorAll('.sns-delete-btn, .deco-delete-btn, .text-stamp-delete-btn');
+
+    toolbars.forEach(el => el.style.display = editMode ? 'flex' : 'none');
+    deleteButtons.forEach(el => el.style.display = editMode ? 'block' : 'none');
+
+    // 表示位置（右下 or ツールバー内）
+    if (editMode) {
+      editToggle.classList.remove('floating-eye');
+      returnToggle.style.display = 'none';
+    } else {
+      editToggle.classList.add('floating-eye');
+      returnToggle.style.display = 'block';
+    }
+  });
+
+  // 右下の戻るアイコンを押したとき
+  returnToggle.addEventListener('click', () => {
+    editMode = true;
+
+    // 目アイコンと表示切り替え
+    editToggle.src = '/static/open_eye.jpeg';
+    const toolbars = document.querySelectorAll('.toolbar, .text-style-toolbar');
+    const deleteButtons = document.querySelectorAll('.sns-delete-btn, .deco-delete-btn, .text-stamp-delete-btn');
+
+    toolbars.forEach(el => el.style.display = 'flex');
+    deleteButtons.forEach(el => el.style.display = 'block');
+
+    editToggle.classList.remove('floating-eye');
+    returnToggle.style.display = 'none';
+  });
+
 
 function startDiagnosis() {
   const textInputs = Array.from(document.querySelectorAll('.editable-text')).map(i => i.value).join(' ');
@@ -1744,6 +1908,41 @@ async function compressAllImagesBeforeSend() {
     });
   });
 </script>
+</div> <!-- 👈 ページ内の最後の </div> の直前とか -->
 
+<div id="text-tools">
+  <div class="tool-row">
+    <span class="tool-label">色：</span>
+    <input type="color" id="text-color-picker" value="#000000" style="width: 30px; height: 30px; border-radius: 50%; border: none;">
+  </div>
+
+  <div class="tool-row">
+    <span class="tool-label">フォント：</span>
+    <div class="font-scroll" style="display: flex; overflow-x: auto; gap: 10px; padding: 5px 0;">
+      <button class="font-btn" data-font="sans-serif" style="padding: 5px 10px; border-radius: 8px;">ゴシック</button>
+      <button class="font-btn" data-font="serif" style="padding: 5px 10px; border-radius: 8px;">明朝</button>
+      <button class="font-btn" data-font="monospace" style="padding: 5px 10px; border-radius: 8px;">等幅</button>
+      <button class="font-btn" data-font="cursive" style="padding: 5px 10px; border-radius: 8px;">手書き</button>
+      <button class="font-btn" data-font="fantasy" style="padding: 5px 10px; border-radius: 8px;">デコ風</button>
+    </div>
+  </div>
+<script>
+  ["color-picker", "font-selector", "font-size-slider"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener("input", () => {
+        document.querySelectorAll(".text-sticker").forEach(sticker => {
+          if (id === "color-picker") {
+            sticker.style.color = el.value;
+          } else if (id === "font-selector") {
+            sticker.style.fontFamily = el.value;
+          } else if (id === "font-size-slider") {
+            sticker.style.fontSize = el.value + "px";
+          }
+        });
+      });
+    }
+  });
+</script>
 </body>
 </html>
