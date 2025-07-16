@@ -362,9 +362,27 @@ body {
   </div>
 
   <div class="sns-wrapper">
+    <div class="sns-item" style="position: relative; background: #00c300; color: white; padding: 10px 15px; border-radius: 10px; font-weight: bold; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.15);">
+      <img src="/static/Line.icon.jpeg" alt="LINE" onclick="handleIconClick('line')" style="width: 28px; height: 28px;">
+      LINE
+      <img src="/static/batu.jpeg" alt="削除" class="sns-delete-btn" onclick="hideSNS('line')" style="position: absolute; top: -8px; right: -8px; width: 18px; height: 18px; cursor: pointer; z-index: 10;">
+    </div>
+    <input id="input-line" class="sns-input" placeholder="https://lin.ee/yourid" onblur="handleBlur('line')">
+  </div>
+
+  <div class="sns-wrapper">
+    <div class="sns-item" style="position: relative; background: #000000; color: white; padding: 10px 15px; border-radius: 10px; font-weight: bold; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.15);">
+      <img src="/static/BeReal.icon.jpeg" alt="BeReal" onclick="handleIconClick('bereal')" style="width: 28px; height: 28px;">
+      BeReal.
+      <img src="/static/batu.jpeg" alt="削除" class="sns-delete-btn" onclick="hideSNS('bereal')" style="position: absolute; top: -8px; right: -8px; width: 18px; height: 18px; cursor: pointer; z-index: 10;">
+    </div>
+    <input id="input-bereal" class="sns-input" placeholder="https://bere.al/yourid" onblur="handleBlur('bereal')">
+  </div>
+
+  <div class="sns-wrapper">
     <div class="sns-item" style="position: relative; background: #000000; color: white; padding: 10px 15px; border-radius: 10px; font-weight: bold; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.15);">
       <img src="/static/X_icon.jpeg" alt="X" onclick="handleIconClick('x')" style="width: 28px; height: 28px;">
-    （旧Twitter）
+      （旧Twitter）
       <img src="/static/batu.jpeg" alt="削除" class="sns-delete-btn" onclick="hideSNS('x')" style="position: absolute; top: -8px; right: -8px; width: 18px; height: 18px; cursor: pointer; z-index: 10;">
     </div>
     <input id="input-x" class="sns-input" placeholder="https://twitter.com/yourid" onblur="handleBlur('x')">
@@ -429,11 +447,11 @@ body {
 
   <!-- 見出し -->
   <div style="font-weight: bold; font-size: 14px; margin-bottom: 6px; text-align: left; padding-left: 5vw;">
-    URL<br><span style="font-size: 12px; color: #555;">YouTube</span>
+    URL<br><span style="font-size: 12px; color: #555;"></span>
   </div>
 
   <!-- 入力欄とボタン -->
-  <input type="text" id="youtube-url" placeholder="YouTubeのURLを入力"
+  <input type="text" id="youtube-url" placeholder="URLを入力"
     style="width: 84vw; max-width: 500px; padding: 10px; border: 1px solid #ccc; border-radius: 10px; font-size: 14px;">
   <button onclick="embedYouTubeVideo()"
     style="margin-left: 20px; padding: 8px 12px; font-size: 14px; border-radius: 8px; background: #f0f0f0;">反映</button>
@@ -726,14 +744,17 @@ function hideSNS(service) {
   const wrapper = document.querySelector(`.sns-wrapper:has(#input-${service})`);
   if (wrapper) wrapper.style.display = 'none';
 }
+
+// SNS項目を再表示する関数（全復活用）
 function showHiddenSNS() {
-  ['instagram', 'x', 'tiktok'].forEach(service => {
+  ['instagram', 'line', 'bereal', 'x', 'tiktok'].forEach(service => {
     const wrapper = document.querySelector(`.sns-wrapper:has(#input-${service})`);
     if (wrapper && wrapper.style.display === 'none') {
       wrapper.style.display = 'block';
     }
   });
 }
+
 
 function toggleBackgroundList() {
   const list = document.getElementById('bg-template-list');
@@ -749,7 +770,7 @@ function hideAddLink(event) {
   const addBtn = document.getElementById('add-link-button');
   if (addBtn) addBtn.style.display = 'none';
 }function restoreSNS() {
-  ['instagram', 'x', 'tiktok'].forEach(service => {
+ ['instagram', 'line', 'bereal', 'x', 'tiktok'].forEach(service => {
     const wrapper = document.querySelector(`.sns-wrapper:has(#input-${service})`);
     if (wrapper) wrapper.style.display = 'flex';
   });
@@ -938,8 +959,6 @@ document.querySelectorAll('.sns-wrapper .sns-delete-btn').forEach(btn => {
   }
 });
 
-
-
 function embedYouTubeVideo() {
   const input = document.getElementById('youtube-url');
   const player = document.getElementById('youtube-player');
@@ -1100,7 +1119,6 @@ function startDiagnosis() {
 <img src="/static/haikei_9.jpeg" onclick="setBackground('/static/haikei_9.jpeg')" style="width:50px; height:50px; cursor:pointer; border-radius:8px; flex-shrink:0;">
 <img src="/static/haikei_10.jpeg" onclick="setBackground('/static/haikei_10.jpeg')" style="width:50px; height:50px; cursor:pointer; border-radius:8px; flex-shrink:0;">
 <!-- さらに追加してもOK！ -->
-
 </div>
 <!-- ▼ 先にボタンのスタイル定義！ -->
 <style>
@@ -1454,13 +1472,122 @@ function getDetailData(my, other) {
         '価値観が似ていて居心地がとても良い',
         '盛り上がりすぎず、心地よいテンション感'
       ]
+    },
+    'ENFP-INFJ': {
+      scores: [88, 84, 79, 92, 75],
+      texts: [
+        '直感同士で共鳴しやすく会話が尽きない！',
+        'ちょっとした表情でも心を読み取れる仲に',
+        '一緒に夢を語れる理想的なコンビ',
+        '相手の感情を自然と察し合える関係性',
+        '気分の盛り上がり方も波長ピッタリ！'
+      ]
+    },
+    'INTP-ENTP': {
+      scores: [78, 70, 85, 80, 82],
+      texts: [
+        'アイデアが止まらない知的ペア！',
+        '一緒に未来の話をするのが楽しい',
+        '論理的だけど自由でラフな関係が築ける',
+        '無理に干渉しない心地よさが◎',
+        'テンションの高さも意外と合う！'
+      ]
+    },
+    'ISFP-ESFJ': {
+      scores: [84, 76, 78, 88, 80],
+      texts: [
+        '内向と外向のバランスが絶妙！',
+        '表情やしぐさで通じ合える安心感あり',
+        'お互いに支え合いたくなる組み合わせ',
+        'ふとした優しさに癒される関係',
+        'お互いの違いを楽しめる柔らかペア'
+      ]
+    },
+    'INTJ-ENFP': {
+      scores: [82, 79, 90, 76, 74],
+      texts: [
+        '内向×外向だけど目的意識が合う！',
+        '直感派同士で刺激し合える相性',
+        'しっかり者と自由人の絶妙コンビ',
+        '意外な共通点に驚くことが多いかも？',
+        'テンション差も意外と心地よい'
+      ]
+    },
+    'ISTJ-ISFJ': {
+      scores: [85, 68, 74, 88, 70],
+      texts: [
+        '安定感抜群！価値観が近くて安心できる',
+        '穏やかな時間を共有できる関係',
+        'お互いのペースを大切にできる',
+        '日常の小さな幸せを感じやすいペア',
+        '派手さはないけど、信頼度は最高'
+      ]
+    },
+    'ENFP-ISTP': {
+      scores: [76, 72, 85, 70, 78],
+      texts: [
+        '性格は真逆だけどなぜか気になる存在',
+        '一緒にいると新しい価値観に触れられる',
+        'お互いの長所を補える相性',
+        'ときに意見がぶつかるけど成長につながる',
+        'ノリと冷静さのギャップが面白い！'
+      ]
+    },
+    'ENTJ-INFP': {
+      scores: [79, 80, 82, 76, 70],
+      texts: [
+        '目標に向かって進みたい派と支えたい派',
+        '意見の違いも刺激として楽しめる！',
+        '対等な立場で尊重し合える関係',
+        '弱さを見せても受け入れてもらえる安心感',
+        '勢いと優しさのバランスがいい'
+      ]
+    },
+    'ISFP-INFP': {
+      scores: [85, 75, 70, 85, 76],
+      texts: [
+        '感受性が似ていて安心できる相性',
+        '空気感で通じ合えるような関係',
+        '無理せず自然体でいられるコンビ',
+        'ちょっとした仕草にキュンとすることも',
+        '静かだけど深いつながりを感じられる'
+      ]
+    },
+    'ESTP-ENFJ': {
+      scores: [88, 84, 83, 80, 82],
+      texts: [
+        'ムードメーカーとリーダーの最強タッグ！',
+        'どんな場面でも盛り上がれるコンビ',
+        '相手を引っ張る力と支える力の相乗効果',
+        '言葉より行動で気持ちが伝わる関係',
+        '一緒にイベントや企画も楽しくできる！'
+      ]
+    },
+    'ENFP-ISTJ': {
+      scores: [0, 0, 0, 0, 0],
+      texts: [
+        '自由人と堅実派、価値観がすれ違いがち…！',
+        'テンションの差で噛み合わないことも多いかも',
+        'でも逆に、お互いにないものを持っている関係！',
+        '話し合いが大事になるかもしれない相性！',
+        'ここから仲良くなれたら最強説アリ'
+      ]
+    },
+    'ESTJ-INFP': {
+      scores: [0, 0, 0, 0, 0],
+      texts: [
+        '理想と現実が真っ向からぶつかるかも…！？',
+        '計画性の違いがすれ違いを生む可能性大',
+        '話が噛み合わないことも多いけど、それも個性！',
+        '一緒にいると、お互いの価値観を学べる関係かも',
+        '逆にここから仲良くなったらドラマチック！？'
+      ]
     }
-    // 他の組み合わせはあとで追加できる
   };
 
   return detailMap[key] || {
-    scores: [60, 60, 60, 60, 60],
-    texts: [
+    scores: [72, 72, 72, 72, 72],
+    comments: [
       '会話を通じて徐々に打ち解ける関係！',
       'お互いの違いを楽しめる相性！',
       '一緒に新しい発見ができそう！',
@@ -1555,19 +1682,128 @@ function getDetailData(my, other) {
   const detailMap = {
     'INFP-ENFJ': {
       scores: [90, 85, 80, 95, 70],
-      comments: [ // ← texts → comments に修正！
+      texts: [
         '自然体で話せる友達感覚が◎',
         '一緒にいるだけでドキドキできる相性！',
         '共に成長し合える最高の相棒！',
         '価値観が似ていて居心地がとても良い',
         '盛り上がりすぎず、心地よいテンション感'
       ]
+    },
+    'ENFP-INFJ': {
+      scores: [88, 84, 79, 92, 75],
+      texts: [
+        '直感同士で共鳴しやすく会話が尽きない！',
+        'ちょっとした表情でも心を読み取れる仲に',
+        '一緒に夢を語れる理想的なコンビ',
+        '相手の感情を自然と察し合える関係性',
+        '気分の盛り上がり方も波長ピッタリ！'
+      ]
+    },
+    'INTP-ENTP': {
+      scores: [78, 70, 85, 80, 82],
+      texts: [
+        'アイデアが止まらない知的ペア！',
+        '一緒に未来の話をするのが楽しい',
+        '論理的だけど自由でラフな関係が築ける',
+        '無理に干渉しない心地よさが◎',
+        'テンションの高さも意外と合う！'
+      ]
+    },
+    'ISFP-ESFJ': {
+      scores: [84, 76, 78, 88, 80],
+      texts: [
+        '内向と外向のバランスが絶妙！',
+        '表情やしぐさで通じ合える安心感あり',
+        'お互いに支え合いたくなる組み合わせ',
+        'ふとした優しさに癒される関係',
+        'お互いの違いを楽しめる柔らかペア'
+      ]
+    },
+    'INTJ-ENFP': {
+      scores: [82, 79, 90, 76, 74],
+      texts: [
+        '内向×外向だけど目的意識が合う！',
+        '直感派同士で刺激し合える相性',
+        'しっかり者と自由人の絶妙コンビ',
+        '意外な共通点に驚くことが多いかも？',
+        'テンション差も意外と心地よい'
+      ]
+    },
+    'ISTJ-ISFJ': {
+      scores: [85, 68, 74, 88, 70],
+      texts: [
+        '安定感抜群！価値観が近くて安心できる',
+        '穏やかな時間を共有できる関係',
+        'お互いのペースを大切にできる',
+        '日常の小さな幸せを感じやすいペア',
+        '派手さはないけど、信頼度は最高'
+      ]
+    },
+    'ENFP-ISTP': {
+      scores: [76, 72, 85, 70, 78],
+      texts: [
+        '性格は真逆だけどなぜか気になる存在',
+        '一緒にいると新しい価値観に触れられる',
+        'お互いの長所を補える相性',
+        'ときに意見がぶつかるけど成長につながる',
+        'ノリと冷静さのギャップが面白い！'
+      ]
+    },
+    'ENTJ-INFP': {
+      scores: [79, 80, 82, 76, 70],
+      texts: [
+        '目標に向かって進みたい派と支えたい派',
+        '意見の違いも刺激として楽しめる！',
+        '対等な立場で尊重し合える関係',
+        '弱さを見せても受け入れてもらえる安心感',
+        '勢いと優しさのバランスがいい'
+      ]
+    },
+    'ISFP-INFP': {
+      scores: [85, 75, 70, 85, 76],
+      texts: [
+        '感受性が似ていて安心できる相性',
+        '空気感で通じ合えるような関係',
+        '無理せず自然体でいられるコンビ',
+        'ちょっとした仕草にキュンとすることも',
+        '静かだけど深いつながりを感じられる'
+      ]
+    },
+    'ESTP-ENFJ': {
+      scores: [88, 84, 83, 80, 82],
+      texts: [
+        'ムードメーカーとリーダーの最強タッグ！',
+        'どんな場面でも盛り上がれるコンビ',
+        '相手を引っ張る力と支える力の相乗効果',
+        '言葉より行動で気持ちが伝わる関係',
+        '一緒にイベントや企画も楽しくできる！'
+      ]
+    },
+    'ENFP-ISTJ': {
+      scores: [0, 0, 0, 0, 0],
+      texts: [
+        '自由人と堅実派、価値観がすれ違いがち…！',
+        'テンションの差で噛み合わないことも多いかも',
+        'でも逆に、お互いにないものを持っている関係！',
+        '話し合いが大事になるかもしれない相性！',
+        'ここから仲良くなれたら最強説アリ'
+      ]
+    },
+    'ESTJ-INFP': {
+      scores: [0, 0, 0, 0, 0],
+      texts: [
+        '理想と現実が真っ向からぶつかるかも…！？',
+        '計画性の違いがすれ違いを生む可能性大',
+        '話が噛み合わないことも多いけど、それも個性！',
+        '一緒にいると、お互いの価値観を学べる関係かも',
+        '逆にここから仲良くなったらドラマチック！？'
+      ]
     }
-    // 他の組み合わせはあとで追加OK
   };
 
   return detailMap[key] || {
-    scores: [60, 60, 60, 60, 60],
+    scores: [72, 72, 72, 72, 72],
     comments: [
       '会話を通じて徐々に打ち解ける関係！',
       'お互いの違いを楽しめる相性！',
@@ -1577,6 +1813,7 @@ function getDetailData(my, other) {
     ]
   };
 }
+
 
 function showDetailModal(myMbti, otherMbti) {
   const modal = document.getElementById('compat-detail-modal');
