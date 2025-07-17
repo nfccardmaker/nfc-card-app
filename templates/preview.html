@@ -913,6 +913,8 @@ document.querySelectorAll('.sns-wrapper .sns-delete-btn').forEach(btn => {
   if (extraBatsu) extraBatsu.style.display = 'none';
   const diagnosisBatsu = document.querySelector('#diagnosis-wrapper .sns-delete-btn');
   if (diagnosisBatsu) diagnosisBatsu.style.display = 'none';
+  const externalBatsu = document.querySelector('#external-link-section .sns-delete-btn');
+  if (externalBatsu) externalBatsu.style.display = 'none';
   // SNSリンクをHTMLに埋め込む処理（完成ボタン処理の中に追加）
 ['instagram', 'line', 'bereal', 'x', 'tiktok'].forEach(service => {
   const wrapper = document.querySelector(`.sns-wrapper:has(#input-${service})`);
