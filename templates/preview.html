@@ -447,7 +447,7 @@ body {
 
   <!-- 見出し -->
   <div style="font-weight: bold; font-size: 14px; margin-bottom: 6px; text-align: left; padding-left: 5vw;">
-    URL<br><span style="font-size: 12px; color: #555;"></span>
+    YoutubeURL<br><span style="font-size: 12px; color: #555;"></span>
   </div>
 
   <!-- 入力欄とボタン -->
@@ -1027,15 +1027,37 @@ function hideYouTubeSection() {
     }
   }
   function addExternalLink() {
-  const url = document.getElementById('external-url').value.trim();
-  if (!url) return;
+  const url = document.getElementById("external-url").value.trim();
 
-  // 簡易的なURLチェック（YouTube以外）
+  // YouTube除外
   if (url.includes("youtube.com") || url.includes("youtu.be")) {
     alert("YouTubeのURLは上の欄を使ってください！");
     return;
   }
 
+  // 対応SNSドメインのみ許可
+  const allowedSNSDomains = [
+    "instagram.com",
+    "tiktok.com",
+    "x.com",
+    "twitter.com",
+    "line.me",
+    "bere.al"
+  ];
+
+  try {
+    const parsed = new URL(url);
+    const isValid = allowedSNSDomains.some(domain => parsed.hostname.includes(domain));
+    if (!isValid) {
+      alert("対応SNS（Instagram、TikTok、X、LINE、BeReal）のURLのみ許可されています。");
+      return;
+    }
+  } catch {
+    alert("正しいURLを入力してください。");
+    return;
+  }
+
+  // 表示用リンクボックス作成
   const linkBox = document.createElement("div");
   linkBox.style.marginTop = "10px";
 
@@ -1063,6 +1085,7 @@ function hideYouTubeSection() {
   document.getElementById("external-link-list").appendChild(linkBox);
   document.getElementById("external-url").value = "";
 }
+
 
   async function compressImage(base64, maxSize = 300) {
   return new Promise((resolve) => {
