@@ -887,16 +887,18 @@ document.querySelectorAll('.sns-wrapper .sns-delete-btn').forEach(btn => {
   const spotifyBatsu = document.querySelector('#spotify-section .sns-delete-btn');
   if (spotifyBatsu) spotifyBatsu.style.display = 'none';
 
-  ['instagram', 'line', 'bereal', 'x', 'tiktok'].forEach(service => {
+  // SNSリンクをHTMLに埋め込む処理（create-buttonの中）
+['instagram', 'line', 'bereal', 'x', 'tiktok'].forEach(service => {
   const input = document.getElementById(`input-${service}`);
   const link = input?.value?.trim();
   if (link) {
     const icon = document.querySelector(`.sns-icon[onclick*="${service}"]`);
-    if (icon) {
+    if (icon && !icon.closest('a')) {  // ← すでにaで囲まれてたらやらない
+      const clone = icon.cloneNode(true);
       const a = document.createElement('a');
       a.href = link;
       a.target = '_blank';
-      a.appendChild(icon.cloneNode(true));
+      a.appendChild(clone);
       icon.replaceWith(a);
     }
   }
