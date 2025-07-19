@@ -456,27 +456,6 @@ body {
   <button onclick="embedYouTubeVideo()"
     style="margin-left: 20px; padding: 8px 12px; font-size: 14px; border-radius: 8px; background: #f0f0f0;">反映</button>
 </div>
-<!-- ▼ 外部リンク欄 -->
-<div id="external-link-section" style="position: relative; margin-top: 20px; text-align: center;">
-  <!-- ✕ ボタン追加 -->
-  <img src="/static/batu.jpeg" alt="削除" class="sns-delete-btn" onclick="hideExternalLinkSection()" style="
-    position: absolute;
-    top: 15px;
-    right: 20px;
-    width: 18px;
-    height: 18px;
-    cursor: pointer;
-    z-index: 10;
-  ">
-
-  <div style="font-weight: bold; font-size: 14px; text-align: left; padding-left: 5vw; margin-bottom: 6px;">その他のSNSリンク</div>
-  <input type="text" id="external-url" placeholder="InstagramやTikTokなどのURLを入力"
-    style="width: 84vw; max-width: 500px; padding: 10px; border: 1px solid #ccc; border-radius: 10px; font-size: 14px;">
-  <button onclick="addExternalLink()"
-    style="margin-left: 20px; padding: 8px 12px; font-size: 14px; border-radius: 8px; background: #f0f0f0;">反映</button>
-
-  <div id="external-link-list" style="margin-top: 15px;"></div>
-</div>
 <!-- ▼ Spotify埋め込み欄 -->
 <div id="spotify-section" class="spotify-section" style="position: relative; margin-top: 20px;">
   <!-- ✕ ボタン -->
@@ -834,8 +813,6 @@ function hideAddLink(event) {
   if (youtubeSection) youtubeSection.style.display = 'block';
   const diagnosisWrapper = document.getElementById("diagnosis-wrapper");
   if (diagnosisWrapper) diagnosisWrapper.style.display = "block";
-  const externalSection = document.getElementById('external-link-section');
-  if (externalSection) externalSection.style.display = 'block';
   const spotifySection = document.getElementById('spotify-section');
   if (spotifySection) spotifySection.style.display = 'block';
 }
@@ -852,18 +829,7 @@ function restoreDiagnosisButton() {
   const diagnosisWrapper = document.getElementById("diagnosis-wrapper");
   if (diagnosisWrapper) diagnosisWrapper.style.display = "block";
 }
-function hideExternalLinkSection() {
-  const section = document.getElementById('external-link-section');
-  if (section) {
-    section.style.display = 'none';
-  }
-}
-function restoreExternalLinkSection() {
-  const section = document.getElementById('external-link-section');
-  if (section) {
-    section.style.display = 'block';
-  }
-}
+
 function hideSpotifySection() {
   const section = document.getElementById('spotify-section');
    if (section) {
@@ -1064,71 +1030,7 @@ function embedYouTubeVideo() {
     player.innerHTML = "<p style='color:red;'>正しいYouTubeのURLを入力してください。</p>";
   }
 }
-function hideYouTubeSection() {
-    const section = document.querySelector('.youtube-section');
-    if (section) {
-      section.style.display = 'none';
-    }
-  }
-  function addExternalLink() {
-  const url = document.getElementById("external-url").value.trim();
 
-  // YouTube除外
-  if (url.includes("youtube.com") || url.includes("youtu.be")) {
-    alert("YouTubeのURLは上の欄を使ってください！");
-    return;
-  }
-
-  // 対応SNSドメインのみ許可
-  const allowedSNSDomains = [
-    "instagram.com",
-    "tiktok.com",
-    "x.com",
-    "twitter.com",
-    "line.me",
-    "bere.al"
-  ];
-
-  try {
-    const parsed = new URL(url);
-    const isValid = allowedSNSDomains.some(domain => parsed.hostname.includes(domain));
-    if (!isValid) {
-      alert("対応SNS（Instagram、TikTok、X、LINE、BeReal）のURLのみ許可されています。");
-      return;
-    }
-  } catch {
-    alert("正しいURLを入力してください。");
-    return;
-  }
-
-  // 表示用リンクボックス作成
-  const linkBox = document.createElement("div");
-  linkBox.style.marginTop = "10px";
-
-  const link = document.createElement("a");
-  link.href = url;
-  link.textContent = url;
-  link.target = "_blank";
-  link.style.color = "#3366cc";
-  link.style.textDecoration = "underline";
-  link.style.wordBreak = "break-all";
-
-  const closeBtn = document.createElement("img");
-  closeBtn.src = "/static/batu.jpeg";
-  closeBtn.alt = "削除";
-  closeBtn.style.width = "16px";
-  closeBtn.style.height = "16px";
-  closeBtn.style.marginLeft = "10px";
-  closeBtn.style.verticalAlign = "middle";
-  closeBtn.style.cursor = "pointer";
-  closeBtn.onclick = () => linkBox.remove();
-
-  linkBox.appendChild(link);
-  linkBox.appendChild(closeBtn);
-
-  document.getElementById("external-link-list").appendChild(linkBox);
-  document.getElementById("external-url").value = "";
-}
 function embedSpotify() {
   const url = document.getElementById("spotify-url").value.trim();
 
