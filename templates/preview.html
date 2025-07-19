@@ -440,14 +440,16 @@ body {
   </div>
 
   <!-- ▼ 修正済み：中央寄せの入力欄とボタン -->
+<div id="spotify-container">
   <input type="text" id="spotify-url" placeholder="SpotifyのURLを入力"
     style="width: 84vw; max-width: 500px; padding: 10px; border: 1px solid #ccc; border-radius: 10px; font-size: 14px; display: block; margin: 0 auto 10px auto;">
 
-  <button onclick="embedSpotify()"
+  <button id="spotify-reflect-btn" onclick="embedSpotify()"
     style="display: block; margin: 0 auto; padding: 8px 12px; font-size: 14px; border-radius: 8px; background: #f0f0f0;">
     反映
   </button>
 </div>
+
 
 
   <canvas id="draw-canvas"></canvas>
@@ -998,20 +1000,29 @@ function embedSpotify() {
 
   try {
     const parsed = new URL(url);
-    const cleanPath = parsed.pathname.replace('/intl-ja', '');  // ← ここで取り除く
-    const embedUrl = "https://open.spotify.com/embed" + cleanPath;
+    const embedUrl = parsed.href.replace("open.spotify.com", "open.spotify.com/embed");
 
-    const iframe = `
-      <iframe src="${embedUrl}" 
-        style="width: calc(100% - 40px); height: 152px; border-radius:12px; display: block; margin: 0 auto;" 
-        frameborder="0" allowtransparency="true" allow="encrypted-media">
-      </iframe>
-    `;
-    document.getElementById("spotify-player").innerHTML = iframe;
-  } catch {
+    const iframe = document.createElement("iframe");
+    iframe.src = embedUrl;
+    iframe.style.width = "100%";
+    iframe.style.height = "152px";
+    iframe.style.border = "none";
+    iframe.allow = "autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture";
+    iframe.loading = "lazy";
+
+    const container = document.getElementById("spotify-container");
+    container.innerHTML = ""; // 中身クリア
+    container.appendChild(iframe);
+
+    // 入力欄とボタンを非表示
+    document.getElementById("spotify-url").style.display = "none";
+    document.getElementById("spotify-reflect-btn").style.display = "none";
+
+  } catch (e) {
     alert("URLの形式が正しくありません。");
   }
 }
+
 
 
   async function compressImage(base64, maxSize = 300) {
