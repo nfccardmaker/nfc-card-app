@@ -314,12 +314,11 @@ body {
 .sns-icon {
   width: 36px;
   height: 36px;
-  padding: 0;                  /* ← パディングも不要 */
-  background: transparent;     /* ← 白背景を消す */
-  border-radius: 10px;            /* ← 丸みも消すならこれも */
-  box-shadow: none;            /* ← 影も完全になしにするなら */
+  border-radius: 10px;
+  padding: 4px;
   cursor: pointer;
 }
+
 
   </style>
 </head>
@@ -732,6 +731,21 @@ function applyTextStyles() {
 if (textColorPicker) textColorPicker.addEventListener("input", applyTextStyles);
 if (fontSelector) fontSelector.addEventListener("change", applyTextStyles);
 if (fontSizeSlider) fontSizeSlider.addEventListener("input", applyTextStyles);
+// SNS項目を非表示にする関数
+function hideSNS(service) {
+  const wrapper = document.querySelector(`.sns-wrapper:has(#input-${service})`);
+  if (wrapper) wrapper.style.display = 'none';
+}
+
+// SNS項目を再表示する関数（全復活用）
+function showHiddenSNS() {
+  ['instagram', 'line', 'bereal', 'x', 'tiktok'].forEach(service => {
+    const wrapper = document.querySelector(`.sns-wrapper:has(#input-${service})`);
+    if (wrapper && wrapper.style.display === 'none') {
+      wrapper.style.display = 'block';
+    }
+  });
+}
 
 
 function toggleBackgroundList() {
@@ -752,6 +766,7 @@ function hideAddLink(event) {
     const wrapper = document.querySelector(`.sns-wrapper:has(#input-${service})`);
     if (wrapper) wrapper.style.display = 'flex';
   });
+
   const addBtn = document.getElementById('add-link-button');
   if (addBtn) addBtn.style.display = 'flex';
   const extraTextWrapper = document.getElementById('extra-text-wrapper');
