@@ -132,34 +132,6 @@ body {
     }
 
 
-    .sns-bar {
-      margin: 20px auto;
-      padding-left: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      z-index: 900;
-    }
-
-    .sns-item {
-      background: white;
-      border-radius: 12px;
-      padding: 10px 16px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      font-weight: bold;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 16px;
-      max-width: 140px;
-    }
-
-    .sns-item img {
-      width: 20px;
-      height: 20px;
-      cursor: pointer;
-    }
-
     .sns-input {
       margin-left: 36px;
       margin-top: 8px;
@@ -327,6 +299,28 @@ body {
     width: 40px;
     height: 40px;
   }
+  .sns-icon-bar {
+  background-color: #ffffffcc;
+  border-radius: 12px;
+  padding: 8px 12px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  margin: 20px auto;
+  max-width: 300px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.sns-icon {
+  width: 36px;
+  height: 36px;
+  padding: 0;                  /* ← パディングも不要 */
+  background: transparent;     /* ← 白背景を消す */
+  border-radius: 10px;            /* ← 丸みも消すならこれも */
+  box-shadow: none;            /* ← 影も完全になしにするなら */
+  cursor: pointer;
+}
+
   </style>
 </head>
 <body>
@@ -349,53 +343,22 @@ body {
       </div>
     </div>
   </div>
+<!-- 横並びのSNSアイコンバー -->
+<div class="sns-icon-bar">
+  <img src="/static/instagram_icon.jpeg" alt="Instagram" class="sns-icon" onclick="handleIconClick('instagram')">
+  <img src="/static/Line.icon.jpeg" alt="LINE" class="sns-icon" onclick="handleIconClick('line')">
+  <img src="/static/BeReal.icon.jpeg" alt="BeReal" class="sns-icon" onclick="handleIconClick('bereal')">
+  <img src="/static/X_icon.jpeg" alt="X" class="sns-icon" onclick="handleIconClick('x')">
+  <img src="/static/tiktok_icon.jpeg" alt="TikTok" class="sns-icon" onclick="handleIconClick('tiktok')">
+</div>
 
- <!-- ▼ SNSアイコンと入力欄 -->
-<div class="sns-bar">
-  <div class="sns-wrapper">
-    <div class="sns-item" style="position: relative; background: linear-gradient(45deg, #feda75, #fa7e1e, #d62976, #962fbf, #4f5bd5); color: white; padding: 10px 15px; border-radius: 10px; font-weight: bold; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.15);">
-      <img src="/static/instagram_icon.jpeg" alt="Instagram" onclick="handleIconClick('instagram')" style="width: 30px; height: 30px;">
-      Instagram
-      <img src="/static/batu.jpeg" alt="削除" class="sns-delete-btn" onclick="hideSNS('instagram')" style="position: absolute; top: -8px; right: -8px; width: 18px; height: 18px; cursor: pointer; z-index: 10;">
-    </div>
-    <input id="input-instagram" class="sns-input" placeholder="https://www.instagram.com/yourid" onblur="handleBlur('instagram')">
-  </div>
-
-  <div class="sns-wrapper">
-    <div class="sns-item" style="position: relative; background: #00c300; color: white; padding: 10px 15px; border-radius: 10px; font-weight: bold; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.15);">
-      <img src="/static/Line.icon.jpeg" alt="LINE" onclick="handleIconClick('line')" style="width: 28px; height: 28px;">
-      LINE
-      <img src="/static/batu.jpeg" alt="削除" class="sns-delete-btn" onclick="hideSNS('line')" style="position: absolute; top: -8px; right: -8px; width: 18px; height: 18px; cursor: pointer; z-index: 10;">
-    </div>
-    <input id="input-line" class="sns-input" placeholder="https://lin.ee/yourid" onblur="handleBlur('line')">
-  </div>
-
-  <div class="sns-wrapper">
-    <div class="sns-item" style="position: relative; background: #000000; color: white; padding: 10px 15px; border-radius: 10px; font-weight: bold; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.15);">
-      <img src="/static/BeReal.icon.jpeg" alt="BeReal" onclick="handleIconClick('bereal')" style="width: 28px; height: 28px;">
-      BeReal.
-      <img src="/static/batu.jpeg" alt="削除" class="sns-delete-btn" onclick="hideSNS('bereal')" style="position: absolute; top: -8px; right: -8px; width: 18px; height: 18px; cursor: pointer; z-index: 10;">
-    </div>
-    <input id="input-bereal" class="sns-input" placeholder="https://bere.al/yourid" onblur="handleBlur('bereal')">
-  </div>
-
-  <div class="sns-wrapper">
-    <div class="sns-item" style="position: relative; background: #000000; color: white; padding: 10px 15px; border-radius: 10px; font-weight: bold; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.15);">
-      <img src="/static/X_icon.jpeg" alt="X" onclick="handleIconClick('x')" style="width: 28px; height: 28px;">
-      （旧Twitter）
-      <img src="/static/batu.jpeg" alt="削除" class="sns-delete-btn" onclick="hideSNS('x')" style="position: absolute; top: -8px; right: -8px; width: 18px; height: 18px; cursor: pointer; z-index: 10;">
-    </div>
-    <input id="input-x" class="sns-input" placeholder="https://twitter.com/yourid" onblur="handleBlur('x')">
-  </div>
-
-  <div class="sns-wrapper">
-    <div class="sns-item" style="position: relative; background: linear-gradient(45deg, #25F4EE, #FE2C55); color: white; padding: 10px 15px; border-radius: 10px; font-weight: bold; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.15);">
-      <img src="/static/tiktok_icon.jpeg" alt="TikTok" onclick="handleIconClick('tiktok')" style="width: 22px; height: 22px;">
-      TikTok
-      <img src="/static/batu.jpeg" alt="削除" class="sns-delete-btn" onclick="hideSNS('tiktok')" style="position: absolute; top: -8px; right: -8px; width: 18px; height: 18px; cursor: pointer; z-index: 10;">
-    </div>
-    <input id="input-tiktok" class="sns-input" placeholder="https://www.tiktok.com/@yourid" onblur="handleBlur('tiktok')">
-  </div>
+<!-- 各SNSの入力欄（非表示） -->
+<div class="sns-inputs">
+  <input id="input-instagram" class="sns-input" placeholder="https://www.instagram.com/yourid" onblur="handleBlur('instagram')">
+  <input id="input-line" class="sns-input" placeholder="https://lin.ee/yourid" onblur="handleBlur('line')">
+  <input id="input-bereal" class="sns-input" placeholder="https://bere.al/yourid" onblur="handleBlur('bereal')">
+  <input id="input-x" class="sns-input" placeholder="https://twitter.com/yourid" onblur="handleBlur('x')">
+  <input id="input-tiktok" class="sns-input" placeholder="https://www.tiktok.com/@yourid" onblur="handleBlur('tiktok')">
 </div>
 
 <!-- ▼ 自由記入欄（バツ付き） -->
@@ -457,7 +420,7 @@ body {
     style="margin-left: 20px; padding: 8px 12px; font-size: 14px; border-radius: 8px; background: #f0f0f0;">反映</button>
 </div>
 <!-- ▼ Spotify埋め込み欄 -->
-<div id="spotify-section" class="spotify-section" style="position: relative; margin-top: 20px;">
+<div id="spotify-section" class="spotify-section" style="position: relative; margin-top: -40px;">
   <!-- ✕ ボタン -->
   <img src="/static/batu.jpeg" alt="削除" class="sns-delete-btn" onclick="hideSpotifySection()" style="
     position: absolute;
@@ -769,21 +732,6 @@ function applyTextStyles() {
 if (textColorPicker) textColorPicker.addEventListener("input", applyTextStyles);
 if (fontSelector) fontSelector.addEventListener("change", applyTextStyles);
 if (fontSizeSlider) fontSizeSlider.addEventListener("input", applyTextStyles);
-// SNS項目を非表示にする関数
-function hideSNS(service) {
-  const wrapper = document.querySelector(`.sns-wrapper:has(#input-${service})`);
-  if (wrapper) wrapper.style.display = 'none';
-}
-
-// SNS項目を再表示する関数（全復活用）
-function showHiddenSNS() {
-  ['instagram', 'line', 'bereal', 'x', 'tiktok'].forEach(service => {
-    const wrapper = document.querySelector(`.sns-wrapper:has(#input-${service})`);
-    if (wrapper && wrapper.style.display === 'none') {
-      wrapper.style.display = 'block';
-    }
-  });
-}
 
 
 function toggleBackgroundList() {
@@ -804,7 +752,6 @@ function hideAddLink(event) {
     const wrapper = document.querySelector(`.sns-wrapper:has(#input-${service})`);
     if (wrapper) wrapper.style.display = 'flex';
   });
-
   const addBtn = document.getElementById('add-link-button');
   if (addBtn) addBtn.style.display = 'flex';
   const extraTextWrapper = document.getElementById('extra-text-wrapper');
