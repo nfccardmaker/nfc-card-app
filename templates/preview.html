@@ -151,7 +151,7 @@ body {
       align-items: center;
       gap: 10px;
       font-size: 16px;
-      max-width: fit-content;
+      max-width: 140px;
     }
 
     .sns-item img {
@@ -477,7 +477,36 @@ body {
 
   <div id="external-link-list" style="margin-top: 15px;"></div>
 </div>
+<!-- ▼ Spotify埋め込み欄 -->
+<div id="spotify-section" class="spotify-section" style="position: relative; margin-top: 20px;">
+  <!-- ✕ ボタン -->
+  <img src="/static/batu.jpeg" alt="削除" class="sns-delete-btn" onclick="hideSpotifySection()" style="
+    position: absolute;
+    top: 30px;
+    right: 20px;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    z-index: 10;
+  ">
 
+  <!-- 埋め込みプレイヤーを先に -->
+  <div id="spotify-player" style="padding: 0; text-align: center;"></div>
+
+  <!-- 見出し -->
+  <div style="font-weight: bold; font-size: 14px; margin-bottom: 6px; text-align: left; padding-left: 5vw;">
+    Spotify URL<br><span style="font-size: 12px; color: #555;">（楽曲/アルバム/プレイリスト）</span>
+  </div>
+
+  <!-- ▼ 修正済み：中央寄せの入力欄とボタン -->
+  <input type="text" id="spotify-url" placeholder="SpotifyのURLを入力"
+    style="width: 84vw; max-width: 500px; padding: 10px; border: 1px solid #ccc; border-radius: 10px; font-size: 14px; display: block; margin: 0 auto 10px auto;">
+
+  <button onclick="embedSpotify()"
+    style="display: block; margin: 0 auto; padding: 8px 12px; font-size: 14px; border-radius: 8px; background: #f0f0f0;">
+    反映
+  </button>
+</div>
 
 
   <canvas id="draw-canvas"></canvas>
@@ -807,6 +836,8 @@ function hideAddLink(event) {
   if (diagnosisWrapper) diagnosisWrapper.style.display = "block";
   const externalSection = document.getElementById('external-link-section');
   if (externalSection) externalSection.style.display = 'block';
+  const spotifySection = document.getElementById('spotify-section');
+  if (spotifySection) spotifySection.style.display = 'block';
 }
 function hideExtraText() {
   const wrapper = document.getElementById('extra-text-wrapper');
@@ -832,6 +863,16 @@ function restoreExternalLinkSection() {
   if (section) {
     section.style.display = 'block';
   }
+}
+function hideSpotifySection() {
+  const section = document.getElementById('spotify-section');
+   if (section) {
+    section.style.display = 'block';
+  }
+}
+function restoreSpotifySection() {
+  const section = document.getElementById('spotify-section');
+  if (section) section.style.display = 'block';
 }
 
 document.getElementById('finish-button').addEventListener('click', async () => {
@@ -915,6 +956,9 @@ document.querySelectorAll('.sns-wrapper .sns-delete-btn').forEach(btn => {
   if (diagnosisBatsu) diagnosisBatsu.style.display = 'none';
   const externalBatsu = document.querySelector('#external-link-section .sns-delete-btn');
   if (externalBatsu) externalBatsu.style.display = 'none';
+  const spotifyBatsu = document.querySelector('#spotify-section .sns-delete-btn');
+  if (spotifyBatsu) spotifyBatsu.style.display = 'none';
+
   // SNSリンクをHTMLに埋め込む処理（完成ボタン処理の中に追加）
 ['instagram', 'line', 'bereal', 'x', 'tiktok'].forEach(service => {
   const wrapper = document.querySelector(`.sns-wrapper:has(#input-${service})`);
@@ -1084,6 +1128,33 @@ function hideYouTubeSection() {
 
   document.getElementById("external-link-list").appendChild(linkBox);
   document.getElementById("external-url").value = "";
+}
+function embedSpotify() {
+  const url = document.getElementById("spotify-url").value.trim();
+
+  if (!url.includes("open.spotify.com")) {
+    alert("Spotifyの正しいURLを入力してください。");
+    return;
+  }
+
+  try {
+    const parsed = new URL(url);
+    const embedUrl = parsed.href.replace("open.spotify.com", "open.spotify.com/embed");
+
+   const iframe = `
+  <iframe src="${embedUrl}" 
+    style="width: calc(100% - 40px); height: 152px; border-radius:12px; display: block; margin: 0 auto;" 
+    frameborder="0" allowtransparency="true" allow="encrypted-media">
+  </iframe>
+`;
+    document.getElementById("spotify-player").innerHTML = iframe;
+  } catch {
+    alert("URLの形式が正しくありません。");
+  }
+}
+
+function hideSpotifySection() {
+  document.querySelector('.spotify-section').style.display = 'none';
 }
 
 
