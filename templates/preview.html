@@ -573,29 +573,24 @@ function changeBarColor(e) {
 
 function handleIconClick(service) {
   const input = document.getElementById(`input-${service}`);
-
   if (!input) return;
 
-  // すでにURLが登録されてたら → それを開く
   if (urls[service]) {
     window.open(urls[service], '_blank');
   } else {
-    // 入力欄を表示＆フォーカス
     input.style.display = 'block';
     input.focus();
 
-    // 入力欄がフォーカス外れたときにURL保存
     input.onblur = () => {
       const val = input.value.trim();
       if (val) {
         urls[service] = val;
-      } else {
-        urls[service] = '';
-        input.style.display = 'none'; // 入力が空なら非表示に戻す
       }
+      input.style.display = 'none'; // ← 入力後はしまう
     };
   }
 }
+
 
 function handleBlur(service) {
   const input = document.getElementById(`input-${service}`);
