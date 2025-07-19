@@ -434,13 +434,11 @@ body {
   <!-- 埋め込みプレイヤーを先に -->
   <div id="spotify-player" style="padding: 0; text-align: center;"></div>
 
-  <!-- 見出し -->
-  <div style="font-weight: bold; font-size: 14px; margin-bottom: 6px; text-align: left; padding-left: 5vw;">
-    Spotify URL<br><span style="font-size: 12px; color: #555;">（楽曲/アルバム/プレイリスト）</span>
-  </div>
-
-  <!-- ▼ 修正済み：中央寄せの入力欄とボタン -->
+ <!-- Spotify URL入力欄 -->
 <div id="spotify-container">
+  <label style="font-weight: bold;">Spotify URL</label>
+  <div style="font-size: 12px; margin-bottom: 5px;">（楽曲/アルバム/プレイリスト）</div>
+
   <input type="text" id="spotify-url" placeholder="SpotifyのURLを入力"
     style="width: 84vw; max-width: 500px; padding: 10px; border: 1px solid #ccc; border-radius: 10px; font-size: 14px; display: block; margin: 0 auto 10px auto;">
 
@@ -449,6 +447,7 @@ body {
     反映
   </button>
 </div>
+
 
 
 
@@ -1002,19 +1001,15 @@ function embedSpotify() {
     const parsed = new URL(url);
     const embedUrl = parsed.href.replace("open.spotify.com", "open.spotify.com/embed");
 
-    const iframe = document.createElement("iframe");
-    iframe.src = embedUrl;
-    iframe.style.width = "100%";
-    iframe.style.height = "152px";
-    iframe.style.border = "none";
-    iframe.allow = "autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture";
-    iframe.loading = "lazy";
+    const iframe = `
+      <iframe src="${embedUrl}" 
+        style="width: calc(100% - 40px); height: 152px; border-radius: 12px; margin: 20px;"
+        frameborder="0" allowtransparency="true" allow="encrypted-media">
+      </iframe>
+    `;
+    document.getElementById("spotify-container").insertAdjacentHTML("beforeend", iframe);
 
-    const container = document.getElementById("spotify-container");
-    container.innerHTML = ""; // 中身クリア
-    container.appendChild(iframe);
-
-    // 入力欄とボタンを非表示
+    // 入力欄とボタンを非表示にする
     document.getElementById("spotify-url").style.display = "none";
     document.getElementById("spotify-reflect-btn").style.display = "none";
 
@@ -1022,6 +1017,7 @@ function embedSpotify() {
     alert("URLの形式が正しくありません。");
   }
 }
+
 
 
 
