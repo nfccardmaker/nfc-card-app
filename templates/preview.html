@@ -898,28 +898,15 @@ document.querySelectorAll('.sns-wrapper .sns-delete-btn').forEach(btn => {
   const spotifyBatsu = document.querySelector('#spotify-section .sns-delete-btn');
   if (spotifyBatsu) spotifyBatsu.style.display = 'none';
 
-  ['instagram', 'line', 'bereal', 'x', 'tiktok'].forEach(service => {
-  const input = document.getElementById(`input-${service}`);
+  // SNSリンクをHTMLに埋め込む処理（完成ボタン処理の中に追加）
+['instagram', 'line', 'bereal', 'x', 'tiktok'].forEach(service => {
+  const wrapper = document.querySelector(`.sns-wrapper:has(#input-${service})`);
   const link = urls[service];
-  if (input && link) {
-    // 表示用のリンクアイコンを生成
-    const a = document.createElement('a');
-    a.href = link;
-    a.target = '_blank';
-
-    const img = document.querySelector(`.sns-icon-bar img[onclick*="${service}"]`);
-    if (img) {
-      const clone = img.cloneNode(true);
-      clone.style.cursor = 'default';
-      clone.onclick = null;
-      a.appendChild(clone);
-      document.querySelector('.sns-icon-bar').appendChild(a);
-    }
-
-    // 入力欄は消す
-    input.style.display = 'none';
-  }
-});
+  if (wrapper && link) {
+    const snsItem = wrapper.querySelector('.sns-item');
+    if (snsItem) {
+      const img = snsItem.querySelector('img'); // アイコン画像
+      const label = snsItem.childNodes[1]?.textContent?.trim() || service;
 
       // aタグでラップしてクリック可能に
       const anchor = document.createElement('a');
