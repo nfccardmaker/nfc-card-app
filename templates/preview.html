@@ -434,21 +434,20 @@ body {
   <!-- 埋め込みプレイヤーを先に -->
   <div id="spotify-player" style="padding: 0; text-align: center;"></div>
 
- <!-- Spotify URL入力欄 -->
-<div id="spotify-container">
-  <label style="font-weight: bold;">Spotify URL</label>
-  <div style="font-size: 12px; margin-bottom: 5px;">（楽曲/アルバム/プレイリスト）</div>
+  <!-- 見出し -->
+  <div style="font-weight: bold; font-size: 14px; margin-bottom: 6px; text-align: left; padding-left: 5vw;">
+    Spotify URL<br><span style="font-size: 12px; color: #555;">（楽曲/アルバム/プレイリスト）</span>
+  </div>
 
+  <!-- ▼ 修正済み：中央寄せの入力欄とボタン -->
   <input type="text" id="spotify-url" placeholder="SpotifyのURLを入力"
     style="width: 84vw; max-width: 500px; padding: 10px; border: 1px solid #ccc; border-radius: 10px; font-size: 14px; display: block; margin: 0 auto 10px auto;">
 
-  <button id="spotify-reflect-btn" onclick="embedSpotify()"
+  <button onclick="embedSpotify()"
     style="display: block; margin: 0 auto; padding: 8px 12px; font-size: 14px; border-radius: 8px; background: #f0f0f0;">
     反映
   </button>
 </div>
-
-
 
 
   <canvas id="draw-canvas"></canvas>
@@ -882,6 +881,11 @@ const youtubeInput = document.getElementById('youtube-url');
 const youtubeButton = document.querySelector('.youtube-section button');
 if (youtubeInput) youtubeInput.style.display = 'none';
 if (youtubeButton) youtubeButton.style.display = 'none';
+// ✅ Spotify入力欄と反映ボタンを非表示にする
+const spotifyInput = document.getElementById('spotify-url');
+const spotifyButton = document.querySelector('#spotify-section button');
+if (spotifyInput) spotifyInput.style.display = 'none';
+if (spotifyButton) spotifyButton.style.display = 'none';
 
 // SNSバツ削除
 document.querySelectorAll('.sns-wrapper .sns-delete-btn').forEach(btn => {
@@ -999,26 +1003,20 @@ function embedSpotify() {
 
   try {
     const parsed = new URL(url);
-    const embedUrl = parsed.href.replace("open.spotify.com", "open.spotify.com/embed");
+    const cleanPath = parsed.pathname.replace('/intl-ja', '');  // ← ここで取り除く
+    const embedUrl = "https://open.spotify.com/embed" + cleanPath;
 
     const iframe = `
       <iframe src="${embedUrl}" 
-        style="width: calc(100% - 40px); height: 152px; border-radius: 12px; margin: 20px;"
+        style="width: calc(100% - 40px); height: 152px; border-radius:12px; display: block; margin: 0 auto;" 
         frameborder="0" allowtransparency="true" allow="encrypted-media">
       </iframe>
     `;
-    document.getElementById("spotify-container").insertAdjacentHTML("beforeend", iframe);
-
-    // 入力欄とボタンを非表示にする
-    document.getElementById("spotify-url").style.display = "none";
-    document.getElementById("spotify-reflect-btn").style.display = "none";
-
-  } catch (e) {
+    document.getElementById("spotify-player").innerHTML = iframe;
+  } catch {
     alert("URLの形式が正しくありません。");
   }
 }
-
-
 
 
   async function compressImage(base64, maxSize = 300) {
