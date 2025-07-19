@@ -1139,22 +1139,19 @@ function embedSpotify() {
 
   try {
     const parsed = new URL(url);
-    const embedUrl = parsed.href.replace("open.spotify.com", "open.spotify.com/embed");
+    const cleanPath = parsed.pathname.replace('/intl-ja', '');  // ← ここで取り除く
+    const embedUrl = "https://open.spotify.com/embed" + cleanPath;
 
-   const iframe = `
-  <iframe src="${embedUrl}" 
-    style="width: calc(100% - 40px); height: 152px; border-radius:12px; display: block; margin: 0 auto;" 
-    frameborder="0" allowtransparency="true" allow="encrypted-media">
-  </iframe>
-`;
+    const iframe = `
+      <iframe src="${embedUrl}" 
+        style="width: calc(100% - 40px); height: 152px; border-radius:12px; display: block; margin: 0 auto;" 
+        frameborder="0" allowtransparency="true" allow="encrypted-media">
+      </iframe>
+    `;
     document.getElementById("spotify-player").innerHTML = iframe;
   } catch {
     alert("URLの形式が正しくありません。");
   }
-}
-
-function hideSpotifySection() {
-  document.querySelector('.spotify-section').style.display = 'none';
 }
 
 
