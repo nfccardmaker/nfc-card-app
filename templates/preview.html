@@ -573,11 +573,27 @@ function changeBarColor(e) {
 
 function handleIconClick(service) {
   const input = document.getElementById(`input-${service}`);
+
+  if (!input) return;
+
+  // すでにURLが登録されてたら → それを開く
   if (urls[service]) {
     window.open(urls[service], '_blank');
   } else {
+    // 入力欄を表示＆フォーカス
     input.style.display = 'block';
     input.focus();
+
+    // 入力欄がフォーカス外れたときにURL保存
+    input.onblur = () => {
+      const val = input.value.trim();
+      if (val) {
+        urls[service] = val;
+      } else {
+        urls[service] = '';
+        input.style.display = 'none'; // 入力が空なら非表示に戻す
+      }
+    };
   }
 }
 
@@ -889,21 +905,13 @@ document.querySelectorAll('.sns-wrapper .sns-delete-btn').forEach(btn => {
 
   // SNSリンクをHTMLに埋め込む処理（完成ボタン処理の中に追加）
 ['instagram', 'line', 'bereal', 'x', 'tiktok'].forEach(service => {
-  const input = document.getElementById(`input-${service}`);
+  const wrapper = document.querySelector(`.sns-wrapper:has(#input-${service})`);
   const link = urls[service];
-
-  if (input && link) {
-    // 入力欄にリンクを反映（表示用にも使用する場合）
-    input.value = link;
-    input.style.display = 'inline-block';
-
-    // 表示用ラベルなどが必要なら追加処理も可能（ここでは img の上に載せるなど）
-    const icon = document.querySelector(`.sns-icon-bar img[onclick="handleIconClick('${service}')"]`);
-    if (icon) {
-      icon.style.opacity = 1.0; // 入力されたSNSだけ強調など
-    }
-  }
-});
+  if (wrapper && link) {
+    const snsItem = wrapper.querySelector('.sns-item');
+    if (snsItem) {
+      const img = snsItem.querySelector('img'); // アイコン画像
+      const label = snsItem.childNodes[1]?.textContent?.trim() || service;
 
       // aタグでラップしてクリック可能に
       const anchor = document.createElement('a');
