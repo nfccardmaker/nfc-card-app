@@ -1188,6 +1188,300 @@ function startDiagnosis() {
   ">
   <button id="diagnosis-button" onclick="startDiagnosis()">〇〇さんの特徴！</button>
 </div>
+<!-- 🔽 自己PR入力と分析ボタン -->
+<div id="self-pr-section" style="margin-top: 40px;">
+  <h3 style="text-align: center;">AIが自己PRを分析！結果を見てみよう</h3>
+  <textarea id="self-pr-textarea" rows="4" placeholder="例：私はチームで目標に向かって努力するのが得意で…"
+    style="width: 90%; max-width: 500px; display: block; margin: 10px auto; padding: 10px; border-radius: 10px;"></textarea>
+  <button onclick="analyzeSelfPR()" style="display: block; margin: 10px auto; padding: 10px 20px;">分析して表示</button>
+</div>
+
+<!-- 🔽 自己PR分析モーダル -->
+<div id="self-pr-modal" style="
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background-color: rgba(0, 0, 0, 0.6);
+  z-index: 10000;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  padding: 20px;
+  box-sizing: border-box;
+">
+
+ <!-- チャート中央表示 -->
+<div style="
+  display: flex;
+  justify-content: center;
+  margin-bottom: -40px; /* 👈 これで重なりちょうど良く */
+  z-index: 10001;
+">
+ <canvas id="resultChart" width="230" height="210"
+style="background: linear-gradient(to bottom, #ffffff, #e0f0ff); border-radius: 20px; transform: translate(85px, 10px);"
+
+>
+</canvas>
+</div>
+
+
+<!-- テキストカード -->
+<div style="
+  background: linear-gradient(to bottom, #ffffff, #e0f0ff);
+  border-radius: 24px;
+  width: 90%;
+  max-width: 400px;
+  overflow: hidden;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+  position: relative;
+  margin-top: 160px; /* ← ここでテキスト全体を下にズラす */
+">
+  <!-- ✕ボタン -->
+  <div onclick="closeSelfPrModal()" style="
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(255,255,255,0.8);
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-weight: bold;
+  ">×</div>
+
+  <h3 id="resultTitle" style="
+  text-align: center;
+  font-size: 18px;
+  color: #ff4081;
+  margin: 8 0 8px 0; 
+">
+</h3>
+
+  <!-- テキスト本文 -->
+  <div id="resultText" style="
+    padding: 0px 20px 20px;
+    font-size: 14px;
+    color: #333;
+    text-align: left;
+  "></div>
+</div>
+
+<script>
+const descriptions = {
+  "勉学": "計画的に物事を進められるタイプ！",
+  "スポーツ": "アクティブでエネルギッシュな魅力！",
+  "コミュ力": "人との距離を縮める天才！",
+  "創造力": "ユニークな発想で周囲を驚かせる！",
+  "忍耐力": "壁にぶつかっても諦めない力がある！"
+};
+
+// プラスワード辞書
+const keywordDict = {
+  "勉学": [
+    "読書", "成績", "勉強", "資格", "学力", "合格", "授業", "図書館", "講義", "模試", "テスト勉強", "参考書", "ノート"
+  ],
+  "スポーツ": [
+    "部活", "運動", "試合", "大会", "インターハイ", "体育", "トレーニング", "ランニング", "筋トレ", "キャプテン", "スプリント", "パス", "フォーム"
+  ],
+  "コミュ力": [
+    "会話", "友達", "リーダー", "話す", "盛り上げ", "人と", "チーム", "協力", "雰囲気", "司会", "仲間", "打ち解ける", "相談"
+  ],
+  "創造力": [
+    "アイデア", "発想", "創造", "工夫", "ユニーク", "制作", "デザイン", "発明", "描く", "表現", "創作", "開発", "クリエイティブ"
+  ],
+  "忍耐力": [
+    "努力", "継続", "我慢", "挑戦", "あきらめない", "練習", "粘り強い", "耐える", "繰り返す", "毎日", "乗り越える", "コツコツ"
+  ]
+};
+
+
+// マイナス補正辞書（1語につき -5点、最大 -20点）
+const negativeKeywords = {
+  "コミュ力": [
+    "人見知り", "話すのが苦手", "内向的", "緊張しやすい", "聞き役", "会話が続かない", "引っ込み思案", "声が小さい", "無口", "リアクションが薄い"
+  ],
+  "忍耐力": [
+    "飽き性", "我慢できない", "諦めやすい", "すぐやめる", "集中力が続かない", "継続が苦手", "短気", "三日坊主", "続かない", "気分屋"
+  ],
+  "スポーツ": [
+    "運動が苦手", "体力がない", "すぐ疲れる", "足が遅い", "体育が嫌い", "走るのが苦手", "球技が苦手", "運動神経が悪い"
+  ],
+  "勉学": [
+    "勉強が苦手", "成績が悪い", "集中できない", "すぐ寝る", "宿題を忘れる", "落ちこぼれ", "偏差値が低い", "授業がわからない"
+  ],
+  "創造力": [
+    "発想力が乏しい", "アイデアが出ない", "創造的でない", "凡人", "思いつかない", "工夫が苦手", "オリジナリティがない"
+  ]
+};
+
+// 特定ワードで強制高得点
+const highBoostKeywords = {
+  "スポーツ": [
+    "インターハイ", "全国大会", "優勝", "県大会", "代表", "全国1位", "MVP", "選抜", "トップアスリート", "国体", "キャプテン", "ベスト8", "体育会", "全国レベル", "アスリート"
+  ],
+  "勉学": [
+    "偏差値70", "主席", "全国模試", "難関大学", "奨学金", "首席", "現役合格", "成績上位", "模試全国1位", "医大", "東大", "京大", "成績優秀", "学年1位"
+  ],
+  "忍耐力": [
+    "毎日継続", "三年間", "反復", "自主練", "毎日朝練", "受験勉強", "努力の積み重ね", "朝5時起き", "雨の日も練習", "受験戦争", "合格まで諦めず", "毎日練習", "1年間休まず"
+  ],
+  "コミュ力": [
+    "ムードメーカー", "誰とでも仲良く", "盛り上げ役", "リーダーシップ", "話すのが得意", "会話が好き", "友達が多い", "聞き上手", "初対面でも話せる", "人と関わるのが好き"
+  ],
+  "創造力": [
+    "アイデアマン", "企画立案", "新しい発想", "独自の視点", "創作活動", "オリジナル", "発想力", "作品制作", "アート思考", "デザイン力", "自由な発想"
+  ]
+};
+
+
+function closeSelfPrModal() {
+  document.getElementById('self-pr-modal').style.display = 'none';
+}
+
+function analyzeSelfPR() {
+  const text = document.getElementById('self-pr-textarea').value;
+
+  const scores = {
+    "勉学": Math.floor(Math.random() * 16 + 70),
+    "スポーツ": Math.floor(Math.random() * 16 + 70),
+    "コミュ力": Math.floor(Math.random() * 16 + 70),
+    "創造力": Math.floor(Math.random() * 16 + 70),
+    "忍耐力": Math.floor(Math.random() * 16 + 70)
+  };
+
+  // プラス補正
+  for (const key in keywordDict) {
+    const list = keywordDict[key];
+    let count = 0;
+    list.forEach(word => {
+      if (text.includes(word)) count++;
+    });
+    scores[key] += Math.min(count * 5, 40);
+  }
+
+  // マイナス補正
+  for (const key in negativeKeywords) {
+    const list = negativeKeywords[key];
+    let count = 0;
+    list.forEach(word => {
+      if (text.includes(word)) count++;
+    });
+    scores[key] -= Math.min(count * 5, 20);
+  }
+
+  // 高得点ワードで110点以上に引き上げ
+  for (const key in highBoostKeywords) {
+    const list = highBoostKeywords[key];
+    list.forEach(word => {
+      if (text.includes(word)) {
+        scores[key] = Math.max(scores[key], 110);
+      }
+    });
+  }
+
+  const type = Object.entries(scores).sort((a, b) => b[1] - a[1])[0][0];
+document.getElementById('resultTitle').innerText = `〇〇＝${type}タイプ！`;
+
+const labels = Object.keys(scores);
+const rawValues = Object.values(scores);
+
+const ctx = document.getElementById('resultChart').getContext('2d');
+if (window.selfPrChart) window.selfPrChart.destroy();
+
+// グラデーション定義（金っぽく）
+const goldGradient = ctx.createLinearGradient(0, 0, 0, 300);
+goldGradient.addColorStop(0, '#FFD700'); // 明るめ金
+goldGradient.addColorStop(1, '#FFA500'); // 濃い金
+
+window.selfPrChart = new Chart(ctx, {
+  type: 'radar',
+  data: {
+    labels: labels,
+    datasets: [
+      {
+        label: '100%以下',
+        data: rawValues.map(v => Math.min(v, 100)),
+        borderColor: '#3498db',
+        backgroundColor: 'rgba(52, 152, 219, 0.3)',
+        pointBackgroundColor: '#3498db',
+        fill: true
+      },
+      {
+        label: '100%以上',
+        data: rawValues.map(v => v),
+        borderColor: goldGradient,
+        backgroundColor: goldGradient,
+        pointBackgroundColor: '#FFD700',
+        fill: true,
+        borderWidth: 3,
+        segment: {
+          backgroundColor: ctx => {
+            const v1 = rawValues[ctx.p0DataIndex];
+            const v2 = rawValues[ctx.p1DataIndex];
+            return (v1 > 100 && v2 > 100) ? goldGradient : 'rgba(0,0,0,0)';
+          },
+          borderColor: ctx => {
+            const v1 = rawValues[ctx.p0DataIndex];
+            const v2 = rawValues[ctx.p1DataIndex];
+            return (v1 > 100 && v2 > 100) ? goldGradient : 'rgba(0,0,0,0)';
+          }
+        }
+      }
+    ]
+  },
+  options: {
+    responsive: false,
+    maintainAspectRatio: false,
+    scales: {
+      r: {
+        suggestedMin: 0,
+        suggestedMax: 120,
+        ticks: { display: false },
+        pointLabels: {
+          font: { size: 14 },
+          color: '#333'
+        }
+      }
+    },
+    plugins: {
+      legend: { display: false }
+    }
+  }
+});
+
+const detailHTML = labels.map((key, i) => {
+  const score = rawValues[i];
+  const display = score > 110 ? '✨' : '';
+
+  let comment = descriptions[key];
+  if (score > 100) {
+    comment = {
+      "勉学": "もはや天才の域！その知識欲はとどまることを知らない！",
+      "スポーツ": "圧倒的な身体能力！まさにフィジカルモンスター！",
+      "コミュ力": "誰とでも仲良くなれる神コミュ力の持ち主！",
+      "創造力": "天才的ひらめき！想像を超えるアイデアが次々と！",
+      "忍耐力": "鋼のメンタル！どんな困難も乗り越えるド根性！"
+    }[key];
+  }
+
+  // 金色スタイル（100%以上）
+  const labelStyle = score > 100 ? 'style="color: #FFD700; font-weight: bold; text-shadow: 0 0 2px #000;"' : '';
+
+  return `<p><strong ${labelStyle}>${key}：</strong>${score}% ${display}<br>${comment}</p>`;
+}).join('');
+
+document.getElementById('resultText').innerHTML = detailHTML;
+
+document.getElementById('self-pr-modal').style.display = 'flex';
+}
+
+</script>
+
+
 
 
 <!-- ▼ モーダル表示部分 -->
