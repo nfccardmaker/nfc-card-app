@@ -2425,7 +2425,7 @@ function analyzeSelfPR() {
       }
     }
   });
-
+document.getElementById('self-pr-comment').innerHTML = '';
   let commentHTML = '';
 labels.forEach((label, i) => {
   const score = scores[i];
