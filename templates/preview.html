@@ -2425,32 +2425,35 @@ function analyzeSelfPR() {
       }
     }
   });
-document.getElementById('self-pr-comment').innerHTML = '';
+  document.getElementById('self-pr-comment').innerHTML = '';
+
   let commentHTML = '';
-labels.forEach((label, i) => {
-  const score = scores[i];
-  const comment = commentTemplates[label](score);
+  const addedLabels = new Set(); // 👈 重複防止のためにSetを使う
 
-  // 100点超えは金色＋シャドウで強調
-  const scoreStyle = score > 100
-    ? 'color: gold; text-shadow: 0 0 5px gold; font-weight: bold;'
-    : '';
+  labels.forEach((label, i) => {
+    if (addedLabels.has(label)) return; // 👈 すでに表示したラベルはスキップ
+    addedLabels.add(label);
 
-  commentHTML += `
-    <div style="margin-bottom: 6px;">
-      <strong>${label}：</strong><span style="${scoreStyle}">${score}点</span><br>
-      <span style="font-size: 14px;">${comment}</span>
-    </div>
-  `;
-});
+    const score = scores[i];
+    const comment = commentTemplates[label](score);
 
+    const scoreStyle = score > 100
+      ? 'color: gold; text-shadow: 0 0 5px gold; font-weight: bold;'
+      : '';
+
+    commentHTML += `
+      <div style="margin-bottom: 6px;">
+        <strong>${label}：</strong><span style="${scoreStyle}">${score}点</span><br>
+        <span style="font-size: 14px;">${comment}</span>
+      </div>
+    `;
+  });
 
   document.getElementById('self-pr-comment').innerHTML = commentHTML;
 
   // モーダル表示
   document.getElementById('self-pr-modal').style.display = 'flex';
-}
-
+  }
 </script>
 </body>
 </html>
