@@ -10,7 +10,7 @@
       padding: 0;
       height: 100%;
       font-family: 'Helvetica Neue', sans-serif;
-      background-color: #ffffff;
+      background: linear-gradient(120deg, #d0f4de, #ffcbf2);
       overflow: auto;
     }
 
@@ -318,6 +318,20 @@ body {
   padding: 4px;
   cursor: pointer;
 }
+@keyframes glow-temporary {
+  0% { box-shadow: 0 0 0px #00bfff; }
+  20% { box-shadow: 0 0 10px #00bfff; }
+  40% { box-shadow: 0 0 15px #00bfff; }
+  60% { box-shadow: 0 0 10px #00bfff; }
+  80% { box-shadow: 0 0 5px #00bfff; }
+  100% { box-shadow: none; }
+}
+
+.glow-once {
+  animation: glow-temporary 5s ease-in-out 1;
+   border-bottom: 1px solid #ccc;
+  border-radius: 8px;
+}
 
 
   </style>
@@ -333,7 +347,7 @@ body {
         <input type="file" accept="image/*" id="profile-input" class="hidden-input">
       </div>
       <div class="info-section">
-        <input type="text" class="editable-text" placeholder="名前">
+        <input type="text" class="editable-text glow-once" placeholder="名前">
         <input type="text" class="editable-text" placeholder="誕生日">
         <input type="text" class="editable-text" placeholder="年齢">
         <input type="text" class="editable-text" placeholder="学部">
@@ -2454,5 +2468,24 @@ function analyzeSelfPR() {
   document.getElementById('self-pr-modal').style.display = 'flex';
   }
 </script>
+<script>
+  // Enterキーで次の欄へフォーカスを移動
+  document.addEventListener('DOMContentLoaded', function () {
+    const inputs = Array.from(document.querySelectorAll('.editable-text'));
+
+    inputs.forEach((input, index) => {
+      input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          const next = inputs[index + 1];
+          if (next) {
+            next.focus();
+          }
+        }
+      });
+    });
+  });
+</script>
+
 </body>
 </html>
