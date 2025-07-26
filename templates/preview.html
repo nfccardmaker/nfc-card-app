@@ -2333,44 +2333,71 @@ function analyzeSelfPR() {
   // 各項目の初期スコア
   let scores = labels.map(() => baseScore);
 
-  // ワード補正辞書
   const wordModifiers = {
   '勉学': [
     { word: '学業', value: 10 },
     { word: '勉強', value: 10 },
     { word: '資格', value: 15 },
     { word: '真面目', value: 5 },
-    { word: '遅刻', value: -10 }
+    { word: '遅刻', value: -10 },
+    { word: '授業', value: 10 },
+    { word: '出席', value: 10 },
+    { word: 'レポート', value: 5 },
+    { word: '予習', value: 10 },
+    { word: '復習', value: 10 },
+    { word: '努力家', value: 10 }
   ],
   'スポーツ': [
     { word: '運動', value: 10 },
     { word: 'スポーツ', value: 15 },
     { word: '部活', value: 10 },
     { word: 'インターハイ', value: 20 },
-    { word: '体力がない', value: -10 }
+    { word: '体力がない', value: -10 },
+    { word: '体育会', value: 10 },
+    { word: '筋トレ', value: 10 },
+    { word: '持久力', value: 10 },
+    { word: '勝負', value: 5 },
+    { word: 'チームプレー', value: 10 },
+    { word: '大会', value: 10 }
   ],
   'コミュ力': [
     { word: '人と話すのが好き', value: 10 },
     { word: '初対面', value: 5 },
     { word: '緊張しやすい', value: -10 },
     { word: '積極的に会話', value: 15 },
-    { word: '聞き上手', value: 10 }
+    { word: '聞き上手', value: 10 },
+    { word: '雑談', value: 5 },
+    { word: '会話力', value: 10 },
+    { word: '盛り上げ役', value: 10 },
+    { word: '空気を読む', value: 10 },
+    { word: '話しかける', value: 10 }
   ],
   '創造力': [
     { word: 'アイデア', value: 10 },
     { word: '独自', value: 10 },
     { word: '発想', value: 15 },
     { word: '企画', value: 10 },
-    { word: '柔軟な思考', value: 15 }
+    { word: '柔軟な思考', value: 15 },
+    { word: '創作', value: 10 },
+    { word: '表現', value: 10 },
+    { word: 'デザイン', value: 10 },
+    { word: '構想', value: 10 },
+    { word: '試行錯誤', value: 10 }
   ],
   '忍耐力': [
     { word: '我慢強い', value: 15 },
     { word: '粘り強い', value: 15 },
     { word: '継続', value: 10 },
     { word: '集中力', value: 10 },
-    { word: 'すぐ諦める', value: -15 }
-    ]
-  };
+    { word: 'すぐ諦める', value: -15 },
+    { word: '負けず嫌い', value: 10 },
+    { word: '努力', value: 10 },
+    { word: '耐える', value: 10 },
+    { word: '失敗しても挑戦', value: 15 },
+    { word: 'コツコツ', value: 10 }
+  ]
+};
+
 
   // 補正を加える
   labels.forEach((label, i) => {
@@ -2492,12 +2519,15 @@ function analyzeSelfPR() {
   }
 </script>
 <script>
-  // Enterキーで次の欄へフォーカスを移動
+  // Enterキーで次の欄へフォーカスを移動（ただし textarea は除く）
   document.addEventListener('DOMContentLoaded', function () {
     const inputs = Array.from(document.querySelectorAll('.editable-text'));
 
     inputs.forEach((input, index) => {
       input.addEventListener('keydown', function (e) {
+        // textarea だったら改行させる（処理しない）
+        if (input.tagName.toLowerCase() === 'textarea') return;
+
         if (e.key === 'Enter') {
           e.preventDefault();
           const next = inputs[index + 1];
