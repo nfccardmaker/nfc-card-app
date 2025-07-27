@@ -332,7 +332,35 @@ body {
    border-bottom: 1px solid #ccc;
   border-radius: 8px;
 }
+.template-btn {
+    font-size: 13px;
+    padding: 5px 12px;
+    border-radius: 10px;
+    background-color: #f8f8ff;
+    border: 1px solid #bbb;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+  }
 
+  .template-btn:hover {
+    background-color: #ffe066;
+    transform: scale(1.05);
+  }
+
+  .fade-in {
+    animation: fadeIn 0.4s ease-in-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 
   </style>
 </head>
@@ -415,6 +443,35 @@ body {
     box-sizing: border-box;
   "></textarea>
 </div>
+
+<!-- テンプレート挿入ボタン -->
+<div style="text-align: center; margin-top: 8px;">
+  <button onclick="showTemplateButtons()" style="
+    font-size: 14px;
+    padding: 6px 14px;
+    border-radius: 8px;
+    border: 1px solid #888;
+    background: #f0f0f0;
+    cursor: pointer;
+  ">✍️ テンプレート挿入</button>
+</div>
+
+<!-- テンプレート項目ボタン（横並び） -->
+<div id="template-buttons" style="
+  margin: 12px auto 0;
+  display: none;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  max-width: 90%;
+">
+  <button onclick="insertTemplate('club')" class="template-btn">部活</button>
+  <button onclick="insertTemplate('study')" class="template-btn">学業</button>
+  <button onclick="insertTemplate('circle')" class="template-btn">サークル</button>
+  <button onclick="insertTemplate('parttime')" class="template-btn">バイト</button>
+  <button onclick="insertTemplate('hobby')" class="template-btn">趣味</button>
+</div>
+
 
 
 
@@ -1102,6 +1159,51 @@ function embedSpotify() {
     alert("URLの形式が正しくありません。");
   }
 }
+function showTemplateButtons() {
+  const btns = document.getElementById('template-buttons');
+  btns.style.display = 'flex';
+}
+function insertTemplate(type) {
+  const textarea = document.getElementById("extra-text");
+  let template = "";
+
+  switch(type) {
+  case 'club':
+    template = "高校のときは〇〇部やってて、放課後はだいたい部活にいたかも。まあまあガチでやってたから、体力とか気合いはそれなりにある…はず！先輩後輩とのノリとか、地味にコミュ力鍛えられた気もする笑";
+    break;
+
+  case 'study':
+    template = "〇〇系を勉強してるけど、内容はわりとニッチでおもしろいかも。課題はエグい時あるけど、締切には一応ちゃんと間に合わせてる笑わりと計画立ててコツコツやるタイプです、多分。";
+    break;
+
+  case 'circle':
+    template = "〇〇系のサークル入ってて、イベントとかで騒いでること多いかも。飲みとか合宿とか、エモい思い出いろいろできてる！ガチよりエンジョイ派だけど、人と関わるのはわりと好き。";
+    break;
+
+  case 'parttime':
+    template = "〇〇のバイトしてるんだけど、接客とか慣れると意外と楽しい。最初は緊張してたけど、今はお客さんと軽く雑談とかもしてる笑責任とか時間とか、ちょっとは大人になった気がする。";
+    break;
+
+  case 'hobby':
+    template = "〇〇が趣味で、スキあらばやってるかも。ひとりの時間にハマれるのが最高なんよ〜！同じ趣味の人と話せたらめっちゃ盛り上がるタイプ。たぶん、めっちゃ語る笑";
+    break;
+}
+
+
+  textarea.value = template + '\n\n⸻\n\n'; // ← 上書き（入れ替え）
+}
+const textarea = document.getElementById("your-textarea-id"); // ←実際のtextareaのIDに置き換えて！
+textarea.classList.remove("fade-in");
+void textarea.offsetWidth; // ←再アニメ用のトリック
+textarea.classList.add("fade-in");
+function showTemplateButtons() {
+  const btns = document.getElementById('template-buttons');
+  if (btns.style.display === 'flex') {
+    btns.style.display = 'none';
+  } else {
+    btns.style.display = 'flex';
+  }
+}
 
 
   async function compressImage(base64, maxSize = 300) {
@@ -1387,61 +1489,90 @@ function startDiagnosis() {
 
   let type = '';
 
-// I / E 判定
-if (combined.match(/ひとり|静か|本|ソロ|家|落ち着く|アニメ|内省|黙る|マイペース/)) {
-  type += 'I';
-} else if (combined.match(/仲間|みんな|カラオケ|イベント|旅行|飲み会|おしゃべり|騒ぐ|SNS/)) {
-  type += 'E';
-} else {
-  type += 'I';
-}
+  // I / E 判定
+  if (
+    combined.match(/ひとり|静か|本|ソロ|家|落ち着く|アニメ|内省|黙る|マイペース|省エネ|観察|聞き役|自分時間|ひそか|一人旅/) ||
+    combined.match(/私は一人で過ごす時間に心地よさを感じます。静かな場所で本を読んだり、思索にふけることでエネルギーが回復します。人と話すよりも、まず自分の中で考えを整理することが多いです。/)
+  ) {
+    type += 'I';
+  } else if (
+    combined.match(/仲間|みんな|カラオケ|イベント|旅行|飲み会|おしゃべり|騒ぐ|SNS|パーティー|盛り上がり|賑やか|外出|遊ぶ|テンション/) ||
+    combined.match(/人と話したり、誰かと一緒に過ごすことで元気が出ます。イベントや集まりが好きで、新しい人と出会うことにワクワクします。黙っているよりも、会話の中で自分を表現したいです。/)
+  ) {
+    type += 'E';
+  } else {
+    type += 'I';
+  }
 
-// N / S 判定
-if (combined.match(/空想|ひらめき|想像|クリエイティブ|アート|創作|哲学|直感|夢/)) {
-  type += 'N';
-} else if (combined.match(/現実|実用|旅行|運動|料理|アウトドア|具体|体験|五感/)) {
-  type += 'S';
-} else {
-  type += 'N';
-}
+  // N / S 判定
+  if (
+    combined.match(/空想|ひらめき|想像|クリエイティブ|アート|創作|哲学|直感|夢|未来|理想|可能性|インスピレーション|抽象|概念/) ||
+    combined.match(/私はアイデアや空想を膨らませるのが好きで、現実よりも未来の可能性に目を向けがちです。直感的に物事を捉える場面も多く、抽象的な話題に惹かれることがよくあります。/)
+  ) {
+    type += 'N';
+  } else if (
+    combined.match(/現実|実用|旅行|運動|料理|アウトドア|具体|体験|五感|事実|地に足|経験|現場|証拠/) ||
+    combined.match(/自分が実際に体験したことや、現場で得た感覚を大事にしています。具体的な事実をもとに判断する傾向があり、抽象的な話よりも目の前の現実を重視する方です。/)
+  ) {
+    type += 'S';
+  } else {
+    type += 'N';
+  }
 
-// T / F 判定（スコア式）
-let tfScore = 0;
-if (combined.match(/論理|分析|効率|数字|プログラミング|理屈|戦略|データ/)) tfScore += 1;
-if (combined.match(/共感|やさしい|応援|思いやり|ケア|感情|涙|相談/)) tfScore -= 1;
-if (barColor.includes('pink') || barColor.includes('#f')) tfScore -= 1;
-if (barColor.includes('blue') || barColor.includes('#00f') || barColor.includes('navy')) tfScore += 1;
+  // T / F 判定（スコア式）
+  let tfScore = 0;
+  if (
+    combined.match(/論理|分析|効率|数字|プログラミング|理屈|戦略|データ|合理|客観|判断|競争|議論/) ||
+    combined.match(/物事を判断するときは感情よりも論理的な思考を優先します。データや事実に基づいて効率的に進めたいという意識が強く、感情に流されないよう心がけています。/)
+  ) tfScore += 1;
 
-type += tfScore >= 0 ? 'T' : 'F';
+  if (
+    combined.match(/共感|やさしい|応援|思いやり|ケア|感情|涙|相談|気持ち|ぬくもり|愛情|支える|寄り添う/) ||
+    combined.match(/人の気持ちに敏感で、困っている人を見ると放っておけません。相手に共感しながら接することを大切にしており、感情を共有することで関係を深めようとします。/)
+  ) tfScore -= 1;
 
-// J / P 判定
-if (combined.match(/計画|整理|スケジュール|時間管理|リスト|準備|管理|目標|段取り/)) {
-  type += 'J';
-} else if (combined.match(/自由|気まま|柔軟|マイペース|その場|思いつき|即興/)) {
-  type += 'P';
-} else {
-  type += 'P';
-}
+  if (barColor.includes('pink') || barColor.includes('#f')) tfScore -= 1;
+  if (barColor.includes('blue') || barColor.includes('#00f') || barColor.includes('navy')) tfScore += 1;
+
+  type += tfScore >= 0 ? 'T' : 'F';
+
+  // J / P 判定
+  if (
+    combined.match(/計画|整理|スケジュール|時間管理|リスト|準備|管理|目標|段取り|締切|しっかり|計算|安定|構造/) ||
+    combined.match(/あらかじめ計画を立てて行動する方が安心します。スケジュールを組んで進めたり、段取りを整えることで気持ちに余裕が生まれるタイプです。突然の変更は苦手です。/)
+  ) {
+    type += 'J';
+  } else if (
+    combined.match(/自由|気まま|柔軟|マイペース|その場|思いつき|即興|対応力|変化|流れ|勢い|ゆるい|直感的/) ||
+    combined.match(/その時の気分や状況に応じて柔軟に動くことが多いです。細かい計画よりも、流れに乗って即興で対応する方が得意で、自分らしさを大切にしたいと感じています。/)
+  ) {
+    type += 'P';
+  } else {
+    type += 'P';
+  }
+
+
 
 
   const mbtiDescriptions = {
-    INFP: "理想主義で感受性豊かな癒し系タイプ！",
-    INTP: "論理的で探究心が強い思索家タイプ！",
-    INFJ: "人の心に寄り添う静かなカリスマタイプ！",
-    INTJ: "戦略的で未来志向な構想派タイプ！",
-    ENFP: "ひらめきと人間関係が得意な冒険家タイプ！",
-    ENTP: "機転が利いて挑戦を恐れないアイデアマン！",
-    ENFJ: "人を巻き込む力があるリーダータイプ！",
-    ENTJ: "目標達成に一直線な司令塔タイプ！",
-    ISFP: "感性と調和を重視するやさしさ派！",
-    ISTP: "冷静沈着な実践派！",
-    ISFJ: "支えることに喜びを感じるサポーター！",
-    ISTJ: "責任感の強いしっかり者！",
-    ESFP: "ムードメーカーなエンタメ好き！",
-    ESTP: "行動力抜群な体験型リーダー！",
-    ESFJ: "人の役に立ちたい親しみ派！",
-    ESTJ: "効率的で実務に強い頼れる人！"
-  };
+  INFP: "理想家でやさしい癒し系！",
+  INTP: "論理派の知的探究タイプ！",
+  INFJ: "共感力ある静かなカリスマ！",
+  INTJ: "未来を読む戦略家タイプ！",
+  ENFP: "直感で動く冒険クリエイター！",
+  ENTP: "機転と行動力ある挑戦者！",
+  ENFJ: "人を導く巻き込み上手！",
+  ENTJ: "目標一直線なリーダー肌！",
+  ISFP: "感性豊かな穏やかタイプ！",
+  ISTP: "冷静で実践派な職人肌！",
+  ISFJ: "優しく支える縁の下の力持ち！",
+  ISTJ: "真面目で信頼される堅実家！",
+  ESFP: "陽気なムードメーカー！",
+  ESTP: "行動派なリアリスト！",
+  ESFJ: "世話好きで親しみやすい！",
+  ESTJ: "頼れる実務のプロ！"
+};
+
 
   const displayName = "〇〇さん";
   const resultLines = [];
@@ -1450,31 +1581,31 @@ if (combined.match(/計画|整理|スケジュール|時間管理|リスト|準�
   resultLines.push(`<div>MBTI的には：${mbtiDescriptions[type] || "バランス型タイプ！"}</div>`);
 
   if (barColor.includes('pink') || barColor.includes('#f') || barColor.includes('rose')) {
-  resultLines.push("<div>カラー診断：ピンク系 → 感受性豊かでやさしい性格！</div>");
+  resultLines.push("<div>色診断：ピンク系 → 感受性豊かでやさしい性格！</div>");
 } else if (barColor.includes('blue') || barColor.includes('navy') || barColor.includes('#00f') || barColor.includes('sky')) {
-  resultLines.push("<div>カラー診断：青系 → 冷静で誠実、知的な性格！</div>");
+  resultLines.push("<div>色診断：青系 → 冷静で誠実、知的な性格！</div>");
 } else if (barColor.includes('green') || barColor.includes('lime') || barColor.includes('olive')) {
-  resultLines.push("<div>カラー診断：緑系 → 自然や平和を大切にする穏やかタイプ！</div>");
+  resultLines.push("<div>色診断：緑系 → 自然や平和を大切にする穏やかタイプ！</div>");
 } else if (barColor.includes('yellow') || barColor.includes('gold') || barColor.includes('#ff0')) {
-  resultLines.push("<div>カラー診断：黄色系 → 明るく前向きで社交的な性格！</div>");
+  resultLines.push("<div>色診断：黄色系 → 明るく前向きで社交的な性格！</div>");
 } else if (barColor.includes('orange') || barColor.includes('#ffa')) {
-  resultLines.push("<div>カラー診断：オレンジ系 → 活動的で人懐っこいエネルギー派！</div>");
+  resultLines.push("<div>色診断：オレンジ系 → 活動的で人懐っこいエネルギー派！</div>");
 } else if (barColor.includes('red') || barColor.includes('crimson') || barColor.includes('#f00')) {
-  resultLines.push("<div>カラー診断：赤系 → 情熱的でリーダーシップを持つ人！</div>");
+  resultLines.push("<div>色診断：赤系 → 情熱的でリーダーシップを持つ人！</div>");
 } else if (barColor.includes('purple') || barColor.includes('violet') || barColor.includes('indigo')) {
-  resultLines.push("<div>カラー診断：紫系 → 感性豊かでミステリアスな魅力！</div>");
+  resultLines.push("<div>色診断：紫系 → 感性豊かでミステリアスな魅力！</div>");
 } else if (barColor.includes('black') || barColor.includes('#000')) {
-  resultLines.push("<div>カラー診断：黒系 → 意志が強く、落ち着いた雰囲気！</div>");
+  resultLines.push("<div>色診断：黒系 → 意志が強く、落ち着いた雰囲気！</div>");
 } else if (barColor.includes('white') || barColor.includes('#fff') || barColor.includes('ivory')) {
-  resultLines.push("<div>カラー診断：白系 → 純粋で素直、調和を大切にするタイプ！</div>");
+  resultLines.push("<div>色診断：白系 → 純粋で素直、調和を大切にするタイプ！</div>");
 } else if (barColor.includes('gray') || barColor.includes('grey') || barColor.includes('#888')) {
-  resultLines.push("<div>カラー診断：グレー系 → 冷静で大人びたバランスタイプ！</div>");
+  resultLines.push("<div>色診断：グレー系 → 冷静で大人びたバランスタイプ！</div>");
 } else {
-  resultLines.push("<div>カラー診断：中間色 → 多様性を受け入れる柔軟なタイプ！</div>");
+  resultLines.push("<div>色診断：中間色 → 多様性を受け入れる柔軟なタイプ！</div>");
 }
 
 
-  const hobbyTags = {
+ const hobbyTags = {
   'ゲーム': '戦略派 or マイペース派',
   'アニメ': '感性豊かで内向型寄り',
   '旅行': '好奇心旺盛な冒険好き',
@@ -1495,14 +1626,26 @@ if (combined.match(/計画|整理|スケジュール|時間管理|リスト|準�
   '映画': '物語や世界観に没入するエモ派',
   'カラフルな雑貨': '明るく個性的なセンスの持ち主',
   '手芸': '丁寧で集中力が高く、ものづくり好き',
-  '散歩': '自然との調和を大切にするマイペース派'
+  '散歩': '自然との調和を大切にするマイペース派',
+  'キャンプ': '自然との一体感を求めるアウトドア派',
+  '釣り': '忍耐強く静かな時間を楽しめるタイプ',
+  '日記': '自己内省型で感情の整理が得意',
+  'ブログ': '発信力があり、思考を言語化するのが得意',
+  'ランニング': 'コツコツ努力型・達成感重視タイプ',
+  'DIY': '手を動かして考えるクラフトマンタイプ',
+  '車': '機械やスピードにロマンを感じる人',
+  'バイク': '刺激と自由を求めるアウトロー気質',
+  'スイーツ作り': '創意工夫と丁寧さを楽しむクリエイター',
+  '推し活': '情熱を注げる対象がある愛情深いタイプ',
+  'Vlog': '日常の美しさや感動を発信したいタイプ',
+  '舞台': '表現芸術に感動できる感性派'
 };
 
-  const detectedHobbies = Object.keys(hobbyTags).filter(word => combined.includes(word));
-  if (detectedHobbies.length > 0) {
-    resultLines.push(`<div>${displayName}は ${detectedHobbies.join('・')} が好きな傾向があるよ！</div>`);
-    resultLines.push(`<div>→ 傾向：${detectedHobbies.map(h => hobbyTags[h]).join(' ／ ')}</div>`);
-  }
+const detectedHobbies = Object.keys(hobbyTags).filter(word => combined.includes(word));
+if (detectedHobbies.length > 0) {
+  resultLines.push(`<div>${displayName}は ${detectedHobbies.join('・')} が好きな傾向があるよ！</div>`);
+  resultLines.push(`<div>→ 傾向：${detectedHobbies.map(h => hobbyTags[h]).join(' ／ ')}</div>`);
+}
 
 const hobbyExtensions = [];
 if (combined.includes('ゲーム')) hobbyExtensions.push("🎮 サバゲーやボードゲームも好きな可能性あり！");
@@ -1529,11 +1672,35 @@ if (combined.includes('カメラ')) hobbyExtensions.push("📷 撮った写真�
 if (combined.includes('プログラミング')) hobbyExtensions.push("💻 どんなアプリやコード書いてるか聞いてみよう！");
 if (combined.includes('写真')) hobbyExtensions.push("📸 SNSやアルバムに素敵な構図があるかも！");
 if (combined.includes('アウトドア')) hobbyExtensions.push("🏕️ キャンプや登山など自然体験の話題が合いそう！");
+if (combined.includes('キャンプ')) hobbyExtensions.push("🔥 おすすめのキャンプ場とか聞くと盛り上がるかも！");
+if (combined.includes('釣り')) hobbyExtensions.push("🎣 釣りスポットや道具の話題でじっくり会話できそう！");
+if (combined.includes('日記')) hobbyExtensions.push("📝 普段どんなこと書いてるか聞くと深い話になりそう！");
+if (combined.includes('ブログ')) hobbyExtensions.push("🖋️ ブログのテーマや記事ネタについて話してみよう！");
+if (combined.includes('ランニング')) hobbyExtensions.push("🏃‍♀️ ランニングコースやタイムの話題で共感できるかも！");
+if (combined.includes('DIY')) hobbyExtensions.push("🔧 最近作ったものやこだわりポイントを聞いてみよう！");
+if (combined.includes('車') || combined.includes('バイク')) hobbyExtensions.push("🚗 愛車エピソードやカスタムの話が弾みそう！");
+if (combined.includes('スイーツ作り')) hobbyExtensions.push("🍰 得意なスイーツやレシピについて聞いてみよう！");
+if (combined.includes('推し活')) hobbyExtensions.push("💖 推しの魅力を熱く語ってもらうと喜ぶかも！");
+if (combined.includes('Vlog')) hobbyExtensions.push("📹 編集ソフトやこだわりポイントを聞くと話が広がるかも！");
+if (combined.includes('舞台')) hobbyExtensions.push("🎭 最近観た作品とか、役者さんの話題がハマるかも！");
 
-  if (hobbyExtensions.length > 0) {
-    resultLines.push(`<div style="margin-top:12px;">この話題を振ってみよう👇</div>`);
-    resultLines.push(`<div>${hobbyExtensions.join('<br>')}</div>`);
-  }
+if (hobbyExtensions.length > 0) {
+  resultLines.push(`<div style="margin-top:12px;">この話題を振ってみよう👇</div>`);
+  resultLines.push(`
+    <div style="
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 8px 4px;
+      line-height: 1.7;
+      word-break: keep-all;
+      overflow-wrap: break-word;
+    ">
+      ${hobbyExtensions.map(line => `<div style="white-space: normal;">${line}</div>`).join('')}
+    </div>
+  `);
+}
+
 
   localStorage.setItem('my_mbti', type);
   const mbtiEl = document.getElementById('mbti-type');
