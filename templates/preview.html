@@ -357,12 +357,24 @@ body {
     </div>
   </div>
 <!-- 横並びのSNSアイコンバー -->
-<div class="sns-icon-bar">
-  <img src="/static/instagram_icon.jpeg" alt="Instagram" class="sns-icon" onclick="handleIconClick('instagram')">
-  <img src="/static/Line.icon.jpeg" alt="LINE" class="sns-icon" onclick="handleIconClick('line')">
-  <img src="/static/BeReal.icon.jpeg" alt="BeReal" class="sns-icon" onclick="handleIconClick('bereal')">
-  <img src="/static/X_icon.jpeg" alt="X" class="sns-icon" onclick="handleIconClick('x')">
-  <img src="/static/tiktok_icon.jpeg" alt="TikTok" class="sns-icon" onclick="handleIconClick('tiktok')">
+<div class="sns-icon-bar" style="
+  width: 90vw;
+  max-width: 500px;
+  margin: 20px auto;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background-color: #ffffffcc;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  box-sizing: border-box;
+">
+  <img src="/static/instagram_icon.jpeg" alt="Instagram" class="sns-icon" onclick="handleIconClick('instagram')" style="width: 32px; height: 32px;">
+  <img src="/static/Line.icon.jpeg" alt="LINE" class="sns-icon" onclick="handleIconClick('line')" style="width: 32px; height: 32px;">
+  <img src="/static/BeReal.icon.jpeg" alt="BeReal" class="sns-icon" onclick="handleIconClick('bereal')" style="width: 32px; height: 32px;">
+  <img src="/static/X_icon.jpeg" alt="X" class="sns-icon" onclick="handleIconClick('x')" style="width: 32px; height: 32px;">
+  <img src="/static/tiktok_icon.jpeg" alt="TikTok" class="sns-icon" onclick="handleIconClick('tiktok')" style="width: 32px; height: 32px;">
 </div>
 
 <!-- 各SNSの入力欄（非表示） -->
@@ -373,6 +385,7 @@ body {
   <input id="input-x" class="sns-input" placeholder="https://twitter.com/yourid" onblur="handleBlur('x')">
   <input id="input-tiktok" class="sns-input" placeholder="https://www.tiktok.com/@yourid" onblur="handleBlur('tiktok')">
 </div>
+
 
 <!-- ▼ 自由記入欄（バツ付き） -->
 <div id="extra-text-wrapper" class="sns-wrapper" style="margin-top: 20px; position: relative;">
@@ -418,7 +431,7 @@ body {
     z-index: 10;
   ">
 
-  <!-- ここを先に -->
+  <!-- プレイヤー -->
   <div id="youtube-player" style="padding: 0; text-align: center;"></div>
 
   <!-- 見出し -->
@@ -426,12 +439,36 @@ body {
     YoutubeURL<br><span style="font-size: 12px; color: #555;"></span>
   </div>
 
-  <!-- 入力欄とボタン -->
+  <!-- 入力欄 -->
   <input type="text" id="youtube-url" placeholder="YoutubeURLを入力"
-    style="width: 84vw; max-width: 500px; padding: 10px; border: 1px solid #ccc; border-radius: 10px; font-size: 14px;">
-  <button onclick="embedYouTubeVideo()"
-    style="margin-left: 20px; padding: 8px 12px; font-size: 14px; border-radius: 8px; background: #f0f0f0;">反映</button>
+    style="
+      width: 90vw;
+      max-width: 650px;
+      padding: 14px 18px;
+      border: 1px solid #ccc;
+      border-radius: 14px;
+      font-size: 16px;
+      display: block;
+      margin: 0 auto 12px auto;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+      box-sizing: border-box;
+    ">
+
+  <!-- 中央寄せボタン -->
+  <button onclick="embedYouTubeVideo()" style="
+    display: block;
+    margin: 0 auto 10px auto;
+    padding: 10px 20px;
+    font-size: 15px;
+    border-radius: 10px;
+    background: #f5f5f5;
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  ">
+    反映
+  </button>
 </div>
+
 <!-- ▼ Spotify埋め込み欄 -->
 <div id="spotify-section" class="spotify-section" style="position: relative; margin-top: -40px;">
   <!-- ✕ ボタン -->
@@ -453,15 +490,36 @@ body {
     Spotify URL<br><span style="font-size: 12px; color: #555;">（楽曲/アルバム/プレイリスト）</span>
   </div>
 
-  <!-- ▼ 修正済み：中央寄せの入力欄とボタン -->
+  <!-- 入力欄 -->
   <input type="text" id="spotify-url" placeholder="SpotifyのURLを入力"
-    style="width: 84vw; max-width: 500px; padding: 10px; border: 1px solid #ccc; border-radius: 10px; font-size: 14px; display: block; margin: 0 auto 10px auto;">
+    style="
+      width: 90vw;
+      max-width: 650px;
+      padding: 14px 18px;
+      border: 1px solid #ccc;
+      border-radius: 14px;
+      font-size: 16px;
+      display: block;
+      margin: 0 auto 12px auto;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+      box-sizing: border-box;
+    ">
 
-  <button onclick="embedSpotify()"
-    style="display: block; margin: 0 auto; padding: 8px 12px; font-size: 14px; border-radius: 8px; background: #f0f0f0;">
+  <!-- 反映ボタン（中央 & 自己PRのボタンと揃える） -->
+  <button onclick="embedSpotify()" style="
+    display: block;
+    margin: 0 auto 10px auto;
+    padding: 10px 20px;
+    font-size: 15px;
+    border-radius: 10px;
+    background: #f5f5f5;
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  ">
     反映
   </button>
 </div>
+
 
 
   <canvas id="draw-canvas"></canvas>
@@ -1111,37 +1169,6 @@ function embedSpotify() {
   });
 
 
-function startDiagnosis() {
-  const textInputs = Array.from(document.querySelectorAll('.editable-text')).map(i => i.value).join(' ');
-  const extra = document.getElementById('extra-text')?.value || '';
-  const combined = (textInputs + ' ' + extra).toLowerCase();
-
-  let type = 'INFP'; // デフォルト
-
-  if (combined.includes('計画') || combined.includes('整理')) type = 'J';
-  else if (combined.includes('ひらめき') || combined.includes('自由')) type = 'P';
-
-  if (combined.includes('ひとり') || combined.includes('静か')) type = 'I';
-  else if (combined.includes('仲間') || combined.includes('ワイワイ')) type = 'E';
-
-  if (combined.includes('直感') || combined.includes('想像')) type = 'N';
-  else if (combined.includes('現実') || combined.includes('実用')) type = 'S';
-
-  if (combined.includes('共感') || combined.includes('優し')) type += 'F';
-  else if (combined.includes('論理') || combined.includes('分析')) type += 'T';
-
-  if (type.length < 4) type = 'INFP'; // 不完全なら初期値に
-
-  const resultText = `あなたは「${type}タイプ」かも！？`;
-
-  document.getElementById('diagnosis-result').textContent = resultText;
-  document.getElementById('diagnosis-modal').style.display = 'flex';
-
-  // タップで閉じる
-  document.getElementById('diagnosis-modal').addEventListener('click', () => {
-    document.getElementById('diagnosis-modal').style.display = 'none';
-  });
-}
 
   </script>
 <!-- 横スクロール可能な背景テンプレ一覧 -->
@@ -1218,19 +1245,46 @@ function startDiagnosis() {
 <!-- 🔽 自己PR入力と分析ボタン -->
 <div id="self-pr-section" style="margin-top: 40px; position: relative;">
   <img src="/static/batu.jpeg" alt="削除" class="sns-delete-btn" onclick="hideSelfPRSection()" style="
-  position: absolute;
-  top: 36px;
-  right: 10px;
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
-  z-index: 10;
-">
+    position: absolute;
+    top: 36px;
+    right: 20px;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    z-index: 10;
+  ">
 
   <h3 style="text-align: center;">AIが自己PRを分析！結果を見てみよう</h3>
-  <textarea id="self-pr-textarea" rows="4" placeholder="例：私はチームで目標に向かって努力するのが得意で…"
-    style="width: 90%; max-width: 500px; display: block; margin: 10px auto; padding: 10px; border-radius: 10px;"></textarea>
-  <button onclick="analyzeSelfPR()" style="display: block; margin: 10px auto; padding: 10px 20px;">分析して表示</button>
+
+  <!-- ✅ 自由記入欄に寄せたtextarea -->
+  <textarea id="self-pr-textarea" rows="4" placeholder="例：私は目標に向かって努力するのが得意で…"
+    style="
+      margin-top: 3px;
+      margin-left: 20px;
+      padding: 14px 18px;
+      border-radius: 14px;
+      border: 1px solid #ccc;
+      width: 90vw;
+      max-width: 650px;
+      font-size: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+      resize: none;
+      line-height: 1.6;
+      background-color: #fff;
+      box-sizing: border-box;
+    "></textarea>
+
+  <!-- ✅ 自由記入欄と調和させたボタン -->
+  <button onclick="analyzeSelfPR()" style="
+    display: block;
+    margin: 10px auto;
+    padding: 10px 20px;
+    font-size: 15px;
+    border-radius: 10px;
+    background-color: #f5f5f5;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    border: 1px solid #ccc;
+  ">分析して表示</button>
 </div>
 
 <!-- 自己PR分析モーダル -->
