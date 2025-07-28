@@ -5,14 +5,16 @@
   <title>名刺プレビュー</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      font-family: 'Helvetica Neue', sans-serif;
-      background: linear-gradient(120deg, #d0f4de, #ffcbf2);
-      overflow: auto;
-    }
+  html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: 'Helvetica Neue', sans-serif;
+  background: linear-gradient(180deg, #ffe4ec, #fff1f7);
+  overflow: auto;
+}
+
+
 
     body {
   background-size: cover;
@@ -418,14 +420,18 @@ body {
 </div>
 
 <!-- テンプレート挿入ボタン -->
-<div style="text-align: center; margin-top: 8px;">
+<div style="text-align: center; margin-top: 13px;">
   <button onclick="showTemplateButtons()" style="
     font-size: 14px;
     padding: 6px 14px;
     border-radius: 8px;
-    border: 1px solid #888;
-    background: #f0f0f0;
+    border: none;
+    background: rgb(255, 224, 136); 
+    color: #333;
+    font-weight: bold;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     cursor: pointer;
+    transition: background-color 0.2s ease;
   ">✍️ テンプレート挿入</button>
 </div>
 
@@ -490,9 +496,10 @@ body {
     padding: 10px 20px;
     font-size: 15px;
     border-radius: 10px;
-    background: #f5f5f5;
-    border: 1px solid #ccc;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    background: rgb(255, 224, 136); 
+    color: black;
+border: none;
+box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   ">
     反映
   </button>
@@ -538,19 +545,20 @@ body {
     ">
 
   <!-- 反映ボタン（中央 & 自己PRのボタンと揃える） -->
-  <button onclick="embedSpotify()" style="
-    display: block;
-    margin: 0 auto 10px auto;
-    padding: 10px 20px;
-    font-size: 15px;
-    border-radius: 10px;
-    background: #f5f5f5;
-    border: 1px solid #ccc;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  ">
-    反映
-  </button>
-</div>
+<button onclick="embedSpotify()" style="
+  display: block;
+  margin: 0 auto 10px auto;
+  padding: 10px 20px;
+  font-size: 15px;
+  border-radius: 10px;
+  background: rgb(255, 224, 136); /* サブ1の黄色 */
+  color: black;
+  border: none;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+">
+  反映
+</button>
+
 
 
 
@@ -1267,10 +1275,8 @@ function showTemplateButtons() {
     padding: 12px 24px;
     font-size: 17px;
     border-radius: 12px;
-    background: linear-gradient(135deg, #ffffff 0%, #d6f2f9 40%, #ffd1e9 100%);
+    background: rgb(255, 102, 153);
     color: #fff;
-    font-weight: bold;
-    font-family: 'Rounded Mplus 1c', 'Hiragino Maru Gothic ProN', sans-serif;
     border: none;
     cursor: pointer;
     box-shadow: 0 4px 10px rgba(0,0,0,0.2);
@@ -1330,18 +1336,20 @@ function showTemplateButtons() {
       box-sizing: border-box;
     "></textarea>
 
-  <!-- ✅ 自由記入欄と調和させたボタン -->
-  <button onclick="analyzeSelfPR()" style="
-    display: block;
-    margin: 10px auto;
-    padding: 10px 20px;
-    font-size: 15px;
-    border-radius: 10px;
-    background-color: #f5f5f5;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    border: 1px solid #ccc;
-  ">分析して表示</button>
+ <!-- ✅ 自由記入欄と調和させたボタン -->
+<button onclick="analyzeSelfPR()" style="
+  display: block;
+  margin: 10px auto;
+  padding: 10px 20px;
+  font-size: 15px;
+  border-radius: 10px;
+  background: rgb(255, 224, 136); 
+  color: black; /* 文字を黒に */
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  border: 1px solid #ccc;
+">分析して表示</button>
 </div>
+
 
 <!-- 自己PR分析モーダル -->
 <div id="self-pr-modal" style="
