@@ -2692,46 +2692,54 @@ function analyzeSelfPR() {
 <!-- 🔽 JavaScriptはこの <script> の中に全部入れる！ -->
 
 document.addEventListener('DOMContentLoaded', () => {
-  let editMode = true;
+  const isFinalPage = window.location.href.includes('/user_cards/');
+  let editMode = !isFinalPage; // 完成ページではfalse、通常ページはtrue
 
   const editToggle = document.getElementById('edit-toggle');
-  const returnToggle = document.getElementById('return-toggle'); // 👈 追加！
+  const returnToggle = document.getElementById('return-toggle');
   const toolbars = document.querySelectorAll('.toolbar, .text-style-toolbar');
   const deleteButtons = document.querySelectorAll('.sns-delete-btn, .deco-delete-btn, .text-stamp-delete-btn');
+  const templateSection = document.querySelector('.deletable-templates');
+  const youtubeButton = document.querySelector('.youtube-section button');
+  const spotifyButton = document.querySelector('#spotify-section button');
 
   const updateEditMode = () => {
     toolbars.forEach(el => el.style.display = editMode ? 'flex' : 'none');
     deleteButtons.forEach(el => el.style.display = editMode ? 'block' : 'none');
-    editToggle.src = editMode ? '/static/open_eye.jpeg' : '/static/closed_eye.jpeg';
-// 編集モード時に反映ボタンを非表示
-const templateSection = document.querySelector('.deletable-templates')
-const youtubeButton = document.querySelector('.youtube-section button');
-const spotifyButton = document.querySelector('#spotify-section button');
+    if (editToggle) editToggle.src = editMode ? '/static/open_eye.jpeg' : '/static/closed_eye.jpeg';
 
-if (youtubeButton) youtubeButton.style.display = editMode ? 'block' : 'none';
-if (spotifyButton) spotifyButton.style.display = editMode ? 'block' : 'none';
-if (templateSection) templateSection.style.display = editMode ? 'block' : 'none';
+    if (youtubeButton) youtubeButton.style.display = editMode ? 'block' : 'none';
+    if (spotifyButton) spotifyButton.style.display = editMode ? 'block' : 'none';
+    if (templateSection) templateSection.style.display = editMode ? 'block' : 'none';
+
     // 戻るボタンの表示切替
-    if (editMode) {
-      returnToggle.style.display = 'none';
-    } else {
-      returnToggle.style.display = 'block';
+    if (returnToggle) {
+      returnToggle.style.display = editMode ? 'none' : 'block';
+    }
+
+    // 👇 完成ページだったらアイコンもボタンも全部消す（念のため）
+    if (isFinalPage) {
+      if (editToggle) editToggle.style.display = 'none';
+      if (returnToggle) returnToggle.style.display = 'none';
     }
   };
 
-  editToggle.addEventListener('click', () => {
-    editMode = !editMode;
-    updateEditMode();
-  });
+  // 完成ページではイベント登録も不要
+  if (!isFinalPage) {
+    editToggle.addEventListener('click', () => {
+      editMode = !editMode;
+      updateEditMode();
+    });
 
-  // 👇 戻るアイコン押されたとき
-  returnToggle.addEventListener('click', () => {
-    editMode = true;
-    updateEditMode();
-  });
+    returnToggle.addEventListener('click', () => {
+      editMode = true;
+      updateEditMode();
+    });
+  }
 
   updateEditMode(); // 初期化
 });
+
 
 </script>
 
