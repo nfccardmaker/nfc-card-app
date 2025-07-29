@@ -2702,6 +2702,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const templateSection = document.querySelector('.deletable-templates');
   const youtubeButton = document.querySelector('.youtube-section button');
   const spotifyButton = document.querySelector('#spotify-section button');
+  const youtubeInput = document.getElementById('youtube-url');
+  const spotifyInput = document.getElementById('spotify-url');
 
   const updateEditMode = () => {
     toolbars.forEach(el => el.style.display = editMode ? 'flex' : 'none');
@@ -2711,6 +2713,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (youtubeButton) youtubeButton.style.display = editMode ? 'block' : 'none';
     if (spotifyButton) spotifyButton.style.display = editMode ? 'block' : 'none';
     if (templateSection) templateSection.style.display = editMode ? 'block' : 'none';
+    if (youtubeInput) youtubeInput.style.display = editMode ? 'block' : 'none';
+    if (spotifyInput) spotifyInput.style.display = editMode ? 'block' : 'none';
 
     // 戻るボタンの表示切替
     if (returnToggle) {
