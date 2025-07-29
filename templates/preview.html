@@ -394,8 +394,8 @@ body {
 <div id="extra-text-wrapper" class="sns-wrapper" style="margin-top: 20px; position: relative;">
   <img src="/static/batu.jpeg" alt="削除" class="sns-delete-btn" onclick="hideExtraText()" style="
     position: absolute;
-    top: -4px;
-    right: 11px;
+    top: -9px;
+    right: 18px;
     width: 18px;
     height: 18px;
     cursor: pointer;
@@ -420,7 +420,7 @@ body {
 </div>
 
 <!-- テンプレート挿入ボタン -->
-<div style="text-align: center; margin-top: 13px;">
+<div class="deletable-templates" style="text-align: center; margin-top: 13px;">
   <button onclick="showTemplateButtons()" style="
     font-size: 14px;
     padding: 6px 14px;
@@ -434,6 +434,7 @@ body {
     transition: background-color 0.2s ease;
   ">✍️ テンプレート挿入</button>
 </div>
+
 
 <!-- テンプレート項目ボタン（横並び） -->
 <div id="template-buttons" style="
@@ -456,7 +457,7 @@ body {
 <div class="youtube-section" style="position: relative; margin-top: 20px;">
   <img src="/static/batu.jpeg" alt="削除" class="sns-delete-btn" onclick="hideYouTubeSection()" style="
     position: absolute;
-    top: 15px;
+    top: 13px;
     right: 20px;
     width: 18px;
     height: 18px;
@@ -594,16 +595,16 @@ box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 </div>
 <img src="/static/restore.jpeg" onclick="restoreSNS()" style="width: 28px; height: 28px; cursor: pointer;">
 <!-- ツールバー内の確認ボタンの左あたりに追加 -->
- <img id="edit-toggle" src="/static/open_eye.jpeg" style="width: 28px; height: 28px; margin-right: 10px; cursor: pointer;" alt="編集モード">
-
+ <img id="edit-toggle" src="/static/open_eye.jpeg" style="width: 28px; height: 28px; cursor: pointer;" alt="編集切替">
     <button onclick="togglePreview()" id="check-button">確認</button>
   </div>
-<img id="return-toggle" src="/static/closed_eye.jpeg"
+  <img id="return-toggle" src="/static/closed_eye.jpeg"
      style="width: 50px; height: 50px; position: fixed; bottom: 20px; right: 20px;
             cursor: pointer; display: none; z-index: 9999;
             border-radius: 50%; background: white;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
             animation: pulse 2s infinite;" alt="戻る">
+
   <script>
     const urls = { instagram: '', x: '', tiktok: '' };
     const canvas = document.getElementById('draw-canvas');
@@ -683,25 +684,31 @@ function changeBarColor(e) {
   document.documentElement.style.setProperty('--bar-color', e.target.value);
 }
 
+const iconClickState = {};
+
 function handleIconClick(service) {
   const input = document.getElementById(`input-${service}`);
   if (!input) return;
 
-  if (urls[service]) {
-    window.open(urls[service], '_blank');
-  } else {
-    input.style.display = 'block';
-    input.focus();
+  const url = input.value.trim();
+  const defaultLinks = {
+    instagram: "https://www.instagram.com",
+    line: "https://line.me",
+    bereal: "https://bere.al",
+    x: "https://twitter.com",
+    tiktok: "https://www.tiktok.com"
+  };
 
-    input.onblur = () => {
-      const val = input.value.trim();
-      if (val) {
-        urls[service] = val;
-      }
-      input.style.display = 'none'; // ← 入力後はしまう
-    };
+  // 初回なら公式へ、2回目以降は入力
+  if (!iconClickState[service]) {
+    iconClickState[service] = true;
+    window.open(defaultLinks[service], '_blank');
+  } else {
+    input.style.display = "block";
+    input.focus();
   }
 }
+
 
 
 function handleBlur(service) {
@@ -994,6 +1001,8 @@ const spotifyInput = document.getElementById('spotify-url');
 const spotifyButton = document.querySelector('#spotify-section button');
 if (spotifyInput) spotifyInput.style.display = 'none';
 if (spotifyButton) spotifyButton.style.display = 'none';
+const templateButton = document.querySelector('.deletable-templates');
+if (templateButton) templateButton.style.display = 'none';
 
 
   const extraBatsu = document.querySelector('#extra-text-wrapper .sns-delete-btn');
@@ -1085,12 +1094,20 @@ function embedYouTubeVideo() {
   if (match && match[1]) {
     const videoId = match[1];
     player.innerHTML = `
-      <iframe width="100%" height="200" 
-      style="max-width: 90vw;"  
-        src="https://www.youtube.com/embed/${videoId}" 
-        frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-        allowfullscreen>
-      </iframe>
+      <div style="
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+        max-width: 90vw;
+        margin: 0 auto 12px auto;
+      ">
+        <iframe width="100%" height="200" 
+          src="https://www.youtube.com/embed/${videoId}" 
+          frameborder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+          allowfullscreen>
+        </iframe>
+      </div>
     `;
   } else {
     player.innerHTML = "<p style='color:red;'>正しいYouTubeのURLを入力してください。</p>";
@@ -1189,50 +1206,6 @@ function showTemplateButtons() {
   });
 }
 
-  const editToggle = document.getElementById('edit-toggle');
-  const returnToggle = document.getElementById('return-toggle');
-  let editMode = true;
-
-  editToggle.addEventListener('click', () => {
-    editMode = !editMode;
-
-    // アイコン画像切り替え
-    editToggle.src = editMode ? '/static/open_eye.jpeg' : '/static/closed_eye.jpeg';
-
-    // ツールバー、削除ボタン類の表示切替
-    const toolbars = document.querySelectorAll('.toolbar, .text-style-toolbar');
-    const deleteButtons = document.querySelectorAll('.sns-delete-btn, .deco-delete-btn, .text-stamp-delete-btn');
-
-    toolbars.forEach(el => el.style.display = editMode ? 'flex' : 'none');
-    deleteButtons.forEach(el => el.style.display = editMode ? 'block' : 'none');
-
-    // 表示位置（右下 or ツールバー内）
-    if (editMode) {
-      editToggle.classList.remove('floating-eye');
-      returnToggle.style.display = 'none';
-    } else {
-      editToggle.classList.add('floating-eye');
-      returnToggle.style.display = 'block';
-    }
-  });
-
-  // 右下の戻るアイコンを押したとき
-  returnToggle.addEventListener('click', () => {
-    editMode = true;
-
-    // 目アイコンと表示切り替え
-    editToggle.src = '/static/open_eye.jpeg';
-    const toolbars = document.querySelectorAll('.toolbar, .text-style-toolbar');
-    const deleteButtons = document.querySelectorAll('.sns-delete-btn, .deco-delete-btn, .text-stamp-delete-btn');
-
-    toolbars.forEach(el => el.style.display = 'flex');
-    deleteButtons.forEach(el => el.style.display = 'block');
-
-    editToggle.classList.remove('floating-eye');
-    returnToggle.style.display = 'none';
-  });
-
-
 
   </script>
 <!-- 横スクロール可能な背景テンプレ一覧 -->
@@ -1295,8 +1268,8 @@ function showTemplateButtons() {
 <div id="diagnosis-wrapper" style="position: relative; margin-top: 20px; text-align: center;">
   <img src="/static/batu.jpeg" alt="削除" class="sns-delete-btn" onclick="hideDiagnosisButton()" style="
     position: absolute;
-    top: -8px;
-    right: 90px;
+    top: -14px;
+    right: 100px;
     width: 18px;
     height: 18px;
     cursor: pointer;
@@ -2716,6 +2689,50 @@ function analyzeSelfPR() {
       });
     });
   });
+<!-- 🔽 JavaScriptはこの <script> の中に全部入れる！ -->
+
+document.addEventListener('DOMContentLoaded', () => {
+  let editMode = true;
+
+  const editToggle = document.getElementById('edit-toggle');
+  const returnToggle = document.getElementById('return-toggle'); // 👈 追加！
+  const toolbars = document.querySelectorAll('.toolbar, .text-style-toolbar');
+  const deleteButtons = document.querySelectorAll('.sns-delete-btn, .deco-delete-btn, .text-stamp-delete-btn');
+
+  const updateEditMode = () => {
+    toolbars.forEach(el => el.style.display = editMode ? 'flex' : 'none');
+    deleteButtons.forEach(el => el.style.display = editMode ? 'block' : 'none');
+    editToggle.src = editMode ? '/static/open_eye.jpeg' : '/static/closed_eye.jpeg';
+// 編集モード時に反映ボタンを非表示
+const templateSection = document.querySelector('.deletable-templates')
+const youtubeButton = document.querySelector('.youtube-section button');
+const spotifyButton = document.querySelector('#spotify-section button');
+
+if (youtubeButton) youtubeButton.style.display = editMode ? 'block' : 'none';
+if (spotifyButton) spotifyButton.style.display = editMode ? 'block' : 'none';
+if (templateSection) templateSection.style.display = editMode ? 'block' : 'none';
+    // 戻るボタンの表示切替
+    if (editMode) {
+      returnToggle.style.display = 'none';
+    } else {
+      returnToggle.style.display = 'block';
+    }
+  };
+
+  editToggle.addEventListener('click', () => {
+    editMode = !editMode;
+    updateEditMode();
+  });
+
+  // 👇 戻るアイコン押されたとき
+  returnToggle.addEventListener('click', () => {
+    editMode = true;
+    updateEditMode();
+  });
+
+  updateEditMode(); // 初期化
+});
+
 </script>
 
 </body>
