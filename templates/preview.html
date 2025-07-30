@@ -409,7 +409,7 @@ body {
     border: 1px solid #ccc;
     width: 90vw;
     max-width: 650px;
-    height: 150px;
+    height: 160px;
     font-size: 16px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.12);
     resize: none;
@@ -432,7 +432,7 @@ body {
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     cursor: pointer;
     transition: background-color 0.2s ease;
-  ">✍️ テンプレート挿入</button>
+  ">✍️ 記入欄テンプレート</button>
 </div>
 
 
@@ -1003,6 +1003,8 @@ if (spotifyInput) spotifyInput.style.display = 'none';
 if (spotifyButton) spotifyButton.style.display = 'none';
 const templateButton = document.querySelector('.deletable-templates');
 if (templateButton) templateButton.style.display = 'none';
+const selfPRTemplateButton = document.querySelector('.self-pr-template-section');
+if (selfPRTemplateButton) selfPRTemplateButton.style.display = 'none';
 
 
   const extraBatsu = document.querySelector('#extra-text-wrapper .sns-delete-btn');
@@ -1183,6 +1185,36 @@ function showTemplateButtons() {
     btns.style.display = 'flex';
   }
 }
+function showPRTemplateButtons() {
+  const btnArea = document.getElementById('pr-template-buttons');
+  btnArea.style.display = btnArea.style.display === 'flex' ? 'none' : 'flex';
+}
+
+function showPRTemplateButtons() {
+  const btnArea = document.getElementById('pr-template-buttons');
+  btnArea.style.display = btnArea.style.display === 'flex' ? 'none' : 'flex';
+}
+
+function insertPRTemplate(category) {
+  const prTemplates = {
+  study: "勉強では〇〇に特に力を入れてきました。日々の積み重ねと計画的な取り組みで、知識だけでなく考える力も伸ばせたと感じています。特に△△では苦手な分野も逃げずに向き合い、自分なりの工夫で乗り越えてきました。",
+  
+  sports: "学生時代は〇〇部に所属しており、練習を通じて体力だけでなく集中力や礼儀も身につけました。仲間と支え合う経験も大きな財産です。試合や大会では自分の役割を果たすことにこだわり、勝ち負け以上にチームで取り組むことの大切さを実感しました。",
+  
+  communication: "人と話すことが好きで、〇〇では周囲と協力しながら進めることが多く、自然とコミュニケーション力が鍛えられたと思います。相手の立場や気持ちを考えながら接するよう心がけています。場の雰囲気を読み取りつつ、自分の意見もしっかり伝えるバランスを大切にしています。",
+  
+  creativity: "〇〇の活動を通じて、アイデアを出して形にする面白さを学びました。自由な発想と工夫する力が自分の強みだと思っています。周囲と意見を出し合いながら、より良い形にブラッシュアップしていく過程にやりがいを感じます。",
+  
+  patience: "〇〇の経験から、うまくいかない時でも投げ出さずに取り組む姿勢を大切にしてきました。小さな進歩を積み上げる力が身につきました。結果が出るまで時間がかかることもありましたが、粘り強く続けることで自信につながっています。"
+};
+
+
+  const textarea = document.querySelector('#self-pr-textarea');
+  if (textarea) {
+    textarea.value = prTemplates[category];
+  }
+}
+
 
 
   async function compressImage(base64, maxSize = 300) {
@@ -1301,6 +1333,7 @@ function showTemplateButtons() {
       border: 1px solid #ccc;
       width: 90vw;
       max-width: 650px;
+      height: 160px;
       font-size: 16px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.12);
       resize: none;
@@ -1308,6 +1341,38 @@ function showTemplateButtons() {
       background-color: #fff;
       box-sizing: border-box;
     "></textarea>
+<!-- 自己PRテンプレート挿入ボタン -->
+<div class="deletable-templates self-pr-template-section" style="text-align: center; margin-top: 13px;">
+  <button onclick="showPRTemplateButtons()" style="
+    font-size: 14px;
+    padding: 6px 14px;
+    border-radius: 8px;
+    border: none;
+    background: rgb(255, 224, 136); 
+    color: #333;
+    font-weight: bold;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  ">✍️ 自己PRテンプレート</button>
+</div>
+
+<!-- 自己PRテンプレート項目ボタン -->
+<div id="pr-template-buttons" style="
+  margin: 12px auto 0;
+  display: none;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-width: 90%;
+">
+  <button onclick="insertPRTemplate('study')" class="template-btn">勉学</button>
+  <button onclick="insertPRTemplate('sports')" class="template-btn">スポーツ</button>
+  <button onclick="insertPRTemplate('communication')" class="template-btn">コミュ力</button>
+  <button onclick="insertPRTemplate('creativity')" class="template-btn">創造力</button>
+  <button onclick="insertPRTemplate('patience')" class="template-btn">忍耐力</button>
+</div>
+
 
  <!-- ✅ 自由記入欄と調和させたボタン -->
 <button onclick="analyzeSelfPR()" style="
@@ -2484,7 +2549,7 @@ function analyzeSelfPR() {
   // 各項目の初期スコア
   let scores = labels.map(() => baseScore);
 
-  const wordModifiers = {
+ const wordModifiers = {
   '勉学': [
     { word: '学業', value: 10 },
     { word: '勉強', value: 10 },
@@ -2496,7 +2561,14 @@ function analyzeSelfPR() {
     { word: 'レポート', value: 5 },
     { word: '予習', value: 10 },
     { word: '復習', value: 10 },
-    { word: '努力家', value: 10 }
+    { word: '努力家', value: 10 },
+    { word: '勉学に励む', value: 10 },
+    { word: '課題提出', value: 10 },
+    { word: 'ゼミ', value: 5 },
+    { word: '研究室', value: 10 },
+    { word: '成績', value: 10 },
+    { word: 'テスト勉強', value: 10 },
+    { word: '理解力', value: 10 }
   ],
   'スポーツ': [
     { word: '運動', value: 10 },
@@ -2509,7 +2581,12 @@ function analyzeSelfPR() {
     { word: '持久力', value: 10 },
     { word: '勝負', value: 5 },
     { word: 'チームプレー', value: 10 },
-    { word: '大会', value: 10 }
+    { word: '大会', value: 10 },
+    { word: '運動習慣', value: 5 },
+    { word: '走るのが好き', value: 10 },
+    { word: 'スポーツ観戦', value: 5 },
+    { word: 'フィジカル', value: 10 },
+    { word: '朝練', value: 10 }
   ],
   'コミュ力': [
     { word: '人と話すのが好き', value: 10 },
@@ -2521,7 +2598,13 @@ function analyzeSelfPR() {
     { word: '会話力', value: 10 },
     { word: '盛り上げ役', value: 10 },
     { word: '空気を読む', value: 10 },
-    { word: '話しかける', value: 10 }
+    { word: '話しかける', value: 10 },
+    { word: 'コミュニケーションが得意', value: 10 },
+    { word: '対話', value: 10 },
+    { word: '話すのが苦手', value: -10 },
+    { word: '仲間と協力', value: 10 },
+    { word: '会話に入れない', value: -5 },
+    { word: '司会経験', value: 10 }
   ],
   '創造力': [
     { word: 'アイデア', value: 10 },
@@ -2533,7 +2616,12 @@ function analyzeSelfPR() {
     { word: '表現', value: 10 },
     { word: 'デザイン', value: 10 },
     { word: '構想', value: 10 },
-    { word: '試行錯誤', value: 10 }
+    { word: '試行錯誤', value: 10 },
+    { word: 'ゼロから考える', value: 15 },
+    { word: 'ひらめき', value: 10 },
+    { word: '発明', value: 10 },
+    { word: '創意工夫', value: 15 },
+    { word: '自由な発想', value: 10 }
   ],
   '忍耐力': [
     { word: '我慢強い', value: 15 },
@@ -2545,7 +2633,11 @@ function analyzeSelfPR() {
     { word: '努力', value: 10 },
     { word: '耐える', value: 10 },
     { word: '失敗しても挑戦', value: 15 },
-    { word: 'コツコツ', value: 10 }
+    { word: 'コツコツ', value: 10 },
+    { word: '長期間の取り組み', value: 10 },
+    { word: '継続は力なり', value: 15 },
+    { word: '精神的にタフ', value: 10 },
+    { word: '諦めずに続けた', value: 15 }
   ]
 };
 
@@ -2704,6 +2796,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const spotifyButton = document.querySelector('#spotify-section button');
   const youtubeInput = document.getElementById('youtube-url');
   const spotifyInput = document.getElementById('spotify-url');
+  const prTemplateSection = document.querySelector('.self-pr-template-section');
 
   const updateEditMode = () => {
     toolbars.forEach(el => el.style.display = editMode ? 'flex' : 'none');
@@ -2715,7 +2808,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (templateSection) templateSection.style.display = editMode ? 'block' : 'none';
     if (youtubeInput) youtubeInput.style.display = editMode ? 'block' : 'none';
     if (spotifyInput) spotifyInput.style.display = editMode ? 'block' : 'none';
-
+    if (prTemplateSection) prTemplateSection.style.display = editMode ? 'block' : 'none';
     // 戻るボタンの表示切替
     if (returnToggle) {
       returnToggle.style.display = editMode ? 'none' : 'block';
