@@ -379,6 +379,18 @@ body {
   <img src="/static/X_icon.jpeg" alt="X" class="sns-icon" onclick="handleIconClick('x')" style="width: 32px; height: 32px;">
   <img src="/static/tiktok_icon.jpeg" alt="TikTok" class="sns-icon" onclick="handleIconClick('tiktok')" style="width: 32px; height: 32px;">
 </div>
+<div id="sns-explain" style="
+  font-size: 12.5px;
+  color: #777;
+  text-align: center;
+  margin-top: 12px;
+  margin-bottom: 16px;
+  line-height: 1.6;
+">
+  アイコンを押すと公式ページへ！<br>
+  URLをコピーしてプロフィールに登録しよう
+</div>
+
 
 <!-- 各SNSの入力欄（非表示） -->
 <div class="sns-inputs">
@@ -468,7 +480,7 @@ body {
   <!-- プレイヤー -->
   <div id="youtube-player" style="padding: 0; text-align: center;"></div>
 <!-- ▼ YouTube見出し（リンク化＋赤） -->
-<div style="font-weight: bold; font-size: 14px; margin-bottom: 6px; text-align: left; padding-left: 5vw;">
+<div style="font-weight: bold; font-size: 14px; margin-bottom: 6px; text-align: left; padding-left: 5vw;text-decoration: underline; /* ✅ 見た目で「リンクになる感」出す */">
   <a href="https://www.youtube.com" target="_blank" style="color: red; text-decoration: none;">
     YouTube URL
   </a><br>
@@ -488,6 +500,7 @@ body {
       margin: 0 auto 12px auto;
       box-shadow: 0 2px 8px rgba(0,0,0,0.12);
       box-sizing: border-box;
+      
     ">
 
   <!-- 中央寄せボタン -->
@@ -522,13 +535,14 @@ box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   <!-- 埋め込みプレイヤーを先に -->
   <div id="spotify-player" style="padding: 0; text-align: center;"></div>
 
- <!-- ▼ Spotify見出し（リンク化＋緑） -->
+<!-- ▼ Spotify見出し（リンク化＋緑＋下線） -->
 <div style="font-weight: bold; font-size: 14px; margin-bottom: 6px; text-align: left; padding-left: 5vw;">
-  <a href="https://open.spotify.com" target="_blank" style="color: green; text-decoration: none;">
+  <a href="https://open.spotify.com" target="_blank" style="color: green; text-decoration: underline;">
     Spotify URL
   </a><br>
   <span style="font-size: 12px; color: #555;">（楽曲/アルバム/プレイリスト）</span>
 </div>
+
 
   <!-- 入力欄 -->
   <input type="text" id="spotify-url" placeholder="SpotifyのURLを入力"
@@ -1017,6 +1031,8 @@ if (selfPRTemplateButton) selfPRTemplateButton.style.display = 'none';
   if (spotifyBatsu) spotifyBatsu.style.display = 'none';
   const selfPRBatsu = document.querySelector('#self-pr-section .sns-delete-btn');
   if (selfPRBatsu) selfPRBatsu.style.display = 'none';
+  const snsExplain = document.getElementById('sns-explain');
+  if (snsExplain) snsExplain.style.display = 'none';
 
  ['instagram', 'line', 'bereal', 'x', 'tiktok'].forEach(service => {
   const url = urls[service];
@@ -2797,7 +2813,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const youtubeInput = document.getElementById('youtube-url');
   const spotifyInput = document.getElementById('spotify-url');
   const prTemplateSection = document.querySelector('.self-pr-template-section');
-
+  const snsExplain = document.getElementById('sns-explain');
   const updateEditMode = () => {
     toolbars.forEach(el => el.style.display = editMode ? 'flex' : 'none');
     deleteButtons.forEach(el => el.style.display = editMode ? 'block' : 'none');
@@ -2809,6 +2825,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (youtubeInput) youtubeInput.style.display = editMode ? 'block' : 'none';
     if (spotifyInput) spotifyInput.style.display = editMode ? 'block' : 'none';
     if (prTemplateSection) prTemplateSection.style.display = editMode ? 'block' : 'none';
+    if (snsExplain) snsExplain.style.display = editMode ? 'block' : 'none';
     // 戻るボタンの表示切替
     if (returnToggle) {
       returnToggle.style.display = editMode ? 'none' : 'block';
@@ -2840,5 +2857,54 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </script>
 
+</script>
+<!-- 背景画像 -->
+<img id="background-img" src="/static/box.jpeg" style="
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  z-index: 9990;
+">
+</div>
+<!-- ✅ 画像ボタン（アイコン） -->
+<img id="toggle-background-btn" src="/static/box.jpeg" style="
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 48px;
+  height: 48px;
+  cursor: pointer;
+  z-index: 9999;
+">
+
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const toggleBtn = document.getElementById('toggle-background-btn');
+    const mainWrapper = document.querySelector('.main-wrapper');
+    const backgroundImg = document.getElementById('background-img');
+    let showingBackground = false;
+
+    // ✅ 完成ページのときだけボタン表示
+    const isFinalPage = window.location.href.includes('/user_cards/');
+    if (isFinalPage && toggleBtn) {
+      toggleBtn.style.display = 'block';
+    }
+
+    toggleBtn?.addEventListener('click', () => {
+      showingBackground = !showingBackground;
+      if (mainWrapper) mainWrapper.style.display = showingBackground ? 'none' : 'block';
+      if (backgroundImg) backgroundImg.style.display = showingBackground ? 'block' : 'none';
+      toggleBtn.src = showingBackground ? "/static/box.jpeg" : "/static/box.jpeg";
+    });
+  });
+</script>
+
 </body>
 </html>
+
