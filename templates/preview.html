@@ -2859,7 +2859,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </script>
 <!-- 背景画像 -->
-<img id="background-img" src="/static/box.jpeg" style="
+<img id="background-img" src="/static/box.png" style="
   display: none;
   position: absolute;
   top: 0;
@@ -2871,7 +2871,7 @@ document.addEventListener('DOMContentLoaded', () => {
 ">
 </div>
 <!-- ✅ 画像ボタン（アイコン） -->
-<img id="toggle-background-btn" src="/static/box.jpeg" style="
+<img id="toggle-background-btn" src="/static/box.png" style="
   display: none;
   position: fixed;
   bottom: 20px;
@@ -2900,7 +2900,7 @@ document.addEventListener('DOMContentLoaded', () => {
       showingBackground = !showingBackground;
       if (mainWrapper) mainWrapper.style.display = showingBackground ? 'none' : 'block';
       if (backgroundImg) backgroundImg.style.display = showingBackground ? 'block' : 'none';
-      toggleBtn.src = showingBackground ? "/static/box.jpeg" : "/static/box.jpeg";
+      toggleBtn.src = showingBackground ? "/static/box.png" : "/static/box.png";
     });
   });
 </script>
