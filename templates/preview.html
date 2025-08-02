@@ -336,6 +336,37 @@ body {
       transform: translateY(0);
     }
   }
+:root {
+  --bar-color: #add8e6;
+}
+
+.header-bar {
+  background-color: var(--bar-color);
+  height: 40px;
+  overflow: hidden;
+  position: relative;
+}
+
+.scrolling-text {
+  white-space: nowrap;
+  display: inline-block;
+  padding-left: 100%;
+  animation: scroll-left 12s linear infinite;
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+  line-height: 40px;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+@keyframes scroll-left {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-100%); }
+}
+
+
 
   </style>
 </head>
@@ -343,7 +374,21 @@ body {
   <div id="page-wrapper">
   <div class="main-wrapper">
   <div class="card">
-    <div class="header-bar"></div>
+   <div class="header-bar" id="header-bar">
+  <input id="scroll-text-input" type="text" placeholder="バーに表示する文字を入力"
+    style="width: 100%; max-width: 100%; height: 40px;
+           border: none; background: transparent;
+           padding: 0; font-size: 18px;
+           position: absolute; top: 0; left: 0;
+           transform: none;
+           color: white; text-align: center;
+           z-index: 2; font-weight: bold;
+           font-family: inherit; outline: none;">
+  <div class="scrolling-text" id="scrolling-text" style="display: none;"></div>
+</div>
+
+
+
     <div class="student-id">
       <div class="left-section">
         <img id="profile-img" src="{{ image_data or '/static/profile_icon.jpeg' }}" alt="プロフィール画像">
@@ -2903,6 +2948,36 @@ document.addEventListener('DOMContentLoaded', () => {
       toggleBtn.src = showingBackground ? "/static/box.png" : "/static/box.png";
     });
   });
+</script>
+<script>
+const input = document.getElementById('scroll-text-input');
+const text = document.getElementById('scrolling-text');
+
+function activateScrolling() {
+  const value = input.value.trim();
+  if (value) {
+    text.textContent = value;
+    text.style.display = 'inline-block';
+    input.style.display = 'none';
+  }
+}
+
+function enableEditing() {
+  input.style.display = 'block';
+  text.style.display = 'none';
+  input.focus();
+}
+
+input.addEventListener('keypress', e => {
+  if (e.key === 'Enter') {
+    activateScrolling();
+  }
+});
+
+input.addEventListener('blur', activateScrolling);
+
+// ← ここ追加：流れるテキストを押すと再編集できる
+text.addEventListener('click', enableEditing);
 </script>
 
 </body>
