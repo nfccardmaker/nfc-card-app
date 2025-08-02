@@ -400,12 +400,13 @@ body {
         <input type="file" accept="image/*" id="profile-input" class="hidden-input">
       </div>
       <div class="info-section">
-        <input type="text" class="editable-text glow-once" placeholder="名前">
-        <input type="text" class="editable-text" placeholder="誕生日">
-        <input type="text" class="editable-text" placeholder="年齢">
-        <input type="text" class="editable-text" placeholder="学部:学科">
-        <input type="text" class="editable-text" placeholder="出身地">
-        <input type="text" class="editable-text" placeholder="趣味">
+       <input type="text" id="name" class="editable-text" placeholder="名前">
+       <input type="text" id="birthday" class="editable-text" placeholder="誕生日">
+       <input type="text" id="age" class="editable-text" placeholder="年齢">
+       <input type="text" id="department" class="editable-text" placeholder="学部:学科">
+       <input type="text" id="birthplace" class="editable-text" placeholder="出身地">
+       <input type="text" id="hobby" class="editable-text" placeholder="趣味">
+
       </div>
     </div>
   </div>
@@ -2984,6 +2985,17 @@ input.addEventListener('blur', activateScrolling);
 // ← ここ追加：流れるテキストを押すと再編集できる
 text.addEventListener('click', enableEditing);
 </script>
+<script>
+window.onload = () => {
+  // 各フィールドを空に初期化
+  const fields = ["name", "birthday", "age", "department", "birthplace", "hobby"];
+  fields.forEach(id => {
+    const input = document.getElementById(id);
+    if (input) input.value = "";
+  });
+};
+</script>
+
 
 </body>
 </html>
