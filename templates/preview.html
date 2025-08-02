@@ -2985,16 +2985,6 @@ input.addEventListener('blur', activateScrolling);
 // ← ここ追加：流れるテキストを押すと再編集できる
 text.addEventListener('click', enableEditing);
 </script>
-<script>
-window.onload = () => {
-  // 各フィールドを空に初期化
-  const fields = ["name", "birthday", "age", "department", "birthplace", "hobby"];
-  fields.forEach(id => {
-    const input = document.getElementById(id);
-    if (input) input.value = "";
-  });
-};
-</script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
   import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
@@ -3032,7 +3022,6 @@ window.onload = () => {
     }
   }
 </script>
-
 
 </body>
 </html>
