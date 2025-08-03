@@ -3023,10 +3023,19 @@ text.addEventListener('click', enableEditing);
     }
   }
 
-  // 💾 保存（作成ボタンで）
+  // 🟡 作成ボタンで同意モーダルを表示
   const finishBtn = document.getElementById("finish-button");
   if (finishBtn) {
-    finishBtn.addEventListener("click", async () => {
+    finishBtn.addEventListener("click", () => {
+      const termsModal = document.getElementById("terms-modal");
+      if (termsModal) termsModal.style.display = "flex";
+    });
+  }
+
+  // ✅ 同意ボタンで保存実行
+  const agreeBtn = document.getElementById("agree-btn");
+  if (agreeBtn) {
+    agreeBtn.addEventListener("click", async () => {
       const newId = crypto.randomUUID();
       const data = {
         name: document.getElementById("name").value,
@@ -3039,13 +3048,14 @@ text.addEventListener('click', enableEditing);
 
       try {
         await setDoc(doc(db, "cards", newId), data);
-       window.location.href = `/preview?id=${newId}`;
+        window.location.href = `/preview?id=${newId}`;
       } catch (e) {
         alert("保存に失敗しました：" + e.message);
       }
     });
   }
 </script>
+
 
 
 </body>
