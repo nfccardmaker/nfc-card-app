@@ -2990,55 +2990,49 @@ text.addEventListener('click', enableEditing);
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
   import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyBCnMBQjzoxViJPv3YqpZDD_PXQEe2QTsA",
-    authDomain: "nfc-card-app-79464.firebaseapp.com",
-    projectId: "nfc-card-app-79464",
-    storageBucket: "nfc-card-app-79464.appspot.com",
-    messagingSenderId: "200343990188",
-    appId: "1:200343990188:web:d65e97e3df92f3afb91409",
-    measurementId: "G-CSCLM88L8S"
-  };
+  document.addEventListener("DOMContentLoaded", () => {
+    const firebaseConfig = {
+      apiKey: "AIzaSyBCnMBQjzoxViJPv3YqpZDD_PXQEe2QTsA",
+      authDomain: "nfc-card-app-79464.firebaseapp.com",
+      projectId: "nfc-card-app-79464",
+      storageBucket: "nfc-card-app-79464.appspot.com",
+      messagingSenderId: "200343990188",
+      appId: "1:200343990188:web:d65e97e3df92f3afb91409",
+      measurementId: "G-CSCLM88L8S"
+    };
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-  // 🔍 表示処理（URLに ?id=xxx がある場合）
-  (async () => {
+    // 表示処理
     const params = new URLSearchParams(window.location.search);
     const id = params.get("id");
 
     if (id) {
       const docRef = doc(db, "cards", id);
-      const docSnap = await getDoc(docRef);
-
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        document.getElementById("name").value = data.name;
-        document.getElementById("birthday").value = data.birthday;
-        document.getElementById("age").value = data.age;
-        document.getElementById("department").value = data.department;
-        document.getElementById("birthplace").value = data.birthplace;
-        document.getElementById("hobby").value = data.hobby;
-      } else {
-        alert("データが見つかりませんでした！");
-      }
+      getDoc(docRef).then((docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          document.getElementById("name").value = data.name;
+          document.getElementById("birthday").value = data.birthday;
+          document.getElementById("age").value = data.age;
+          document.getElementById("department").value = data.department;
+          document.getElementById("birthplace").value = data.birthplace;
+          document.getElementById("hobby").value = data.hobby;
+        } else {
+          alert("データが見つかりませんでした！");
+        }
+      });
     }
-  })();
 
-  // 🟡 「作成」ボタンクリック → 利用規約モーダル表示
-  const finishBtn = document.getElementById("finish-button");
-  if (finishBtn) {
-    finishBtn.addEventListener("click", () => {
+    // 作成ボタン → 規約モーダル表示
+    document.getElementById("finish-button")?.addEventListener("click", () => {
       const termsModal = document.getElementById("terms-modal");
       if (termsModal) termsModal.style.display = "flex";
     });
-  }
 
-  // ✅ 「同意する」ボタンで Firebase に保存して遷移
-  const agreeBtn = document.getElementById("agree-btn");
-  if (agreeBtn) {
-    agreeBtn.addEventListener("click", async () => {
+    // 同意ボタン → 保存＆遷移
+    document.getElementById("agree-btn")?.addEventListener("click", async () => {
       const newId = crypto.randomUUID();
       const data = {
         name: document.getElementById("name")?.value || "",
@@ -3056,8 +3050,15 @@ text.addEventListener('click', enableEditing);
         alert("保存に失敗しました：" + e.message);
       }
     });
-  }
+
+    // 閉じるボタン
+    document.getElementById("close-terms-btn")?.addEventListener("click", () => {
+      const termsModal = document.getElementById("terms-modal");
+      if (termsModal) termsModal.style.display = "none";
+    });
+  });
 </script>
+
 
 
 
