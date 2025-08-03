@@ -3032,7 +3032,8 @@ text.addEventListener('click', enableEditing);
       age: document.getElementById("age").value,
       department: document.getElementById("department").value,
       birthplace: document.getElementById("birthplace").value,
-      hobby: document.getElementById("hobby").value
+     hobby: document.getElementById("hobby").value,
+     imageUrl: document.getElementById("profile-img").src
     };
     try {
       await setDoc(doc(db, "cards", newId), data);
@@ -3063,13 +3064,47 @@ text.addEventListener('click', enableEditing);
   document.getElementById("notice-close-btn")?.addEventListener("click", () => {
     document.getElementById("terms-notice").style.display = "none";
   });
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
+
+const storage = getStorage(app);
+const imageInput = document.getElementById('profile-input');
+const profileImg = document.getElementById('profile-img');
+
+imageInput?.addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const imageRef = ref(storage, 'profile_images/' + crypto.randomUUID());
+  await uploadBytes(imageRef, file);
+  const downloadURL = await getDownloadURL(imageRef);
+
+  profileImg.src = downloadURL;
+
+  if (id) {
+    await setDoc(doc(db, "cards", id), { imageUrl: downloadURL }, { merge: true });
+    console.log("✅画像URLをFirestoreに保存:", downloadURL);
+  }
+});
+
+// 画像クリックでファイル選択開くようにする（任意）
+profileImg?.addEventListener('click', () => {
+  imageInput?.click();
+});
+
+// 画像URLを読み込んで表示（getDoc 成功時に追加）
+if (id) {
+  const docRef = doc(db, "cards", id);
+  getDoc(docRef).then(docSnap => {
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      if (data.imageUrl) {
+        document.getElementById('profile-img').src = data.imageUrl;
+      }
+    }
+  });
+}
 
 </script>
-
-
-
-
-
 
 
 </body>
