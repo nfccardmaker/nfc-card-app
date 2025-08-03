@@ -3039,7 +3039,7 @@ text.addEventListener('click', enableEditing);
 
       try {
         await setDoc(doc(db, "cards", newId), data);
-        window.location.href = `/preview?id=${id}`;
+       window.location.href = `/preview?id=${newId}`;
       } catch (e) {
         alert("保存に失敗しました：" + e.message);
       }
