@@ -3007,6 +3007,10 @@ text.addEventListener('click', enableEditing);
   const params = new URLSearchParams(window.location.search);
   const id = params.get("id");
 
+  (async () => {
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get("id");
+
   if (id) {
     const docRef = doc(db, "cards", id);
     const docSnap = await getDoc(docRef);
@@ -3023,6 +3027,8 @@ text.addEventListener('click', enableEditing);
       alert("データが見つかりませんでした！");
     }
   }
+})();
+
 
   // 🟡 「作成」ボタンクリック → 利用規約モーダル表示
   const finishBtn = document.getElementById("finish-button");
