@@ -3003,7 +3003,7 @@ text.addEventListener('click', enableEditing);
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  // 🔍 表示（preview.html?id=xxx）
+  // 🔍 表示処理（URLに ?id=xxx がある場合）
   const params = new URLSearchParams(window.location.search);
   const id = params.get("id");
 
@@ -3024,7 +3024,7 @@ text.addEventListener('click', enableEditing);
     }
   }
 
-  // 🟡 作成ボタンで同意モーダルを表示
+  // 🟡 「作成」ボタンクリック → 利用規約モーダル表示
   const finishBtn = document.getElementById("finish-button");
   if (finishBtn) {
     finishBtn.addEventListener("click", () => {
@@ -3033,18 +3033,18 @@ text.addEventListener('click', enableEditing);
     });
   }
 
-  // ✅ 同意ボタンで保存実行
+  // ✅ 「同意する」ボタンで Firebase に保存して遷移
   const agreeBtn = document.getElementById("agree-btn");
   if (agreeBtn) {
     agreeBtn.addEventListener("click", async () => {
       const newId = crypto.randomUUID();
       const data = {
-        name: document.getElementById("name").value,
-        birthday: document.getElementById("birthday").value,
-        age: document.getElementById("age").value,
-        department: document.getElementById("department").value,
-        birthplace: document.getElementById("birthplace").value,
-        hobby: document.getElementById("hobby").value
+        name: document.getElementById("name")?.value || "",
+        birthday: document.getElementById("birthday")?.value || "",
+        age: document.getElementById("age")?.value || "",
+        department: document.getElementById("department")?.value || "",
+        birthplace: document.getElementById("birthplace")?.value || "",
+        hobby: document.getElementById("hobby")?.value || ""
       };
 
       try {
@@ -3056,6 +3056,7 @@ text.addEventListener('click', enableEditing);
     });
   }
 </script>
+
 
 
 
