@@ -3003,57 +3003,49 @@ text.addEventListener('click', enableEditing);
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  // URLからid取得 → 表示用（再編集）
+  // 🔍 表示（preview.html?id=xxx）
   const params = new URLSearchParams(window.location.search);
   const id = params.get("id");
 
   if (id) {
     const docRef = doc(db, "cards", id);
-    getDoc(docRef).then((docSnap) => {
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        document.getElementById("name").value = data.name;
-        document.getElementById("birthday").value = data.birthday;
-        document.getElementById("age").value = data.age;
-        document.getElementById("department").value = data.department;
-        document.getElementById("birthplace").value = data.birthplace;
-        document.getElementById("hobby").value = data.hobby;
-      } else {
-        alert("データが見つかりませんでした！");
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      document.getElementById("name").value = data.name;
+      document.getElementById("birthday").value = data.birthday;
+      document.getElementById("age").value = data.age;
+      document.getElementById("department").value = data.department;
+      document.getElementById("birthplace").value = data.birthplace;
+      document.getElementById("hobby").value = data.hobby;
+    } else {
+      alert("データが見つかりませんでした！");
+    }
+  }
+
+  // 💾 保存（作成ボタンで）
+  const finishBtn = document.getElementById("finish-button");
+  if (finishBtn) {
+    finishBtn.addEventListener("click", async () => {
+      const newId = crypto.randomUUID();
+      const data = {
+        name: document.getElementById("name").value,
+        birthday: document.getElementById("birthday").value,
+        age: document.getElementById("age").value,
+        department: document.getElementById("department").value,
+        birthplace: document.getElementById("birthplace").value,
+        hobby: document.getElementById("hobby").value
+      };
+
+      try {
+        await setDoc(doc(db, "cards", newId), data);
+       window.location.href = `/preview?id=${newId}`;
+      } catch (e) {
+        alert("保存に失敗しました：" + e.message);
       }
     });
   }
-
-  // 「作成」ボタン → 利用規約モーダル表示
-  document.getElementById("finish-button")?.addEventListener("click", () => {
-    const termsModal = document.getElementById("terms-modal");
-    if (termsModal) termsModal.style.display = "flex";
-  });
-
-  // 「同意する」→ 保存＆遷移
-  document.getElementById("agree-btn")?.addEventListener("click", async () => {
-    const newId = crypto.randomUUID();
-    const data = {
-      name: document.getElementById("name")?.value || "",
-      birthday: document.getElementById("birthday")?.value || "",
-      age: document.getElementById("age")?.value || "",
-      department: document.getElementById("department")?.value || "",
-      birthplace: document.getElementById("birthplace")?.value || "",
-      hobby: document.getElementById("hobby")?.value || ""
-    };
-    try {
-      await setDoc(doc(db, "cards", newId), data);
-      window.location.href = `/preview?id=${newId}`;
-    } catch (e) {
-      alert("保存に失敗しました：" + e.message);
-    }
-  });
-
-  // 「閉じる」ボタン
-  document.getElementById("close-terms-btn")?.addEventListener("click", () => {
-    const termsModal = document.getElementById("terms-modal");
-    if (termsModal) termsModal.style.display = "none";
-  });
 </script>
 
 
