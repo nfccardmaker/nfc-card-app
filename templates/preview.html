@@ -3004,31 +3004,27 @@ text.addEventListener('click', enableEditing);
   const db = getFirestore(app);
 
   // 🔍 表示処理（URLに ?id=xxx がある場合）
-  const params = new URLSearchParams(window.location.search);
-  const id = params.get("id");
-
   (async () => {
-  const params = new URLSearchParams(window.location.search);
-  const id = params.get("id");
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
 
-  if (id) {
-    const docRef = doc(db, "cards", id);
-    const docSnap = await getDoc(docRef);
+    if (id) {
+      const docRef = doc(db, "cards", id);
+      const docSnap = await getDoc(docRef);
 
-    if (docSnap.exists()) {
-      const data = docSnap.data();
-      document.getElementById("name").value = data.name;
-      document.getElementById("birthday").value = data.birthday;
-      document.getElementById("age").value = data.age;
-      document.getElementById("department").value = data.department;
-      document.getElementById("birthplace").value = data.birthplace;
-      document.getElementById("hobby").value = data.hobby;
-    } else {
-      alert("データが見つかりませんでした！");
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        document.getElementById("name").value = data.name;
+        document.getElementById("birthday").value = data.birthday;
+        document.getElementById("age").value = data.age;
+        document.getElementById("department").value = data.department;
+        document.getElementById("birthplace").value = data.birthplace;
+        document.getElementById("hobby").value = data.hobby;
+      } else {
+        alert("データが見つかりませんでした！");
+      }
     }
-  }
-})();
-
+  })();
 
   // 🟡 「作成」ボタンクリック → 利用規約モーダル表示
   const finishBtn = document.getElementById("finish-button");
@@ -3062,6 +3058,7 @@ text.addEventListener('click', enableEditing);
     });
   }
 </script>
+
 
 
 
