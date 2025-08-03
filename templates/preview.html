@@ -2392,6 +2392,42 @@ function showDetailModal(myMbti, otherMbti) {
 <script>
 
 
+
+  // 🔁 プロフ・背景用（透過不要 → JPEG）
+  async function compressToJPEG(base64, maxSize = 180) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const scale = Math.min(maxSize / img.width, maxSize / img.height, 1);
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL("image/jpeg", 0.6));
+      };
+      img.src = base64;
+    });
+  }
+
+  // 🔄 ページ内の画像を送信前に圧縮（base64のまま）
+async function compressAllImagesBeforeSend() {
+  const imageElements = document.querySelectorAll('img');
+
+  for (const img of imageElements) {
+    if (!img.src.startsWith('data:image/')) continue;
+
+   const compressFn = compressToJPEG;
+
+    try {
+      const compressed = await compressFn(img.src, 180);
+      img.src = compressed;
+    } catch (err) {
+      console.error('画像の圧縮に失敗しました:', err);
+    }
+  }
+}
+
 </script>
 
 <!-- Chart.js 読み込み -->
