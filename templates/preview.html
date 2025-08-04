@@ -2991,7 +2991,6 @@ text.addEventListener('click', enableEditing);
   import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
   import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
 
-  // Firebase 初期化
   const firebaseConfig = {
     apiKey: "AIzaSyBCnMBQjzoxViJPv3YqpZDD_PXQEe2QTsA",
     authDomain: "nfc-card-app-79464.firebaseapp.com",
@@ -3013,10 +3012,10 @@ text.addEventListener('click', enableEditing);
   const params = new URLSearchParams(window.location.search);
   const id = params.get("id");
 
-  let uploadedProfileURL = "";
-  let uploadedBackgroundURL = "";
+  let uploadedProfileURL = "";       // 🔑 プロフィール画像URLを保存
+  let uploadedBackgroundURL = "";   // 🔑 背景画像URLを保存
 
-  // 🔍 表示（編集時）
+  // 🔍 表示処理（編集時）
   if (id) {
     const docRef = doc(db, "cards", id);
     getDoc(docRef).then(docSnap => {
@@ -3030,12 +3029,13 @@ text.addEventListener('click', enableEditing);
         document.getElementById("hobby").value = data.hobby || "";
 
         if (data.imageUrl) {
-          profileImg.src = data.imageUrl;
           uploadedProfileURL = data.imageUrl;
+          profileImg.src = data.imageUrl;
         }
+
         if (data.backgroundUrl) {
-          document.body.style.backgroundImage = `url('${data.backgroundUrl}')`;
           uploadedBackgroundURL = data.backgroundUrl;
+          document.body.style.backgroundImage = `url('${data.backgroundUrl}')`;
         }
       } else {
         alert("データが見つかりませんでした！");
@@ -3043,7 +3043,7 @@ text.addEventListener('click', enableEditing);
     });
   }
 
-  // 💾 保存処理（新規作成）
+  // 💾 保存処理（新規作成時）
   async function saveAndRedirect() {
     const newId = crypto.randomUUID();
     const data = {
@@ -3053,9 +3053,10 @@ text.addEventListener('click', enableEditing);
       department: document.getElementById("department").value,
       birthplace: document.getElementById("birthplace").value,
       hobby: document.getElementById("hobby").value,
-      imageUrl: uploadedProfileURL || profileImg.src || "",
+      imageUrl: uploadedProfileURL || "",
       backgroundUrl: uploadedBackgroundURL || ""
     };
+
     try {
       await setDoc(doc(db, "cards", newId), data);
       window.location.href = `/preview?id=${newId}`;
@@ -3064,7 +3065,7 @@ text.addEventListener('click', enableEditing);
     }
   }
 
-  // ✅ 作成ボタン
+  // ✅ 作成ボタン処理
   document.getElementById("finish-button")?.addEventListener("click", () => {
     const checkbox = document.getElementById("agree-checkbox");
     if (checkbox && checkbox.checked) {
@@ -3075,7 +3076,7 @@ text.addEventListener('click', enableEditing);
     }
   });
 
-  // モーダル切り替え
+  // 🔁 通知モーダル → 規約モーダル
   document.getElementById("notice-agree-btn")?.addEventListener("click", () => {
     document.getElementById("terms-notice").style.display = "none";
     document.getElementById("terms-modal").style.display = "flex";
@@ -3094,21 +3095,21 @@ text.addEventListener('click', enableEditing);
     await uploadBytes(imageRef, file);
     const downloadURL = await getDownloadURL(imageRef);
 
-    profileImg.src = downloadURL;
     uploadedProfileURL = downloadURL;
+    profileImg.src = downloadURL;
 
     if (id) {
       await setDoc(doc(db, "cards", id), { imageUrl: downloadURL }, { merge: true });
-      console.log("✅画像URLをFirestoreに保存:", downloadURL);
     }
   });
 
+  // 📷 画像クリックで選択
   profileImg?.addEventListener('click', () => {
     imageInput?.click();
   });
 
   // 🌄 背景画像アップロード
-  bgInput?.addEventListener("change", async (e) => {
+  bgInput?.addEventListener("change", async function (e) {
     const file = e.target.files[0];
     if (!file) return;
 
@@ -3116,12 +3117,11 @@ text.addEventListener('click', enableEditing);
     await uploadBytes(storageRef, file);
     const downloadURL = await getDownloadURL(storageRef);
 
-    document.body.style.backgroundImage = `url('${downloadURL}')`;
     uploadedBackgroundURL = downloadURL;
+    document.body.style.backgroundImage = `url('${downloadURL}')`;
 
     if (id) {
       await setDoc(doc(db, "cards", id), { backgroundUrl: downloadURL }, { merge: true });
-      console.log("✅ 背景画像URLをFirestoreに保存:", downloadURL);
     }
   });
 </script>
