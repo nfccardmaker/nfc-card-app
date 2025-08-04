@@ -3100,23 +3100,28 @@ text.addEventListener('click', enableEditing);
   profileImg?.addEventListener('click', () => {
     imageInput?.click();
   });
- const bgInput = document.getElementById('bg-upload');
+document.addEventListener("DOMContentLoaded", () => {
+  const bgInput = document.getElementById('bg-upload');
 
-bgInput?.addEventListener('change', async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
+  if (bgInput) {
+    bgInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
 
-  const bgRef = ref(storage, 'backgrounds/' + crypto.randomUUID());
-  await uploadBytes(bgRef, file);
-  const downloadURL = await getDownloadURL(bgRef);
+      const bgRef = ref(storage, 'backgrounds/' + crypto.randomUUID());
+      await uploadBytes(bgRef, file);
+      const downloadURL = await getDownloadURL(bgRef);
 
-  document.body.style.backgroundImage = `url('${downloadURL}')`;
+      document.body.style.backgroundImage = `url('${downloadURL}')`;
 
-  if (id) {
-    await setDoc(doc(db, "cards", id), { backgroundUrl: downloadURL }, { merge: true });
-    console.log("✅背景URLをFirestoreに保存:", downloadURL);
+      if (id) {
+        await setDoc(doc(db, "cards", id), { backgroundUrl: downloadURL }, { merge: true });
+        console.log("✅背景URLをFirestoreに保存:", downloadURL);
+      }
+    });
   }
 });
+
 
 </script>
 
