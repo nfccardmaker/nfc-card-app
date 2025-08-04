@@ -3021,13 +3021,17 @@ text.addEventListener('click', enableEditing);
   let uploadedProfileURL = "";
   let uploadedBackgroundURL = "";
 
-  // 保存処理
+  // ✅ 保存処理
   async function saveAndRedirect() {
     const newId = crypto.randomUUID();
 
-    const currentProfile = uploadedProfileURL || profileImg?.src || "";
+    const isDefaultProfile = profileImg?.src?.includes("profile_icon.jpeg");
+    const profileUrlToSave = uploadedProfileURL || (!isDefaultProfile ? profileImg?.src : "");
+
     const bgStyle = document.body.style.backgroundImage || "";
-    const currentBackground = uploadedBackgroundURL || (bgStyle.match(/url\(["']?(.*?)["']?\)/)?.[1] || "");
+    const bgMatch = bgStyle.match(/url\(["']?(.*?)["']?\)/);
+    const bgUrl = bgMatch ? bgMatch[1] : "";
+    const backgroundUrlToSave = uploadedBackgroundURL || (bgUrl && bgUrl !== "none" ? bgUrl : "");
 
     const data = {
       name: document.getElementById("name").value,
@@ -3036,8 +3040,8 @@ text.addEventListener('click', enableEditing);
       department: document.getElementById("department").value,
       birthplace: document.getElementById("birthplace").value,
       hobby: document.getElementById("hobby").value,
-      imageUrl: currentProfile,
-      backgroundUrl: currentBackground
+      imageUrl: profileUrlToSave,
+      backgroundUrl: backgroundUrlToSave
     };
 
     try {
@@ -3048,7 +3052,7 @@ text.addEventListener('click', enableEditing);
     }
   }
 
-  // 作成ボタン
+  // ✅ 作成ボタン
   document.getElementById("finish-button")?.addEventListener("click", () => {
     const checkbox = document.getElementById("agree-checkbox");
     if (checkbox && checkbox.checked) {
@@ -3059,7 +3063,7 @@ text.addEventListener('click', enableEditing);
     }
   });
 
-  // 通知モーダル→規約
+  // ✅ 通知→規約
   document.getElementById("notice-agree-btn")?.addEventListener("click", () => {
     document.getElementById("terms-notice").style.display = "none";
     document.getElementById("terms-modal").style.display = "flex";
@@ -3069,7 +3073,7 @@ text.addEventListener('click', enableEditing);
     document.getElementById("terms-notice").style.display = "none";
   });
 
-  // プロフィール画像
+  // ✅ プロフィール画像アップロード
   imageInput?.addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -3086,14 +3090,14 @@ text.addEventListener('click', enableEditing);
     imageInput?.click();
   });
 
-  // 背景画像
-  bgInput?.addEventListener("change", async function (e) {
+  // ✅ 背景画像アップロード
+  bgInput?.addEventListener("change", async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    const storageRef = ref(storage, 'backgrounds/' + crypto.randomUUID());
-    await uploadBytes(storageRef, file);
-    const downloadURL = await getDownloadURL(storageRef);
+    const bgRef = ref(storage, 'backgrounds/' + crypto.randomUUID());
+    await uploadBytes(bgRef, file);
+    const downloadURL = await getDownloadURL(bgRef);
 
     uploadedBackgroundURL = downloadURL;
     document.body.style.backgroundImage = `url('${downloadURL}')`;
