@@ -1097,13 +1097,22 @@ document.getElementById('finish-button').addEventListener('click', async () => {
     }
   });
 
-  const profileImg = document.getElementById("profile-img");
-  if (profileImg && profileImg.src.startsWith("blob:")) {
-    profileImg.src = "/static/uploads/profile.jpeg";
+ imageInput.addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const imageRef = ref(storage, 'profile_images/' + crypto.randomUUID());
+  await uploadBytes(imageRef, file);
+  const downloadURL = await getDownloadURL(imageRef);
+
+  profileImg.src = downloadURL;
+
+  if (id) {
+    await setDoc(doc(db, "cards", id), { imageUrl: downloadURL }, { merge: true });
+    console.log("✅ プロフィール画像URLをFirestoreに保存:", downloadURL);
   }
-  if (profileImg && profileImg.src.startsWith("data:image/")) {
-    profileImg.src = await compressImage(profileImg.src);
-  }
+});
+
 
   finishBtn.style.display = 'none';
 
