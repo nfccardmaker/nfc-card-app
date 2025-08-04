@@ -1305,8 +1305,10 @@ function insertPRTemplate(category) {
   -ms-overflow-style: none; /* IE用 */
 ">
 <!-- ▼ カメラアイコン付きテンプレ追加ここから -->
-<img src="/static/camera.jpeg" onclick="document.getElementById('background-input').click()" 
+<img id="background-upload-icon" src="/static/camera.jpeg"
+     onclick="document.getElementById('background-input').click()"
      style="width:50px; height:50px; cursor:pointer; border-radius:8px; flex-shrink:0;">
+
 <!-- ▼ カメラアイコン付きテンプレ追加ここまで -->
   <img src="/static/haikei_1.jpeg" onclick="setBackground('/static/haikei_1.jpeg')" style="width:50px; height:50px; cursor:pointer; border-radius:8px; flex-shrink:0;">
 <img src="/static/haikei_2.jpeg" onclick="setBackground('/static/haikei_2.jpeg')" style="width:50px; height:50px; cursor:pointer; border-radius:8px; flex-shrink:0;">
@@ -3059,6 +3061,7 @@ text.addEventListener('click', enableEditing);
     }
   });
 </script>
+
 
 
 </body>
