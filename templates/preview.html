@@ -3013,9 +3013,10 @@ text.addEventListener('click', enableEditing);
   const params = new URLSearchParams(window.location.search);
   const id = params.get("id");
 
-  let bgImgURL = ""; // 🔑背景画像URLを保持
+  let uploadedProfileURL = "";
+  let uploadedBackgroundURL = "";
 
-  // 🔍 表示（編集モード）
+  // 🔍 表示（編集時）
   if (id) {
     const docRef = doc(db, "cards", id);
     getDoc(docRef).then(docSnap => {
@@ -3027,12 +3028,14 @@ text.addEventListener('click', enableEditing);
         document.getElementById("department").value = data.department || "";
         document.getElementById("birthplace").value = data.birthplace || "";
         document.getElementById("hobby").value = data.hobby || "";
+
         if (data.imageUrl) {
           profileImg.src = data.imageUrl;
+          uploadedProfileURL = data.imageUrl;
         }
         if (data.backgroundUrl) {
           document.body.style.backgroundImage = `url('${data.backgroundUrl}')`;
-          bgImgURL = data.backgroundUrl; // 読み込み済みを反映
+          uploadedBackgroundURL = data.backgroundUrl;
         }
       } else {
         alert("データが見つかりませんでした！");
@@ -3050,8 +3053,8 @@ text.addEventListener('click', enableEditing);
       department: document.getElementById("department").value,
       birthplace: document.getElementById("birthplace").value,
       hobby: document.getElementById("hobby").value,
-      imageUrl: profileImg.src,
-      backgroundUrl: bgImgURL || "" // ✅背景も保存
+      imageUrl: uploadedProfileURL || profileImg.src || "",
+      backgroundUrl: uploadedBackgroundURL || ""
     };
     try {
       await setDoc(doc(db, "cards", newId), data);
@@ -3072,7 +3075,7 @@ text.addEventListener('click', enableEditing);
     }
   });
 
-  // 通知→規約モーダル
+  // モーダル切り替え
   document.getElementById("notice-agree-btn")?.addEventListener("click", () => {
     document.getElementById("terms-notice").style.display = "none";
     document.getElementById("terms-modal").style.display = "flex";
@@ -3092,6 +3095,7 @@ text.addEventListener('click', enableEditing);
     const downloadURL = await getDownloadURL(imageRef);
 
     profileImg.src = downloadURL;
+    uploadedProfileURL = downloadURL;
 
     if (id) {
       await setDoc(doc(db, "cards", id), { imageUrl: downloadURL }, { merge: true });
@@ -3099,13 +3103,12 @@ text.addEventListener('click', enableEditing);
     }
   });
 
-  // 📷 クリックで画像選択
   profileImg?.addEventListener('click', () => {
     imageInput?.click();
   });
 
   // 🌄 背景画像アップロード
-  bgInput?.addEventListener("change", async function (e) {
+  bgInput?.addEventListener("change", async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
@@ -3114,7 +3117,7 @@ text.addEventListener('click', enableEditing);
     const downloadURL = await getDownloadURL(storageRef);
 
     document.body.style.backgroundImage = `url('${downloadURL}')`;
-    bgImgURL = downloadURL; // ✅保存対象に反映
+    uploadedBackgroundURL = downloadURL;
 
     if (id) {
       await setDoc(doc(db, "cards", id), { backgroundUrl: downloadURL }, { merge: true });
@@ -3122,6 +3125,7 @@ text.addEventListener('click', enableEditing);
     }
   });
 </script>
+
 
 
 
