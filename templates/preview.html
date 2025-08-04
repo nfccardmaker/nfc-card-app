@@ -3043,7 +3043,8 @@ text.addEventListener('click', enableEditing);
       department: document.getElementById("department").value,
       birthplace: document.getElementById("birthplace").value,
       hobby: document.getElementById("hobby").value,
-      imageUrl: document.getElementById("profile-img").src
+      imageUrl: document.getElementById("profile-img").src,
+      backgroundUrl: document.body.style.backgroundImage.replace(/^url\(["']?/, '').replace(/["']?\)$/, '')  // ← 背景も保存
     };
     try {
       await setDoc(doc(db, "cards", newId), data);
