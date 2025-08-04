@@ -3027,6 +3027,9 @@ text.addEventListener('click', enableEditing);
         if (data.imageUrl) {
           document.getElementById("profile-img").src = data.imageUrl;
         }
+        if (data.backgroundUrl) {
+          document.body.style.backgroundImage = `url('${data.backgroundUrl}')`;
+        }
       } else {
         alert("データが見つかりませんでした！");
       }
@@ -3044,7 +3047,7 @@ text.addEventListener('click', enableEditing);
       birthplace: document.getElementById("birthplace").value,
       hobby: document.getElementById("hobby").value,
       imageUrl: document.getElementById("profile-img").src,
-      backgroundUrl: document.body.style.backgroundImage.replace(/^url\(["']?/, '').replace(/["']?\)$/, '')  // ← 背景も保存
+      backgroundUrl: document.body.style.backgroundImage.replace(/^url\(["']?/, '').replace(/["']?\)$/, '')
     };
     try {
       await setDoc(doc(db, "cards", newId), data);
@@ -3097,21 +3100,24 @@ text.addEventListener('click', enableEditing);
   profileImg?.addEventListener('click', () => {
     imageInput?.click();
   });
- bgInput?.addEventListener('change', async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+ const bgInput = document.getElementById('bg-upload');
 
-    const bgRef = ref(storage, 'backgrounds/' + crypto.randomUUID());
-    await uploadBytes(bgRef, file);
-    const downloadURL = await getDownloadURL(bgRef);
+bgInput?.addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
 
-    document.body.style.backgroundImage = `url('${downloadURL}')`;
+  const bgRef = ref(storage, 'backgrounds/' + crypto.randomUUID());
+  await uploadBytes(bgRef, file);
+  const downloadURL = await getDownloadURL(bgRef);
 
-    if (id) {
-      await setDoc(doc(db, "cards", id), { backgroundUrl: downloadURL }, { merge: true });
-      console.log("✅背景URLをFirestoreに保存:", downloadURL);
-    }
-  });
+  document.body.style.backgroundImage = `url('${downloadURL}')`;
+
+  if (id) {
+    await setDoc(doc(db, "cards", id), { backgroundUrl: downloadURL }, { merge: true });
+    console.log("✅背景URLをFirestoreに保存:", downloadURL);
+  }
+});
+
 </script>
 
 
