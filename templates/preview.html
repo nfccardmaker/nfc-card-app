@@ -3128,16 +3128,7 @@ bgInput?.addEventListener("change", async (e) => {
     await setDoc(doc(db, "cards", id), { backgroundUrl: downloadURL }, { merge: true });
   }
 });
-// 🌅 テンプレ背景を選んだときにも保存する
-function setBackground(url) {
-  document.body.style.backgroundImage = `url('${url}')`;
-  bgImgURL = url;
 
-  if (id) {
-    const cardRef = doc(db, "cards", id);
-    setDoc(cardRef, { backgroundUrl: url }, { merge: true });
-  }
-}
 </script>
 
 
