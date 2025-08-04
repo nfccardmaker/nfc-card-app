@@ -3027,7 +3027,10 @@ text.addEventListener('click', enableEditing);
         if (data.imageUrl) {
           document.getElementById("profile-img").src = data.imageUrl;
         }
-        
+        if (data.backgroundUrl) {
+  document.body.style.backgroundImage = `url('${data.backgroundUrl}')`;
+}
+
       } else {
         alert("データが見つかりませんでした！");
       }
@@ -3099,6 +3102,7 @@ text.addEventListener('click', enableEditing);
     imageInput?.click();
   });
  const bgInput = document.getElementById('bg-upload');
+const bgSelectIcon = document.getElementById('bg-select-icon');
 
 bgInput?.addEventListener('change', async (e) => {
   const file = e.target.files[0];
@@ -3112,9 +3116,14 @@ bgInput?.addEventListener('change', async (e) => {
 
   if (id) {
     await setDoc(doc(db, "cards", id), { backgroundUrl: downloadURL }, { merge: true });
-    console.log("✅背景URLをFirestoreに保存:", downloadURL);
   }
 });
+
+// 背景画像ボタンをクリックすると input が開く
+bgSelectIcon?.addEventListener('click', () => {
+  bgInput?.click();
+});
+
 
 </script>
 
