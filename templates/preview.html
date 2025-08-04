@@ -1097,22 +1097,13 @@ document.getElementById('finish-button').addEventListener('click', async () => {
     }
   });
 
- imageInput.addEventListener('change', async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  const imageRef = ref(storage, 'profile_images/' + crypto.randomUUID());
-  await uploadBytes(imageRef, file);
-  const downloadURL = await getDownloadURL(imageRef);
-
-  profileImg.src = downloadURL;
-
-  if (id) {
-    await setDoc(doc(db, "cards", id), { imageUrl: downloadURL }, { merge: true });
-    console.log("✅ プロフィール画像URLをFirestoreに保存:", downloadURL);
+  const profileImg = document.getElementById("profile-img");
+  if (profileImg && profileImg.src.startsWith("blob:")) {
+    profileImg.src = "/static/uploads/profile.jpeg";
   }
-});
-
+  if (profileImg && profileImg.src.startsWith("data:image/")) {
+    profileImg.src = await compressImage(profileImg.src);
+  }
 
   finishBtn.style.display = 'none';
 
@@ -2401,6 +2392,8 @@ function showDetailModal(myMbti, otherMbti) {
 <script>
 
 
+
+
 </script>
 
 <!-- Chart.js 読み込み -->
@@ -2961,7 +2954,7 @@ text.addEventListener('click', enableEditing);
 </script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-  import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
   import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
 
   const firebaseConfig = {
@@ -2980,72 +2973,34 @@ text.addEventListener('click', enableEditing);
 
   const imageInput = document.getElementById('profile-input');
   const profileImg = document.getElementById('profile-img');
-  const bgInput = document.getElementById("background-input");
 
-  let uploadedProfileURL = "";
-  let uploadedBackgroundURL = "";
-  let uploadingProfile = false;
-  let uploadingBackground = false;
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get("id");
 
-  // 🔁 プロフィール画像アップロード処理
-  imageInput?.addEventListener('change', async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  // 🔍 表示用（id指定がある場合）
+  if (id) {
+    const docRef = doc(db, "cards", id);
+    getDoc(docRef).then(docSnap => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        document.getElementById("name").value = data.name;
+        document.getElementById("birthday").value = data.birthday;
+        document.getElementById("age").value = data.age;
+        document.getElementById("department").value = data.department;
+        document.getElementById("birthplace").value = data.birthplace;
+        document.getElementById("hobby").value = data.hobby;
+        if (data.imageUrl) {
+          document.getElementById("profile-img").src = data.imageUrl;
+        }
+      } else {
+        alert("データが見つかりませんでした！");
+      }
+    });
+  }
 
-    uploadingProfile = true;
-    try {
-      const imageRef = ref(storage, 'profile_images/' + crypto.randomUUID());
-      await uploadBytes(imageRef, file);
-      const downloadURL = await getDownloadURL(imageRef);
-      uploadedProfileURL = downloadURL;
-      profileImg.src = downloadURL;
-      console.log("✅ プロフィール画像URL:", downloadURL);
-    } catch (err) {
-      console.error("❌ プロフィール画像アップロード失敗:", err);
-    } finally {
-      uploadingProfile = false;
-    }
-  });
-
-  profileImg?.addEventListener('click', () => imageInput?.click());
-
-  // 🔁 背景画像アップロード処理
-  bgInput?.addEventListener("change", async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    uploadingBackground = true;
-    try {
-      const bgRef = ref(storage, 'backgrounds/' + crypto.randomUUID());
-      await uploadBytes(bgRef, file);
-      const downloadURL = await getDownloadURL(bgRef);
-      uploadedBackgroundURL = downloadURL;
-      document.body.style.backgroundImage = `url('${downloadURL}')`;
-      console.log("✅ 背景画像URL:", downloadURL);
-    } catch (err) {
-      console.error("❌ 背景画像アップロード失敗:", err);
-    } finally {
-      uploadingBackground = false;
-    }
-  });
-
-  // 🔄 保存処理（アップロード完了を確認）
+  // 🔁 保存処理本体（共通関数）
   async function saveAndRedirect() {
-    let waited = 0;
-    const maxWait = 5000;
-    while ((uploadingProfile || uploadingBackground) && waited < maxWait) {
-      await new Promise(r => setTimeout(r, 100));
-      waited += 100;
-    }
-
     const newId = crypto.randomUUID();
-
-    const finalProfileUrl = (uploadedProfileURL && uploadedProfileURL.startsWith("http")) ? uploadedProfileURL : "";
-    const bgStyle = document.body.style.backgroundImage || "";
-    const bgMatch = bgStyle.match(/url\(["']?(.*?)["']?\)/);
-    const bgUrl = bgMatch ? bgMatch[1] : "";
-    const finalBackgroundUrl = (uploadedBackgroundURL && uploadedBackgroundURL.startsWith("http")) ? uploadedBackgroundURL : "";
-
     const data = {
       name: document.getElementById("name").value,
       birthday: document.getElementById("birthday").value,
@@ -3053,10 +3008,8 @@ text.addEventListener('click', enableEditing);
       department: document.getElementById("department").value,
       birthplace: document.getElementById("birthplace").value,
       hobby: document.getElementById("hobby").value,
-      imageUrl: finalProfileUrl,
-      backgroundUrl: finalBackgroundUrl
+      imageUrl: document.getElementById("profile-img").src
     };
-
     try {
       await setDoc(doc(db, "cards", newId), data);
       window.location.href = `/preview?id=${newId}`;
@@ -3065,27 +3018,70 @@ text.addEventListener('click', enableEditing);
     }
   }
 
-  // ✅ 作成ボタン
+  // ✅ 作成ボタン処理
   document.getElementById("finish-button")?.addEventListener("click", () => {
     const checkbox = document.getElementById("agree-checkbox");
     if (checkbox && checkbox.checked) {
       document.getElementById("terms-modal").style.display = "none";
-      saveAndRedirect();
+      saveAndRedirect(); // ✅ 同意してたら保存
     } else {
-      document.getElementById("terms-notice").style.display = "flex";
+      document.getElementById("terms-notice").style.display = "flex"; // ❌ してなかったら注意
     }
   });
 
-  // ✅ 利用規約モーダル制御
+  // 🔁 通知モーダル → 利用規約モーダルへ
   document.getElementById("notice-agree-btn")?.addEventListener("click", () => {
     document.getElementById("terms-notice").style.display = "none";
     document.getElementById("terms-modal").style.display = "flex";
   });
 
+  // ❎ 通知モーダル閉じるだけ
   document.getElementById("notice-close-btn")?.addEventListener("click", () => {
     document.getElementById("terms-notice").style.display = "none";
   });
+
+  // 📸 画像アップロード処理
+  imageInput?.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const imageRef = ref(storage, 'profile_images/' + crypto.randomUUID());
+    await uploadBytes(imageRef, file);
+    const downloadURL = await getDownloadURL(imageRef);
+
+    profileImg.src = downloadURL;
+
+    if (id) {
+      await setDoc(doc(db, "cards", id), { imageUrl: downloadURL }, { merge: true });
+      console.log("✅画像URLをFirestoreに保存:", downloadURL);
+    }
+  });
+
+  // 📷 プロフィール画像クリックでファイル選択
+  profileImg?.addEventListener('click', () => {
+    imageInput?.click();
+  });
+document.getElementById("background-input")?.addEventListener("change", async function (e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  // Firebase Storage にアップロード
+  const storageRef = ref(storage, 'backgrounds/' + crypto.randomUUID());
+  await uploadBytes(storageRef, file);
+  const downloadURL = await getDownloadURL(storageRef);
+
+  // 背景に反映
+  document.body.style.backgroundImage = `url('${downloadURL}')`;
+
+  // Firestore に保存（編集モードのみ）
+  if (id) {
+    await setDoc(doc(db, "cards", id), { backgroundUrl: downloadURL }, { merge: true });
+    console.log("✅ 背景画像URLを保存しました：", downloadURL);
+  }
+});
+
 </script>
+
 
 
 </body>
