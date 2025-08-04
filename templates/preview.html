@@ -3102,7 +3102,7 @@ text.addEventListener('click', enableEditing);
   profileImg?.addEventListener('click', () => {
     imageInput?.click();
   });
- const bgInput = document.getElementById('bg-upload');
+ const bgInput = document.getElementById('background-input'); // ← 修正
 const bgSelectIcon = document.getElementById('bg-select-icon');
 
 bgInput?.addEventListener('change', async (e) => {
@@ -3117,6 +3117,7 @@ bgInput?.addEventListener('change', async (e) => {
 
   if (id) {
     await setDoc(doc(db, "cards", id), { backgroundUrl: downloadURL }, { merge: true });
+    console.log("✅背景URLをFirestoreに保存:", downloadURL);
   }
 });
 
