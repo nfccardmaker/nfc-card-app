@@ -3095,6 +3095,24 @@ text.addEventListener('click', enableEditing);
   profileImg?.addEventListener('click', () => {
     imageInput?.click();
   });
+document.getElementById("background-input")?.addEventListener("change", async function (e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  // Firebase Storage にアップロード
+  const storageRef = ref(storage, 'backgrounds/' + crypto.randomUUID());
+  await uploadBytes(storageRef, file);
+  const downloadURL = await getDownloadURL(storageRef);
+
+  // 背景に反映
+  document.body.style.backgroundImage = `url('${downloadURL}')`;
+
+  // Firestore に保存（編集モードのみ）
+  if (id) {
+    await setDoc(doc(db, "cards", id), { backgroundUrl: downloadURL }, { merge: true });
+    console.log("✅ 背景画像URLを保存しました：", downloadURL);
+  }
+});
 
 </script>
 
