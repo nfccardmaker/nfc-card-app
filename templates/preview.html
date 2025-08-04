@@ -2401,7 +2401,6 @@ function showDetailModal(myMbti, otherMbti) {
 <script>
 
 
-
 </script>
 
 <!-- Chart.js 読み込み -->
@@ -2965,6 +2964,7 @@ text.addEventListener('click', enableEditing);
   import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
   import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
 
+  // ✅ Firebase初期化
   const firebaseConfig = {
     apiKey: "AIzaSyBCnMBQjzoxViJPv3YqpZDD_PXQEe2QTsA",
     authDomain: "nfc-card-app-79464.firebaseapp.com",
@@ -2974,52 +2974,79 @@ text.addEventListener('click', enableEditing);
     appId: "1:200343990188:web:d65e97e3df92f3afb91409",
     measurementId: "G-CSCLM88L8S"
   };
-
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
   const storage = getStorage(app);
 
-  const imageInput = document.getElementById('profile-input');
-  const profileImg = document.getElementById('profile-img');
+  // ✅ DOM取得
+  const imageInput = document.getElementById("profile-input");
+  const profileImg = document.getElementById("profile-img");
   const bgInput = document.getElementById("background-input");
 
   let uploadedProfileURL = "";
   let uploadedBackgroundURL = "";
 
-  // ✅ 保存処理
- async function saveAndRedirect() {
-  const newId = crypto.randomUUID();
+  // ✅ プロフィール画像アップロード
+  imageInput?.addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const imageRef = ref(storage, "profile_images/" + crypto.randomUUID());
+    await uploadBytes(imageRef, file);
+    const downloadURL = await getDownloadURL(imageRef);
+    uploadedProfileURL = downloadURL;
+    profileImg.src = downloadURL;
+  });
 
-  // 🔽 画像がアップロード中なら終わるまで待つ（何もしないならそのまま空欄）
-  const profileSrc = profileImg?.src || "";
-  const isBase64Profile = profileSrc.startsWith("data:image/");
-  const finalProfileUrl = uploadedProfileURL || (!isBase64Profile ? profileSrc : "");
+  // ✅ プロフィール画像クリックでinput起動
+  profileImg?.addEventListener("click", () => {
+    imageInput?.click();
+  });
 
-  const bgStyle = document.body.style.backgroundImage || "";
-  const bgMatch = bgStyle.match(/url\(["']?(.*?)["']?\)/);
-  const bgUrl = bgMatch ? bgMatch[1] : "";
-  const isBase64Background = bgUrl.startsWith("data:image/");
-  const finalBackgroundUrl = uploadedBackgroundURL || (!isBase64Background ? bgUrl : "");
+  // ✅ 背景画像アップロード
+  bgInput?.addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const bgRef = ref(storage, "backgrounds/" + crypto.randomUUID());
+    await uploadBytes(bgRef, file);
+    const downloadURL = await getDownloadURL(bgRef);
+    uploadedBackgroundURL = downloadURL;
+    document.body.style.backgroundImage = `url('${downloadURL}')`;
+  });
 
-  const data = {
-    name: document.getElementById("name").value,
-    birthday: document.getElementById("birthday").value,
-    age: document.getElementById("age").value,
-    department: document.getElementById("department").value,
-    birthplace: document.getElementById("birthplace").value,
-    hobby: document.getElementById("hobby").value,
-    imageUrl: finalProfileUrl,
-    backgroundUrl: finalBackgroundUrl
-  };
+  // ✅ 保存＆リダイレクト
+  async function saveAndRedirect() {
+    const newId = crypto.randomUUID();
 
-  try {
-    await setDoc(doc(db, "cards", newId), data);
-    window.location.href = `/preview?id=${newId}`;
-  } catch (e) {
-    alert("保存に失敗しました：" + e.message);
+    // 🔍 現在のプロフィール画像
+    const profileSrc = profileImg?.src || "";
+    const isBase64Profile = profileSrc.startsWith("data:image/");
+    const finalProfileUrl = uploadedProfileURL || (!isBase64Profile ? profileSrc : "");
+
+    // 🔍 現在の背景画像
+    const bgStyle = document.body.style.backgroundImage || "";
+    const bgMatch = bgStyle.match(/url\(["']?(.*?)["']?\)/);
+    const bgUrl = bgMatch ? bgMatch[1] : "";
+    const isBase64Background = bgUrl.startsWith("data:image/");
+    const finalBackgroundUrl = uploadedBackgroundURL || (!isBase64Background ? bgUrl : "");
+
+    const data = {
+      name: document.getElementById("name").value,
+      birthday: document.getElementById("birthday").value,
+      age: document.getElementById("age").value,
+      department: document.getElementById("department").value,
+      birthplace: document.getElementById("birthplace").value,
+      hobby: document.getElementById("hobby").value,
+      imageUrl: finalProfileUrl,
+      backgroundUrl: finalBackgroundUrl
+    };
+
+    try {
+      await setDoc(doc(db, "cards", newId), data);
+      window.location.href = `/preview?id=${newId}`;
+    } catch (e) {
+      alert("保存に失敗しました：" + e.message);
+    }
   }
-}
-
 
   // ✅ 作成ボタン
   document.getElementById("finish-button")?.addEventListener("click", () => {
@@ -3032,46 +3059,18 @@ text.addEventListener('click', enableEditing);
     }
   });
 
-  // ✅ 通知→規約
+  // ✅ 通知 → 利用規約表示
   document.getElementById("notice-agree-btn")?.addEventListener("click", () => {
     document.getElementById("terms-notice").style.display = "none";
     document.getElementById("terms-modal").style.display = "flex";
   });
 
+  // ✅ 通知閉じる
   document.getElementById("notice-close-btn")?.addEventListener("click", () => {
     document.getElementById("terms-notice").style.display = "none";
   });
-
-  // ✅ プロフィール画像アップロード
-  imageInput?.addEventListener('change', async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const imageRef = ref(storage, 'profile_images/' + crypto.randomUUID());
-    await uploadBytes(imageRef, file);
-    const downloadURL = await getDownloadURL(imageRef);
-
-    uploadedProfileURL = downloadURL;
-    profileImg.src = downloadURL;
-  });
-
-  profileImg?.addEventListener('click', () => {
-    imageInput?.click();
-  });
-
-  // ✅ 背景画像アップロード
-  bgInput?.addEventListener("change", async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const bgRef = ref(storage, 'backgrounds/' + crypto.randomUUID());
-    await uploadBytes(bgRef, file);
-    const downloadURL = await getDownloadURL(bgRef);
-
-    uploadedBackgroundURL = downloadURL;
-    document.body.style.backgroundImage = `url('${downloadURL}')`;
-  });
 </script>
+
 
 
 
