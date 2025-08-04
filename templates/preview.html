@@ -650,8 +650,14 @@ box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 </button>
  <div class="toolbar" id="toolbar">
     <!-- ツールバーの中にある upload ボタン -->
+<!-- 背景アップロードボタン -->
 <img src="/static/upload.jpeg" onclick="document.getElementById('bg-upload').click()">
+
+<!-- アップロードファイル選択用 -->
 <input type="file" id="bg-upload" accept="image/*" style="display: none;">
+
+<!-- 🔥 背景画像のプレビュー用（src 取得用） -->
+<img id="bg-preview" style="display: none;">
 
     <img src="/static/pen_off.jpeg" onclick="toggleTextMode()" id="text-toggle-icon">
     <div style="position: relative; width: 28px; height: 28px;">
@@ -3029,12 +3035,7 @@ text.addEventListener('click', enableEditing);
         if (data.imageUrl) {
           document.getElementById("profile-img").src = data.imageUrl;
         }
-        if (data.backgroundUrl) {
-  document.body.style.backgroundImage = `url(${data.backgroundUrl})`;
-  document.body.style.backgroundSize = 'cover';
-  document.body.style.backgroundPosition = 'center';
-}
-
+        
       } else {
         alert("データが見つかりませんでした！");
       }
@@ -3052,7 +3053,7 @@ text.addEventListener('click', enableEditing);
   birthplace: document.getElementById("birthplace").value,
   hobby: document.getElementById("hobby").value,
   imageUrl: document.getElementById("profile-img").src,
-  backgroundUrl: getComputedStyle(document.body).backgroundImage.replace(/^url\(["']?/, '').replace(/["']?\)$/, '')
+  backgroundUrl: document.getElementById("bg-preview").src
 };
 
     try {
@@ -3120,6 +3121,9 @@ document.getElementById('bg-upload')?.addEventListener('change', async (e) => {
   if (docId) {
     await setDoc(doc(db, "cards", docId), { backgroundUrl: downloadURL }, { merge: true });
   }
+
+  // ✅ ここを追加（保存用にsrc保持）
+  document.getElementById("bg-preview").src = downloadURL;
 
   // 🎨 すぐに画面に反映
   document.body.style.backgroundImage = `url(${downloadURL})`;
