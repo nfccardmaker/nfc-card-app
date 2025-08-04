@@ -3029,6 +3029,12 @@ text.addEventListener('click', enableEditing);
         if (data.imageUrl) {
           document.getElementById("profile-img").src = data.imageUrl;
         }
+        if (data.backgroundUrl) {
+  document.body.style.backgroundImage = `url(${data.backgroundUrl})`;
+  document.body.style.backgroundSize = 'cover';
+  document.body.style.backgroundPosition = 'center';
+}
+
       } else {
         alert("データが見つかりませんでした！");
       }
