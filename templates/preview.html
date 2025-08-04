@@ -2964,6 +2964,7 @@ text.addEventListener('click', enableEditing);
   import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
   import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
 
+  // Firebase初期化
   const firebaseConfig = {
     apiKey: "AIzaSyBCnMBQjzoxViJPv3YqpZDD_PXQEe2QTsA",
     authDomain: "nfc-card-app-79464.firebaseapp.com",
@@ -2993,13 +2994,19 @@ text.addEventListener('click', enableEditing);
     if (!file) return;
 
     uploadingProfile = true;
-    const imageRef = ref(storage, 'profile_images/' + crypto.randomUUID());
-    await uploadBytes(imageRef, file);
-    const downloadURL = await getDownloadURL(imageRef);
+    try {
+      const imageRef = ref(storage, 'profile_images/' + crypto.randomUUID());
+      await uploadBytes(imageRef, file);
+      const downloadURL = await getDownloadURL(imageRef);
 
-    uploadedProfileURL = downloadURL;
-    profileImg.src = downloadURL;
-    uploadingProfile = false;
+      uploadedProfileURL = downloadURL;
+      profileImg.src = downloadURL;
+      console.log("✅ プロフィール画像アップロード完了:", downloadURL);
+    } catch (err) {
+      console.error("❌ プロフィール画像アップロード失敗:", err);
+    } finally {
+      uploadingProfile = false;
+    }
   });
 
   profileImg?.addEventListener('click', () => {
@@ -3012,20 +3019,29 @@ text.addEventListener('click', enableEditing);
     if (!file) return;
 
     uploadingBackground = true;
-    const bgRef = ref(storage, 'backgrounds/' + crypto.randomUUID());
-    await uploadBytes(bgRef, file);
-    const downloadURL = await getDownloadURL(bgRef);
+    try {
+      const bgRef = ref(storage, 'backgrounds/' + crypto.randomUUID());
+      await uploadBytes(bgRef, file);
+      const downloadURL = await getDownloadURL(bgRef);
 
-    uploadedBackgroundURL = downloadURL;
-    document.body.style.backgroundImage = `url('${downloadURL}')`;
-    uploadingBackground = false;
+      uploadedBackgroundURL = downloadURL;
+      document.body.style.backgroundImage = `url('${downloadURL}')`;
+      console.log("✅ 背景画像アップロード完了:", downloadURL);
+    } catch (err) {
+      console.error("❌ 背景画像アップロード失敗:", err);
+    } finally {
+      uploadingBackground = false;
+    }
   });
 
   // ✅ 保存処理
   async function saveAndRedirect() {
-    // アップロード完了を待つ
-    while (uploadingProfile || uploadingBackground) {
+    // 最大5秒待機（アップロード完了待ち）
+    let waited = 0;
+    const maxWait = 5000;
+    while ((uploadingProfile || uploadingBackground) && waited < maxWait) {
       await new Promise(r => setTimeout(r, 100));
+      waited += 100;
     }
 
     const newId = crypto.randomUUID();
@@ -3080,6 +3096,7 @@ text.addEventListener('click', enableEditing);
     document.getElementById("terms-notice").style.display = "none";
   });
 </script>
+
 
 
 
