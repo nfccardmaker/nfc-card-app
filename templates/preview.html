@@ -396,8 +396,9 @@ body {
 
     <div class="student-id">
       <div class="left-section">
-        <img id="profile-img" src="{{ image_data or '/static/profile_icon.jpeg' }}" alt="プロフィール画像">
-        <input type="file" accept="image/*" id="profile-input" class="hidden-input">
+        <img id="profile-img" src="/static/profile_icon.jpeg" alt="プロフィール画像">
+<input type="file" accept="image/*" id="profile-input" class="hidden-input">
+
       </div>
       <div class="info-section">
        <input type="text" id="name" class="editable-text" placeholder="名前">
@@ -2975,9 +2976,6 @@ text.addEventListener('click', enableEditing);
   const profileImg = document.getElementById('profile-img');
   const bgInput = document.getElementById("background-input");
 
-  let uploadedProfileURL = "";     // ✅ プロフィール画像URL
-  let uploadedBackgroundURL = ""; // ✅ 背景画像URL
-
   const params = new URLSearchParams(window.location.search);
   const id = params.get("id");
 
@@ -2992,14 +2990,12 @@ text.addEventListener('click', enableEditing);
         document.getElementById("department").value = data.department;
         document.getElementById("birthplace").value = data.birthplace;
         document.getElementById("hobby").value = data.hobby;
-        if (data.imageUrl) {
-          profileImg.src = data.imageUrl;
-          uploadedProfileURL = data.imageUrl;
-        }
-        if (data.backgroundUrl) {
-          document.body.style.backgroundImage = `url('${data.backgroundUrl}')`;
-          uploadedBackgroundURL = data.backgroundUrl;
-        }
+     if (data.imageUrl && data.imageUrl.startsWith("http")) {
+  profileImg.src = data.imageUrl;
+  uploadedProfileURL = data.imageUrl;
+}
+
+        if (data.backgroundUrl) document.body.style.backgroundImage = `url('${data.backgroundUrl}')`;
       } else {
         alert("データが見つかりませんでした！");
       }
@@ -3009,6 +3005,14 @@ text.addEventListener('click', enableEditing);
   async function saveAndRedirect() {
     const newId = crypto.randomUUID();
 
+    const profileSrc = profileImg?.src || "";
+    const finalProfileUrl = profileSrc;
+
+    const bgStyle = document.body.style.backgroundImage || "";
+    const bgMatch = bgStyle.match(/url\(["']?(.*?)["']?\)/);
+    const bgUrl = bgMatch ? bgMatch[1] : "";
+    const finalBackgroundUrl = bgUrl;
+
     const data = {
       name: document.getElementById("name").value,
       birthday: document.getElementById("birthday").value,
@@ -3016,8 +3020,8 @@ text.addEventListener('click', enableEditing);
       department: document.getElementById("department").value,
       birthplace: document.getElementById("birthplace").value,
       hobby: document.getElementById("hobby").value,
-      imageUrl: uploadedProfileURL,
-      backgroundUrl: uploadedBackgroundURL
+      imageUrl: finalProfileUrl,
+      backgroundUrl: finalBackgroundUrl
     };
 
     try {
@@ -3055,11 +3059,10 @@ text.addEventListener('click', enableEditing);
     await uploadBytes(imageRef, file);
     const downloadURL = await getDownloadURL(imageRef);
     profileImg.src = downloadURL;
-    uploadedProfileURL = downloadURL;
 
     if (id) {
       await setDoc(doc(db, "cards", id), { imageUrl: downloadURL }, { merge: true });
-      console.log("✅ プロフィール画像URLを保存:", downloadURL);
+      console.log("✅画像URLをFirestoreに保存:", downloadURL);
     }
   });
 
@@ -3067,23 +3070,22 @@ text.addEventListener('click', enableEditing);
     imageInput?.click();
   });
 
-  bgInput?.addEventListener("change", async (e) => {
+  bgInput?.addEventListener("change", async function (e) {
     const file = e.target.files[0];
     if (!file) return;
 
     const storageRef = ref(storage, 'backgrounds/' + crypto.randomUUID());
     await uploadBytes(storageRef, file);
     const downloadURL = await getDownloadURL(storageRef);
+
     document.body.style.backgroundImage = `url('${downloadURL}')`;
-    uploadedBackgroundURL = downloadURL;
 
     if (id) {
       await setDoc(doc(db, "cards", id), { backgroundUrl: downloadURL }, { merge: true });
-      console.log("✅ 背景画像URLを保存:", downloadURL);
+      console.log("✅ 背景画像URLを保存しました：", downloadURL);
     }
   });
 </script>
-
 
 
 </body>
