@@ -3030,40 +3030,47 @@ text.addEventListener('click', enableEditing);
   });
 
   // 🔄 保存処理（アップロード完了を確認）
-  async function saveAndRedirect() {
-    let waited = 0;
-    const maxWait = 5000;
-    while ((uploadingProfile || uploadingBackground) && waited < maxWait) {
-      await new Promise(r => setTimeout(r, 100));
-      waited += 100;
-    }
-
-    const newId = crypto.randomUUID();
-
-    const finalProfileUrl = (uploadedProfileURL && uploadedProfileURL.startsWith("http")) ? uploadedProfileURL : "";
-    const bgStyle = document.body.style.backgroundImage || "";
-    const bgMatch = bgStyle.match(/url\(["']?(.*?)["']?\)/);
-    const bgUrl = bgMatch ? bgMatch[1] : "";
-    const finalBackgroundUrl = (uploadedBackgroundURL && uploadedBackgroundURL.startsWith("http")) ? uploadedBackgroundURL : "";
-
-    const data = {
-      name: document.getElementById("name").value,
-      birthday: document.getElementById("birthday").value,
-      age: document.getElementById("age").value,
-      department: document.getElementById("department").value,
-      birthplace: document.getElementById("birthplace").value,
-      hobby: document.getElementById("hobby").value,
-      imageUrl: finalProfileUrl,
-      backgroundUrl: finalBackgroundUrl
-    };
-
-    try {
-      await setDoc(doc(db, "cards", newId), data);
-      window.location.href = `/preview?id=${newId}`;
-    } catch (e) {
-      alert("保存に失敗しました：" + e.message);
-    }
+async function saveAndRedirect() {
+  let waited = 0;
+  const maxWait = 5000;
+  while ((uploadingProfile || uploadingBackground) && waited < maxWait) {
+    await new Promise(r => setTimeout(r, 100));
+    waited += 100;
   }
+
+  const newId = crypto.randomUUID();
+
+  // ✅ プロフィール画像URLの補完
+  const profileSrc = profileImg?.src || "";
+  const finalProfileUrl = uploadedProfileURL || (profileSrc.startsWith("http") ? profileSrc : "");
+
+  // ✅ 背景画像URLの補完（CSSから抽出）
+  const bgStyle = document.body.style.backgroundImage || "";
+  const bgMatch = bgStyle.match(/url\(["']?(.*?)["']?\)/);
+  const bgUrl = bgMatch ? bgMatch[1] : "";
+  const finalBackgroundUrl = uploadedBackgroundURL || (bgUrl.startsWith("http") ? bgUrl : "");
+
+  console.log("✅ 保存対象のプロフィール画像:", finalProfileUrl);
+  console.log("✅ 保存対象の背景画像:", finalBackgroundUrl);
+
+  const data = {
+    name: document.getElementById("name").value,
+    birthday: document.getElementById("birthday").value,
+    age: document.getElementById("age").value,
+    department: document.getElementById("department").value,
+    birthplace: document.getElementById("birthplace").value,
+    hobby: document.getElementById("hobby").value,
+    imageUrl: finalProfileUrl,
+    backgroundUrl: finalBackgroundUrl
+  };
+
+  try {
+    await setDoc(doc(db, "cards", newId), data);
+    window.location.href = `/preview?id=${newId}`;
+  } catch (e) {
+    alert("保存に失敗しました：" + e.message);
+  }
+}
 
   // ✅ 作成ボタン
   document.getElementById("finish-button")?.addEventListener("click", () => {
