@@ -396,9 +396,8 @@ body {
 
     <div class="student-id">
       <div class="left-section">
-        <img id="profile-img" src="/static/profile_icon.jpeg" alt="プロフィール画像">
-<input type="file" accept="image/*" id="profile-input" class="hidden-input">
-
+        <img id="profile-img" src="{{ image_data or '/static/profile_icon.jpeg' }}" alt="プロフィール画像">
+        <input type="file" accept="image/*" id="profile-input" class="hidden-input">
       </div>
       <div class="info-section">
        <input type="text" id="name" class="editable-text" placeholder="名前">
@@ -998,6 +997,7 @@ function restoreSelfPRSection() {
 document.getElementById('finish-button').addEventListener('click', async () => {
   const finishBtn = document.getElementById('finish-button');
   const checkbox = document.getElementById('agree-checkbox');
+
   if (!checkbox.checked) {
     showCuteAlert('利用規約に同意してください。');
     document.getElementById('terms-modal').style.display = 'flex';
@@ -1006,10 +1006,49 @@ document.getElementById('finish-button').addEventListener('click', async () => {
 
   finishBtn.disabled = true;
   finishBtn.textContent = '生成中...';
-  await compressAllImagesBeforeSend();
-  document.querySelectorAll('#background-list img').forEach(img => {
-    img.remove();
-  });
+
+  // 🔽 base64形式のプロフィール画像をFirebaseにアップロード
+  const profileImg = document.getElementById("profile-img");
+
+  if (profileImg && profileImg.src.startsWith("data:image/")) {
+    const base64 = profileImg.src;
+    const response = await fetch(base64);
+    const blob = await response.blob();
+
+    const imageRef = ref(storage, 'profile_images/' + crypto.randomUUID());
+    await uploadBytes(imageRef, blob);
+    const downloadURL = await getDownloadURL(imageRef);
+
+    profileImg.src = downloadURL;
+    uploadedProfileURL = downloadURL;
+  }
+
+  if (profileImg && profileImg.src.startsWith("blob:")) {
+    profileImg.src = "/static/uploads/profile.jpeg";
+    uploadedProfileURL = profileImg.src;
+  }
+
+  // 🔽 背景画像もbase64だったらアップロード
+  const bgStyle = document.body.style.backgroundImage || "";
+  const bgMatch = bgStyle.match(/url\(["']?(.*?)["']?\)/);
+  const bgUrl = bgMatch ? bgMatch[1] : "";
+
+  if (bgUrl.startsWith("data:image/")) {
+    const response = await fetch(bgUrl);
+    const blob = await response.blob();
+
+    const bgRef = ref(storage, 'backgrounds/' + crypto.randomUUID());
+    await uploadBytes(bgRef, blob);
+    const bgDownloadURL = await getDownloadURL(bgRef);
+
+    document.body.style.backgroundImage = `url('${bgDownloadURL}')`;
+    uploadedBackgroundURL = bgDownloadURL;
+  }
+
+  // 🔚 保存処理へ
+  saveAndRedirect();
+});
+
 
   function escapeHTML(str) {
     return str.replace(/&/g, "&amp;")
@@ -1098,13 +1137,33 @@ document.getElementById('finish-button').addEventListener('click', async () => {
     }
   });
 
-  const profileImg = document.getElementById("profile-img");
-  if (profileImg && profileImg.src.startsWith("blob:")) {
+ const profileImg = document.getElementById("profile-img");
+
+if (profileImg) {
+  // blob形式の場合はそのままでは使えない → スキップまたはデフォルト画像にする
+  if (profileImg.src.startsWith("blob:")) {
+    // 任意：default画像を表示（あるいはそのままスキップしてもOK）
     profileImg.src = "/static/uploads/profile.jpeg";
   }
-  if (profileImg && profileImg.src.startsWith("data:image/")) {
-    profileImg.src = await compressImage(profileImg.src);
+
+  // base64形式だったらFirebase Storageへアップロード
+  if (profileImg.src.startsWith("data:image/")) {
+    const base64 = profileImg.src;
+
+    // base64 → Blob に変換
+    const response = await fetch(base64);
+    const blob = await response.blob();
+
+    // Firebase Storage にアップロード
+    const imageRef = ref(storage, 'profile_images/' + crypto.randomUUID());
+    await uploadBytes(imageRef, blob);
+    const downloadURL = await getDownloadURL(imageRef);
+
+    // src を HTTP URL に置き換え
+    profileImg.src = downloadURL;
+    uploadedProfileURL = downloadURL; // ✅ 保存用URLとしても保持
   }
+}
 
   finishBtn.style.display = 'none';
 
@@ -2990,11 +3049,7 @@ text.addEventListener('click', enableEditing);
         document.getElementById("department").value = data.department;
         document.getElementById("birthplace").value = data.birthplace;
         document.getElementById("hobby").value = data.hobby;
-     if (data.imageUrl && data.imageUrl.startsWith("http")) {
-  profileImg.src = data.imageUrl;
-  uploadedProfileURL = data.imageUrl;
-}
-
+        if (data.imageUrl) profileImg.src = data.imageUrl;
         if (data.backgroundUrl) document.body.style.backgroundImage = `url('${data.backgroundUrl}')`;
       } else {
         alert("データが見つかりませんでした！");
