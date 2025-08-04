@@ -650,8 +650,6 @@ box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 </button>
  <div class="toolbar" id="toolbar">
     <img src="/static/upload.jpeg" onclick="toggleBackgroundList()">
-    <input type="file" id="bg-upload" accept="image/*" class="hidden-input">
-
     <img src="/static/pen_off.jpeg" onclick="toggleTextMode()" id="text-toggle-icon">
     <div style="position: relative; width: 28px; height: 28px;">
   <img src="/static/student.jpeg" style="width: 100%; height: 100%; cursor: pointer;">
@@ -3009,12 +3007,9 @@ text.addEventListener('click', enableEditing);
 
   const imageInput = document.getElementById('profile-input');
   const profileImg = document.getElementById('profile-img');
-  const bgInput = document.getElementById("bg-upload");
 
   const params = new URLSearchParams(window.location.search);
   const id = params.get("id");
-
-  let backgroundImageUrl = ""; // 新規作成用に保持
 
   // 🔍 表示用（id指定がある場合）
   if (id) {
@@ -3028,15 +3023,9 @@ text.addEventListener('click', enableEditing);
         document.getElementById("department").value = data.department;
         document.getElementById("birthplace").value = data.birthplace;
         document.getElementById("hobby").value = data.hobby;
-
         if (data.imageUrl) {
           document.getElementById("profile-img").src = data.imageUrl;
         }
-
-        if (data.backgroundUrl) {
-          document.body.style.backgroundImage = `url(${data.backgroundUrl})`;
-        }
-
       } else {
         alert("データが見つかりませんでした！");
       }
@@ -3053,8 +3042,7 @@ text.addEventListener('click', enableEditing);
       department: document.getElementById("department").value,
       birthplace: document.getElementById("birthplace").value,
       hobby: document.getElementById("hobby").value,
-      imageUrl: document.getElementById("profile-img").src,
-      backgroundUrl: backgroundImageUrl
+      imageUrl: document.getElementById("profile-img").src
     };
     try {
       await setDoc(doc(db, "cards", newId), data);
@@ -3069,9 +3057,9 @@ text.addEventListener('click', enableEditing);
     const checkbox = document.getElementById("agree-checkbox");
     if (checkbox && checkbox.checked) {
       document.getElementById("terms-modal").style.display = "none";
-      saveAndRedirect();
+      saveAndRedirect(); // ✅ 同意してたら保存
     } else {
-      document.getElementById("terms-notice").style.display = "flex";
+      document.getElementById("terms-notice").style.display = "flex"; // ❌ してなかったら注意
     }
   });
 
@@ -3086,7 +3074,7 @@ text.addEventListener('click', enableEditing);
     document.getElementById("terms-notice").style.display = "none";
   });
 
-  // 📸 プロフィール画像アップロード処理
+  // 📸 画像アップロード処理
   imageInput?.addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -3108,28 +3096,6 @@ text.addEventListener('click', enableEditing);
     imageInput?.click();
   });
 
-  // 🖼️ 背景画像アップロード処理
-  bgInput?.addEventListener("change", async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const bgRef = ref(storage, 'backgrounds/' + crypto.randomUUID());
-    await uploadBytes(bgRef, file);
-    const downloadURL = await getDownloadURL(bgRef);
-
-    document.body.style.backgroundImage = `url(${downloadURL})`;
-    backgroundImageUrl = downloadURL;
-
-    if (id) {
-      await setDoc(doc(db, "cards", id), { backgroundUrl: downloadURL }, { merge: true });
-      console.log("✅背景URLをFirestoreに保存:", downloadURL);
-    }
-  });
-
-  // 🖱️ 背景画像ボタン押下 → ファイル選択input発火
-  function toggleBackgroundList() {
-    bgInput?.click();
-  }
 </script>
 
 
