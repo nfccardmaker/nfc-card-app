@@ -3024,6 +3024,11 @@ text.addEventListener('click', enableEditing);
   // 保存処理
   async function saveAndRedirect() {
     const newId = crypto.randomUUID();
+
+    const currentProfile = uploadedProfileURL || profileImg?.src || "";
+    const bgStyle = document.body.style.backgroundImage || "";
+    const currentBackground = uploadedBackgroundURL || (bgStyle.match(/url\(["']?(.*?)["']?\)/)?.[1] || "");
+
     const data = {
       name: document.getElementById("name").value,
       birthday: document.getElementById("birthday").value,
@@ -3031,8 +3036,8 @@ text.addEventListener('click', enableEditing);
       department: document.getElementById("department").value,
       birthplace: document.getElementById("birthplace").value,
       hobby: document.getElementById("hobby").value,
-      imageUrl: uploadedProfileURL || "",
-      backgroundUrl: uploadedBackgroundURL || ""
+      imageUrl: currentProfile,
+      backgroundUrl: currentBackground
     };
 
     try {
@@ -3094,6 +3099,7 @@ text.addEventListener('click', enableEditing);
     document.body.style.backgroundImage = `url('${downloadURL}')`;
   });
 </script>
+
 
 
 
