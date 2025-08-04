@@ -629,7 +629,7 @@ box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 
 
   <canvas id="draw-canvas"></canvas>
- <input type="file" id="background-input" class="hidden-input" accept="image/*">
+  <input type="file" id="background-input" class="hidden-input" accept="image/*" onchange="loadBackgroundImage(event)">
   <input type="color" id="color-picker" class="hidden-input" onchange="changeBarColor(event)">
 <button id="finish-button" style="
   position: fixed;
@@ -649,8 +649,7 @@ box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   作成
 </button>
  <div class="toolbar" id="toolbar">
-   <img src="/static/upload.jpeg" onclick="document.getElementById('bg-upload').click()">
-    <input type="file" id="bg-upload" accept="image/*" style="display:none">
+    <img src="/static/upload.jpeg" onclick="toggleBackgroundList()">
     <img src="/static/pen_off.jpeg" onclick="toggleTextMode()" id="text-toggle-icon">
     <div style="position: relative; width: 28px; height: 28px;">
   <img src="/static/student.jpeg" style="width: 100%; height: 100%; cursor: pointer;">
@@ -3027,11 +3026,6 @@ text.addEventListener('click', enableEditing);
         if (data.imageUrl) {
           document.getElementById("profile-img").src = data.imageUrl;
         }
-      if (data.backgroundUrl && data.backgroundUrl !== 'null') {
-  document.body.style.backgroundImage = `url('${data.backgroundUrl}')`;
-}
-
-
       } else {
         alert("データが見つかりませんでした！");
       }
@@ -3048,8 +3042,7 @@ text.addEventListener('click', enableEditing);
       department: document.getElementById("department").value,
       birthplace: document.getElementById("birthplace").value,
       hobby: document.getElementById("hobby").value,
-      imageUrl: document.getElementById("profile-img").src,
-      backgroundUrl: document.body.style.backgroundImage.replace(/^url\(["']?/, '').replace(/["']?\)$/, '')
+      imageUrl: document.getElementById("profile-img").src
     };
     try {
       await setDoc(doc(db, "cards", newId), data);
@@ -3102,30 +3095,6 @@ text.addEventListener('click', enableEditing);
   profileImg?.addEventListener('click', () => {
     imageInput?.click();
   });
- const bgInput = document.getElementById('background-input'); // ← 修正
-const bgSelectIcon = document.getElementById('bg-select-icon');
-
-bgInput?.addEventListener('change', async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  const bgRef = ref(storage, 'backgrounds/' + crypto.randomUUID());
-  await uploadBytes(bgRef, file);
-  const downloadURL = await getDownloadURL(bgRef);
-
-  document.body.style.backgroundImage = `url('${downloadURL}')`;
-
-  if (id) {
-    await setDoc(doc(db, "cards", id), { backgroundUrl: downloadURL }, { merge: true });
-    console.log("✅背景URLをFirestoreに保存:", downloadURL);
-  }
-});
-
-// 背景画像ボタンをクリックすると input が開く
-bgSelectIcon?.addEventListener('click', () => {
-  bgInput?.click();
-});
-
 
 </script>
 
