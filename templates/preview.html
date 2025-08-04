@@ -2978,7 +2978,6 @@ text.addEventListener('click', enableEditing);
   const params = new URLSearchParams(window.location.search);
   const id = params.get("id");
 
-  // 🔍 編集モードで既存データを読み込み
   if (id) {
     const docRef = doc(db, "cards", id);
     getDoc(docRef).then(docSnap => {
@@ -2998,7 +2997,6 @@ text.addEventListener('click', enableEditing);
     });
   }
 
-  // ✅ 作成保存処理（共通関数）
   async function saveAndRedirect() {
     const newId = crypto.randomUUID();
 
@@ -3029,7 +3027,6 @@ text.addEventListener('click', enableEditing);
     }
   }
 
-  // ✅ 作成ボタン処理
   document.getElementById("finish-button")?.addEventListener("click", () => {
     const checkbox = document.getElementById("agree-checkbox");
     if (checkbox && checkbox.checked) {
@@ -3040,7 +3037,6 @@ text.addEventListener('click', enableEditing);
     }
   });
 
-  // ✅ 通知→規約モーダル切り替え
   document.getElementById("notice-agree-btn")?.addEventListener("click", () => {
     document.getElementById("terms-notice").style.display = "none";
     document.getElementById("terms-modal").style.display = "flex";
@@ -3050,7 +3046,6 @@ text.addEventListener('click', enableEditing);
     document.getElementById("terms-notice").style.display = "none";
   });
 
-  // 📸 プロフィール画像アップロード
   imageInput?.addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -3066,12 +3061,10 @@ text.addEventListener('click', enableEditing);
     }
   });
 
-  // 📷 プロフィール画像クリックでファイル選択
   profileImg?.addEventListener('click', () => {
     imageInput?.click();
   });
 
-  // 🌄 背景画像アップロード
   bgInput?.addEventListener("change", async function (e) {
     const file = e.target.files[0];
     if (!file) return;
