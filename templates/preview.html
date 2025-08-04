@@ -3004,6 +3004,7 @@ text.addEventListener('click', enableEditing);
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
   const storage = getStorage(app);
+  let bgImgURL = ""; // 保存用URL
 
   const imageInput = document.getElementById('profile-input');
   const profileImg = document.getElementById('profile-img');
@@ -3108,7 +3109,6 @@ async function saveAndRedirect() {
 // 🌄 背景画像アップロード処理
 const bgInput = document.getElementById("background-input");
 const backgroundEl = document.body; // もしくは特定の背景用divでもOK
-let bgImgURL = ""; // 保存用URL
 
 bgInput?.addEventListener("change", async (e) => {
   const file = e.target.files[0];
