@@ -3027,9 +3027,10 @@ text.addEventListener('click', enableEditing);
         if (data.imageUrl) {
           document.getElementById("profile-img").src = data.imageUrl;
         }
-        if (data.backgroundUrl) {
+      if (data.backgroundUrl && data.backgroundUrl !== 'null') {
   document.body.style.backgroundImage = `url('${data.backgroundUrl}')`;
 }
+
 
       } else {
         alert("データが見つかりませんでした！");
