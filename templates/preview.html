@@ -997,7 +997,6 @@ function restoreSelfPRSection() {
 document.getElementById('finish-button').addEventListener('click', async () => {
   const finishBtn = document.getElementById('finish-button');
   const checkbox = document.getElementById('agree-checkbox');
-
   if (!checkbox.checked) {
     showCuteAlert('利用規約に同意してください。');
     document.getElementById('terms-modal').style.display = 'flex';
@@ -1006,49 +1005,10 @@ document.getElementById('finish-button').addEventListener('click', async () => {
 
   finishBtn.disabled = true;
   finishBtn.textContent = '生成中...';
-
-  // 🔽 base64形式のプロフィール画像をFirebaseにアップロード
-  const profileImg = document.getElementById("profile-img");
-
-  if (profileImg && profileImg.src.startsWith("data:image/")) {
-    const base64 = profileImg.src;
-    const response = await fetch(base64);
-    const blob = await response.blob();
-
-    const imageRef = ref(storage, 'profile_images/' + crypto.randomUUID());
-    await uploadBytes(imageRef, blob);
-    const downloadURL = await getDownloadURL(imageRef);
-
-    profileImg.src = downloadURL;
-    uploadedProfileURL = downloadURL;
-  }
-
-  if (profileImg && profileImg.src.startsWith("blob:")) {
-    profileImg.src = "/static/uploads/profile.jpeg";
-    uploadedProfileURL = profileImg.src;
-  }
-
-  // 🔽 背景画像もbase64だったらアップロード
-  const bgStyle = document.body.style.backgroundImage || "";
-  const bgMatch = bgStyle.match(/url\(["']?(.*?)["']?\)/);
-  const bgUrl = bgMatch ? bgMatch[1] : "";
-
-  if (bgUrl.startsWith("data:image/")) {
-    const response = await fetch(bgUrl);
-    const blob = await response.blob();
-
-    const bgRef = ref(storage, 'backgrounds/' + crypto.randomUUID());
-    await uploadBytes(bgRef, blob);
-    const bgDownloadURL = await getDownloadURL(bgRef);
-
-    document.body.style.backgroundImage = `url('${bgDownloadURL}')`;
-    uploadedBackgroundURL = bgDownloadURL;
-  }
-
-  // 🔚 保存処理へ
-  saveAndRedirect();
-});
-
+  await compressAllImagesBeforeSend();
+  document.querySelectorAll('#background-list img').forEach(img => {
+    img.remove();
+  });
 
   function escapeHTML(str) {
     return str.replace(/&/g, "&amp;")
