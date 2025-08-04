@@ -3001,12 +3001,12 @@ text.addEventListener('click', enableEditing);
     const newId = crypto.randomUUID();
 
     const profileSrc = profileImg?.src || "";
-    const finalProfileUrl = profileSrc.startsWith("http") ? profileSrc : "";
+    const finalProfileUrl = profileSrc;
 
     const bgStyle = document.body.style.backgroundImage || "";
     const bgMatch = bgStyle.match(/url\(["']?(.*?)["']?\)/);
     const bgUrl = bgMatch ? bgMatch[1] : "";
-    const finalBackgroundUrl = bgUrl.startsWith("http") ? bgUrl : "";
+    const finalBackgroundUrl = bgUrl;
 
     const data = {
       name: document.getElementById("name").value,
@@ -3081,8 +3081,6 @@ text.addEventListener('click', enableEditing);
     }
   });
 </script>
-
-
 
 
 </body>
