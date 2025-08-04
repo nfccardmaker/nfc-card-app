@@ -3011,7 +3011,9 @@ text.addEventListener('click', enableEditing);
   const params = new URLSearchParams(window.location.search);
   const id = params.get("id");
 
-  // 🔍 表示用（id指定がある場合）
+  let backgroundImageUrl = "";
+
+  // 🔍 表示用
   if (id) {
     const docRef = doc(db, "cards", id);
     getDoc(docRef).then(docSnap => {
@@ -3028,6 +3030,7 @@ text.addEventListener('click', enableEditing);
         }
         if (data.backgroundUrl) {
           document.body.style.backgroundImage = `url(${data.backgroundUrl})`;
+          backgroundImageUrl = data.backgroundUrl;
         }
       } else {
         alert("データが見つかりませんでした！");
@@ -3035,7 +3038,7 @@ text.addEventListener('click', enableEditing);
     });
   }
 
-  // 🔁 保存処理本体（共通関数）
+  // 🔁 保存
   async function saveAndRedirect() {
     const newId = crypto.randomUUID();
     const data = {
@@ -3046,9 +3049,7 @@ text.addEventListener('click', enableEditing);
       birthplace: document.getElementById("birthplace").value,
       hobby: document.getElementById("hobby").value,
       imageUrl: document.getElementById("profile-img").src,
-      backgroundUrl: document.body.style.backgroundImage
-        ?.replace(/^url\(["']?/, '')
-        .replace(/["']?\)$/, '') || ""
+      backgroundUrl: backgroundImageUrl || ""
     };
     try {
       await setDoc(doc(db, "cards", newId), data);
@@ -3058,29 +3059,26 @@ text.addEventListener('click', enableEditing);
     }
   }
 
-  // ✅ 作成ボタン処理
   document.getElementById("finish-button")?.addEventListener("click", () => {
     const checkbox = document.getElementById("agree-checkbox");
     if (checkbox && checkbox.checked) {
       document.getElementById("terms-modal").style.display = "none";
-      saveAndRedirect(); // ✅ 同意してたら保存
+      saveAndRedirect();
     } else {
-      document.getElementById("terms-notice").style.display = "flex"; // ❌ してなかったら注意
+      document.getElementById("terms-notice").style.display = "flex";
     }
   });
 
-  // 🔁 通知モーダル → 利用規約モーダルへ
   document.getElementById("notice-agree-btn")?.addEventListener("click", () => {
     document.getElementById("terms-notice").style.display = "none";
     document.getElementById("terms-modal").style.display = "flex";
   });
 
-  // ❎ 通知モーダル閉じるだけ
   document.getElementById("notice-close-btn")?.addEventListener("click", () => {
     document.getElementById("terms-notice").style.display = "none";
   });
 
-  // 📸 画像アップロード処理
+  // 📸 プロフィール画像
   imageInput?.addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -3097,28 +3095,28 @@ text.addEventListener('click', enableEditing);
     }
   });
 
-  // 📷 プロフィール画像クリックでファイル選択
   profileImg?.addEventListener('click', () => {
     imageInput?.click();
   });
-document.getElementById("background-input")?.addEventListener("change", function (e) {
-  const file = e.target.files[0];
-  if (!file) return;
 
-  const reader = new FileReader();
-  reader.onload = () => {
-    const imageUrl = reader.result;
-    document.body.style.backgroundImage = `url('${imageUrl}')`;
+  document.getElementById("background-input")?.addEventListener("change", async function (e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const bgRef = ref(storage, 'backgrounds/' + crypto.randomUUID());
+    await uploadBytes(bgRef, file);
+    const downloadURL = await getDownloadURL(bgRef);
+
+    document.body.style.backgroundImage = `url('${downloadURL}')`;
+    backgroundImageUrl = downloadURL;
 
     if (id) {
-      setDoc(doc(db, "cards", id), { backgroundUrl: imageUrl }, { merge: true });
+      await setDoc(doc(db, "cards", id), { backgroundUrl: downloadURL }, { merge: true });
+      console.log("✅ 背景画像URLを保存しました：", downloadURL);
     }
-  };
-  reader.readAsDataURL(file);
-});
-
-
+  });
 </script>
+
 
 
 
