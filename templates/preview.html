@@ -3037,27 +3037,24 @@ text.addEventListener('click', enableEditing);
 
 
   // 🔁 保存処理本体（共通関数）
- async function saveAndRedirect() {
-  const newId = crypto.randomUUID();
-  const data = {
-    name: document.getElementById("name").value,
-    birthday: document.getElementById("birthday").value,
-    age: document.getElementById("age").value,
-    department: document.getElementById("department").value,
-    birthplace: document.getElementById("birthplace").value,
-    hobby: document.getElementById("hobby").value,
-    imageUrl: document.getElementById("profile-img").src,
-    backgroundUrl: document.body.style.backgroundImage
-      ?.replace(/^url\(["']?/, '')
-      .replace(/["']?\)$/, '') || ""
-  };
-  try {
-    await setDoc(doc(db, "cards", newId), data);
-    window.location.href = `/preview?id=${newId}`;
-  } catch (e) {
-    alert("保存に失敗しました：" + e.message);
+  async function saveAndRedirect() {
+    const newId = crypto.randomUUID();
+    const data = {
+      name: document.getElementById("name").value,
+      birthday: document.getElementById("birthday").value,
+      age: document.getElementById("age").value,
+      department: document.getElementById("department").value,
+      birthplace: document.getElementById("birthplace").value,
+      hobby: document.getElementById("hobby").value,
+      imageUrl: document.getElementById("profile-img").src
+    };
+    try {
+      await setDoc(doc(db, "cards", newId), data);
+      window.location.href = `/preview?id=${newId}`;
+    } catch (e) {
+      alert("保存に失敗しました：" + e.message);
+    }
   }
-}
 
   // ✅ 作成ボタン処理
   document.getElementById("finish-button")?.addEventListener("click", () => {
