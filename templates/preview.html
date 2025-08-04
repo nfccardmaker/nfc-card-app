@@ -3026,6 +3026,9 @@ text.addEventListener('click', enableEditing);
         if (data.imageUrl) {
           document.getElementById("profile-img").src = data.imageUrl;
         }
+        if (data.backgroundUrl) {
+          document.body.style.backgroundImage = `url(${data.backgroundUrl})`;
+        }
       } else {
         alert("データが見つかりませんでした！");
       }
@@ -3042,7 +3045,10 @@ text.addEventListener('click', enableEditing);
       department: document.getElementById("department").value,
       birthplace: document.getElementById("birthplace").value,
       hobby: document.getElementById("hobby").value,
-      imageUrl: document.getElementById("profile-img").src
+      imageUrl: document.getElementById("profile-img").src,
+      backgroundUrl: document.body.style.backgroundImage
+        ?.replace(/^url\(["']?/, '')
+        .replace(/["']?\)$/, '') || ""
     };
     try {
       await setDoc(doc(db, "cards", newId), data);
@@ -3103,7 +3109,6 @@ document.getElementById("background-input")?.addEventListener("change", function
   reader.onload = () => {
     const imageUrl = reader.result;
     document.body.style.backgroundImage = `url('${imageUrl}')`;
-    backgroundImageUrl = imageUrl;
 
     if (id) {
       setDoc(doc(db, "cards", id), { backgroundUrl: imageUrl }, { merge: true });
@@ -3111,6 +3116,7 @@ document.getElementById("background-input")?.addEventListener("change", function
   };
   reader.readAsDataURL(file);
 });
+
 
 </script>
 
