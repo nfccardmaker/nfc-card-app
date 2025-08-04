@@ -649,16 +649,7 @@ box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   作成
 </button>
  <div class="toolbar" id="toolbar">
-    <!-- ツールバーの中にある upload ボタン -->
-<!-- 背景アップロードボタン -->
-<img src="/static/upload.jpeg" onclick="document.getElementById('bg-upload').click()">
-
-<!-- アップロードファイル選択用 -->
-<input type="file" id="bg-upload" accept="image/*" style="display: none;">
-
-<!-- 🔥 背景画像のプレビュー用（src 取得用） -->
-<img id="bg-preview" style="display: none;">
-
+    <img src="/static/upload.jpeg" onclick="toggleBackgroundList()">
     <img src="/static/pen_off.jpeg" onclick="toggleTextMode()" id="text-toggle-icon">
     <div style="position: relative; width: 28px; height: 28px;">
   <img src="/static/student.jpeg" style="width: 100%; height: 100%; cursor: pointer;">
@@ -3035,9 +3026,6 @@ text.addEventListener('click', enableEditing);
         if (data.imageUrl) {
           document.getElementById("profile-img").src = data.imageUrl;
         }
-        if (data.backgroundUrl) {
-          document.getElementById("bg-preview").src = data.backgroundUrl;
-        }
       } else {
         alert("データが見つかりませんでした！");
       }
@@ -3047,17 +3035,15 @@ text.addEventListener('click', enableEditing);
   // 🔁 保存処理本体（共通関数）
   async function saveAndRedirect() {
     const newId = crypto.randomUUID();
-  const data = {
-  name: document.getElementById("name").value,
-  birthday: document.getElementById("birthday").value,
-  age: document.getElementById("age").value,
-  department: document.getElementById("department").value,
-  birthplace: document.getElementById("birthplace").value,
-  hobby: document.getElementById("hobby").value,
-  imageUrl: document.getElementById("profile-img").src,
-  backgroundUrl: document.getElementById("bg-preview").src
-};
-
+    const data = {
+      name: document.getElementById("name").value,
+      birthday: document.getElementById("birthday").value,
+      age: document.getElementById("age").value,
+      department: document.getElementById("department").value,
+      birthplace: document.getElementById("birthplace").value,
+      hobby: document.getElementById("hobby").value,
+      imageUrl: document.getElementById("profile-img").src
+    };
     try {
       await setDoc(doc(db, "cards", newId), data);
       window.location.href = `/preview?id=${newId}`;
@@ -3109,29 +3095,6 @@ text.addEventListener('click', enableEditing);
   profileImg?.addEventListener('click', () => {
     imageInput?.click();
   });
-// 🌄 背景アップロード処理
-document.getElementById('bg-upload')?.addEventListener('change', async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  const imageRef = ref(storage, 'backgrounds/' + (id || crypto.randomUUID()));
-  await uploadBytes(imageRef, file);
-  const downloadURL = await getDownloadURL(imageRef);
-
-  // 🔄 Firestoreに保存（新規作成 or 編集時両対応）
-  const docId = id || localStorage.getItem("edit_id"); // なければ保存処理にも必要
-  if (docId) {
-    await setDoc(doc(db, "cards", docId), { backgroundUrl: downloadURL }, { merge: true });
-  }
-
-  // ✅ ここを追加（保存用にsrc保持）
-  document.getElementById("bg-preview").src = downloadURL;
-
-  // 🎨 すぐに画面に反映
-  document.body.style.backgroundImage = `url(${downloadURL})`;
-  document.body.style.backgroundSize = 'cover';
-  document.body.style.backgroundPosition = 'center';
-});
 
 </script>
 
