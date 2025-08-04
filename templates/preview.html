@@ -3038,15 +3038,17 @@ text.addEventListener('click', enableEditing);
   // 🔁 保存処理本体（共通関数）
   async function saveAndRedirect() {
     const newId = crypto.randomUUID();
-    const data = {
-      name: document.getElementById("name").value,
-      birthday: document.getElementById("birthday").value,
-      age: document.getElementById("age").value,
-      department: document.getElementById("department").value,
-      birthplace: document.getElementById("birthplace").value,
-      hobby: document.getElementById("hobby").value,
-      imageUrl: document.getElementById("profile-img").src
-    };
+  const data = {
+  name: document.getElementById("name").value,
+  birthday: document.getElementById("birthday").value,
+  age: document.getElementById("age").value,
+  department: document.getElementById("department").value,
+  birthplace: document.getElementById("birthplace").value,
+  hobby: document.getElementById("hobby").value,
+  imageUrl: document.getElementById("profile-img").src,
+  backgroundUrl: getComputedStyle(document.body).backgroundImage.replace(/^url\(["']?/, '').replace(/["']?\)$/, '')
+};
+
     try {
       await setDoc(doc(db, "cards", newId), data);
       window.location.href = `/preview?id=${newId}`;
