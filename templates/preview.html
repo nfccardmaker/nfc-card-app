@@ -2964,7 +2964,6 @@ text.addEventListener('click', enableEditing);
   import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
   import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
 
-  // Firebase初期化
   const firebaseConfig = {
     apiKey: "AIzaSyBCnMBQjzoxViJPv3YqpZDD_PXQEe2QTsA",
     authDomain: "nfc-card-app-79464.firebaseapp.com",
@@ -2988,7 +2987,7 @@ text.addEventListener('click', enableEditing);
   let uploadingProfile = false;
   let uploadingBackground = false;
 
-  // ✅ プロフィール画像アップロード
+  // 🔁 プロフィール画像アップロード処理
   imageInput?.addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -2998,10 +2997,9 @@ text.addEventListener('click', enableEditing);
       const imageRef = ref(storage, 'profile_images/' + crypto.randomUUID());
       await uploadBytes(imageRef, file);
       const downloadURL = await getDownloadURL(imageRef);
-
       uploadedProfileURL = downloadURL;
       profileImg.src = downloadURL;
-      console.log("✅ プロフィール画像アップロード完了:", downloadURL);
+      console.log("✅ プロフィール画像URL:", downloadURL);
     } catch (err) {
       console.error("❌ プロフィール画像アップロード失敗:", err);
     } finally {
@@ -3009,11 +3007,9 @@ text.addEventListener('click', enableEditing);
     }
   });
 
-  profileImg?.addEventListener('click', () => {
-    imageInput?.click();
-  });
+  profileImg?.addEventListener('click', () => imageInput?.click());
 
-  // ✅ 背景画像アップロード
+  // 🔁 背景画像アップロード処理
   bgInput?.addEventListener("change", async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -3023,10 +3019,9 @@ text.addEventListener('click', enableEditing);
       const bgRef = ref(storage, 'backgrounds/' + crypto.randomUUID());
       await uploadBytes(bgRef, file);
       const downloadURL = await getDownloadURL(bgRef);
-
       uploadedBackgroundURL = downloadURL;
       document.body.style.backgroundImage = `url('${downloadURL}')`;
-      console.log("✅ 背景画像アップロード完了:", downloadURL);
+      console.log("✅ 背景画像URL:", downloadURL);
     } catch (err) {
       console.error("❌ 背景画像アップロード失敗:", err);
     } finally {
@@ -3034,9 +3029,8 @@ text.addEventListener('click', enableEditing);
     }
   });
 
-  // ✅ 保存処理
+  // 🔄 保存処理（アップロード完了を確認）
   async function saveAndRedirect() {
-    // 最大5秒待機（アップロード完了待ち）
     let waited = 0;
     const maxWait = 5000;
     while ((uploadingProfile || uploadingBackground) && waited < maxWait) {
@@ -3044,15 +3038,13 @@ text.addEventListener('click', enableEditing);
       waited += 100;
     }
 
-  const newId = crypto.randomUUID();
+    const newId = crypto.randomUUID();
 
-const profileSrc = profileImg?.src || "";
-const finalProfileUrl = (uploadedProfileURL && uploadedProfileURL.startsWith("http")) ? uploadedProfileURL : "";
-
-const bgStyle = document.body.style.backgroundImage || "";
-const bgMatch = bgStyle.match(/url\(["']?(.*?)["']?\)/);
-const bgUrl = bgMatch ? bgMatch[1] : "";
-const finalBackgroundUrl = (uploadedBackgroundURL && uploadedBackgroundURL.startsWith("http")) ? uploadedBackgroundURL : "";
+    const finalProfileUrl = (uploadedProfileURL && uploadedProfileURL.startsWith("http")) ? uploadedProfileURL : "";
+    const bgStyle = document.body.style.backgroundImage || "";
+    const bgMatch = bgStyle.match(/url\(["']?(.*?)["']?\)/);
+    const bgUrl = bgMatch ? bgMatch[1] : "";
+    const finalBackgroundUrl = (uploadedBackgroundURL && uploadedBackgroundURL.startsWith("http")) ? uploadedBackgroundURL : "";
 
     const data = {
       name: document.getElementById("name").value,
@@ -3073,7 +3065,7 @@ const finalBackgroundUrl = (uploadedBackgroundURL && uploadedBackgroundURL.start
     }
   }
 
-  // ✅ 作成ボタン処理
+  // ✅ 作成ボタン
   document.getElementById("finish-button")?.addEventListener("click", () => {
     const checkbox = document.getElementById("agree-checkbox");
     if (checkbox && checkbox.checked) {
@@ -3084,7 +3076,7 @@ const finalBackgroundUrl = (uploadedBackgroundURL && uploadedBackgroundURL.start
     }
   });
 
-  // ✅ 通知→規約
+  // ✅ 利用規約モーダル制御
   document.getElementById("notice-agree-btn")?.addEventListener("click", () => {
     document.getElementById("terms-notice").style.display = "none";
     document.getElementById("terms-modal").style.display = "flex";
@@ -3094,13 +3086,6 @@ const finalBackgroundUrl = (uploadedBackgroundURL && uploadedBackgroundURL.start
     document.getElementById("terms-notice").style.display = "none";
   });
 </script>
-
-
-
-
-
-
-
 
 
 </body>
