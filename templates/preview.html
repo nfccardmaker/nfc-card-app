@@ -3022,35 +3022,39 @@ text.addEventListener('click', enableEditing);
   let uploadedBackgroundURL = "";
 
   // ✅ 保存処理
-  async function saveAndRedirect() {
-    const newId = crypto.randomUUID();
+ async function saveAndRedirect() {
+  const newId = crypto.randomUUID();
 
-    const isDefaultProfile = profileImg?.src?.includes("profile_icon.jpeg");
-    const profileUrlToSave = uploadedProfileURL || (!isDefaultProfile ? profileImg?.src : "");
+  // 🔽 画像がアップロード中なら終わるまで待つ（何もしないならそのまま空欄）
+  const profileSrc = profileImg?.src || "";
+  const isBase64Profile = profileSrc.startsWith("data:image/");
+  const finalProfileUrl = uploadedProfileURL || (!isBase64Profile ? profileSrc : "");
 
-    const bgStyle = document.body.style.backgroundImage || "";
-    const bgMatch = bgStyle.match(/url\(["']?(.*?)["']?\)/);
-    const bgUrl = bgMatch ? bgMatch[1] : "";
-    const backgroundUrlToSave = uploadedBackgroundURL || (bgUrl && bgUrl !== "none" ? bgUrl : "");
+  const bgStyle = document.body.style.backgroundImage || "";
+  const bgMatch = bgStyle.match(/url\(["']?(.*?)["']?\)/);
+  const bgUrl = bgMatch ? bgMatch[1] : "";
+  const isBase64Background = bgUrl.startsWith("data:image/");
+  const finalBackgroundUrl = uploadedBackgroundURL || (!isBase64Background ? bgUrl : "");
 
-    const data = {
-      name: document.getElementById("name").value,
-      birthday: document.getElementById("birthday").value,
-      age: document.getElementById("age").value,
-      department: document.getElementById("department").value,
-      birthplace: document.getElementById("birthplace").value,
-      hobby: document.getElementById("hobby").value,
-      imageUrl: profileUrlToSave,
-      backgroundUrl: backgroundUrlToSave
-    };
+  const data = {
+    name: document.getElementById("name").value,
+    birthday: document.getElementById("birthday").value,
+    age: document.getElementById("age").value,
+    department: document.getElementById("department").value,
+    birthplace: document.getElementById("birthplace").value,
+    hobby: document.getElementById("hobby").value,
+    imageUrl: finalProfileUrl,
+    backgroundUrl: finalBackgroundUrl
+  };
 
-    try {
-      await setDoc(doc(db, "cards", newId), data);
-      window.location.href = `/preview?id=${newId}`;
-    } catch (e) {
-      alert("保存に失敗しました：" + e.message);
-    }
+  try {
+    await setDoc(doc(db, "cards", newId), data);
+    window.location.href = `/preview?id=${newId}`;
+  } catch (e) {
+    alert("保存に失敗しました：" + e.message);
   }
+}
+
 
   // ✅ 作成ボタン
   document.getElementById("finish-button")?.addEventListener("click", () => {
