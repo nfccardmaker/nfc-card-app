@@ -650,6 +650,8 @@ box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 </button>
  <div class="toolbar" id="toolbar">
     <img src="/static/upload.jpeg" onclick="toggleBackgroundList()">
+    <input type="file" id="bg-upload" accept="image/*" class="hidden-input">
+
     <img src="/static/pen_off.jpeg" onclick="toggleTextMode()" id="text-toggle-icon">
     <div style="position: relative; width: 28px; height: 28px;">
   <img src="/static/student.jpeg" style="width: 100%; height: 100%; cursor: pointer;">
@@ -3026,6 +3028,10 @@ text.addEventListener('click', enableEditing);
         if (data.imageUrl) {
           document.getElementById("profile-img").src = data.imageUrl;
         }
+        if (data.backgroundUrl) {
+  document.body.style.backgroundImage = `url(${data.backgroundUrl})`;
+}
+
       } else {
         alert("データが見つかりませんでした！");
       }
@@ -3042,7 +3048,9 @@ text.addEventListener('click', enableEditing);
       department: document.getElementById("department").value,
       birthplace: document.getElementById("birthplace").value,
       hobby: document.getElementById("hobby").value,
-      imageUrl: document.getElementById("profile-img").src
+     imageUrl: document.getElementById("profile-img").src,
+    backgroundUrl: backgroundImageUrl 
+
     };
     try {
       await setDoc(doc(db, "cards", newId), data);
@@ -3095,6 +3103,46 @@ text.addEventListener('click', enableEditing);
   profileImg?.addEventListener('click', () => {
     imageInput?.click();
   });
+// 🖼️ 背景アップロード用input
+const bgInput = document.getElementById("bg-upload");
+let backgroundImageUrl = ""; // 新規作成時用に保持
+
+// ✅ 編集モードならFirestoreから背景URLを取得＆反映
+if (id) {
+  const docRef = doc(db, "cards", id);
+  getDoc(docRef).then(docSnap => {
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      if (data.backgroundUrl) {
+        document.body.style.backgroundImage = `url(${data.backgroundUrl})`;
+      }
+    }
+  });
+}
+
+// 🖼️ 背景画像アップロード処理
+bgInput?.addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const bgRef = ref(storage, 'backgrounds/' + crypto.randomUUID());
+  await uploadBytes(bgRef, file);
+  const downloadURL = await getDownloadURL(bgRef);
+
+  document.body.style.backgroundImage = `url(${downloadURL})`;
+  backgroundImageUrl = downloadURL;
+
+  // 編集モードなら即時Firestore保存
+  if (id) {
+    await setDoc(doc(db, "cards", id), { backgroundUrl: downloadURL }, { merge: true });
+    console.log("✅背景URLをFirestoreに保存:", downloadURL);
+  }
+});
+
+// 🖱️ 背景画像ボタン押下 → ファイル選択input発火
+function toggleBackgroundList() {
+  document.getElementById("bg-upload")?.click();
+}
 
 </script>
 
