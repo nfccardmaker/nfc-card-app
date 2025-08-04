@@ -3044,17 +3044,15 @@ text.addEventListener('click', enableEditing);
       waited += 100;
     }
 
-    const newId = crypto.randomUUID();
+  const newId = crypto.randomUUID();
 
-    const profileSrc = profileImg?.src || "";
-    const isBase64Profile = profileSrc.startsWith("data:image/");
-    const finalProfileUrl = uploadedProfileURL || (!isBase64Profile ? profileSrc : "");
+const profileSrc = profileImg?.src || "";
+const finalProfileUrl = (uploadedProfileURL && uploadedProfileURL.startsWith("http")) ? uploadedProfileURL : "";
 
-    const bgStyle = document.body.style.backgroundImage || "";
-    const bgMatch = bgStyle.match(/url\(["']?(.*?)["']?\)/);
-    const bgUrl = bgMatch ? bgMatch[1] : "";
-    const isBase64Background = bgUrl.startsWith("data:image/");
-    const finalBackgroundUrl = uploadedBackgroundURL || (!isBase64Background ? bgUrl : "");
+const bgStyle = document.body.style.backgroundImage || "";
+const bgMatch = bgStyle.match(/url\(["']?(.*?)["']?\)/);
+const bgUrl = bgMatch ? bgMatch[1] : "";
+const finalBackgroundUrl = (uploadedBackgroundURL && uploadedBackgroundURL.startsWith("http")) ? uploadedBackgroundURL : "";
 
     const data = {
       name: document.getElementById("name").value,
