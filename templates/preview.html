@@ -3012,45 +3012,52 @@ text.addEventListener('click', enableEditing);
   const id = params.get("id");
 
   // 🔍 表示用（id指定がある場合）
-  if (id) {
-    const docRef = doc(db, "cards", id);
-    getDoc(docRef).then(docSnap => {
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        document.getElementById("name").value = data.name;
-        document.getElementById("birthday").value = data.birthday;
-        document.getElementById("age").value = data.age;
-        document.getElementById("department").value = data.department;
-        document.getElementById("birthplace").value = data.birthplace;
-        document.getElementById("hobby").value = data.hobby;
-        if (data.imageUrl) {
-          document.getElementById("profile-img").src = data.imageUrl;
-        }
-      } else {
-        alert("データが見つかりませんでした！");
+ if (id) {
+  const docRef = doc(db, "cards", id);
+  getDoc(docRef).then(docSnap => {
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      document.getElementById("name").value = data.name;
+      document.getElementById("birthday").value = data.birthday;
+      document.getElementById("age").value = data.age;
+      document.getElementById("department").value = data.department;
+      document.getElementById("birthplace").value = data.birthplace;
+      document.getElementById("hobby").value = data.hobby;
+      if (data.imageUrl) {
+        document.getElementById("profile-img").src = data.imageUrl;
       }
-    });
-  }
+      if (data.backgroundUrl) {
+        document.body.style.backgroundImage = `url(${data.backgroundUrl})`;
+      }
+    } else {
+      alert("データが見つかりませんでした！");
+    }
+  });
+}
+
 
   // 🔁 保存処理本体（共通関数）
-  async function saveAndRedirect() {
-    const newId = crypto.randomUUID();
-    const data = {
-      name: document.getElementById("name").value,
-      birthday: document.getElementById("birthday").value,
-      age: document.getElementById("age").value,
-      department: document.getElementById("department").value,
-      birthplace: document.getElementById("birthplace").value,
-      hobby: document.getElementById("hobby").value,
-      imageUrl: document.getElementById("profile-img").src
-    };
-    try {
-      await setDoc(doc(db, "cards", newId), data);
-      window.location.href = `/preview?id=${newId}`;
-    } catch (e) {
-      alert("保存に失敗しました：" + e.message);
-    }
+ async function saveAndRedirect() {
+  const newId = crypto.randomUUID();
+  const data = {
+    name: document.getElementById("name").value,
+    birthday: document.getElementById("birthday").value,
+    age: document.getElementById("age").value,
+    department: document.getElementById("department").value,
+    birthplace: document.getElementById("birthplace").value,
+    hobby: document.getElementById("hobby").value,
+    imageUrl: document.getElementById("profile-img").src,
+    backgroundUrl: document.body.style.backgroundImage
+      ?.replace(/^url\(["']?/, '')
+      .replace(/["']?\)$/, '') || ""
+  };
+  try {
+    await setDoc(doc(db, "cards", newId), data);
+    window.location.href = `/preview?id=${newId}`;
+  } catch (e) {
+    alert("保存に失敗しました：" + e.message);
   }
+}
 
   // ✅ 作成ボタン処理
   document.getElementById("finish-button")?.addEventListener("click", () => {
