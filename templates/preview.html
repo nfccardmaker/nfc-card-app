@@ -1327,8 +1327,10 @@ function insertPRTemplate(category) {
   -ms-overflow-style: none; /* IE用 */
 ">
 <!-- ▼ カメラアイコン付きテンプレ追加ここから -->
-<img src="/static/camera.jpeg" onclick="document.getElementById('background-input').click()" 
+<img id="background-icon" src="/static/camera.jpeg" 
+     onclick="document.getElementById('background-input').click()" 
      style="width:50px; height:50px; cursor:pointer; border-radius:8px; flex-shrink:0;">
+
 <!-- ▼ カメラアイコン付きテンプレ追加ここまで -->
   <img src="/static/haikei_1.jpeg" onclick="setBackground('/static/haikei_1.jpeg')" style="width:50px; height:50px; cursor:pointer; border-radius:8px; flex-shrink:0;">
 <img src="/static/haikei_2.jpeg" onclick="setBackground('/static/haikei_2.jpeg')" style="width:50px; height:50px; cursor:pointer; border-radius:8px; flex-shrink:0;">
@@ -3007,84 +3009,86 @@ text.addEventListener('click', enableEditing);
 
   const imageInput = document.getElementById('profile-input');
   const profileImg = document.getElementById('profile-img');
-  
+  const bgInput = document.getElementById("background-input");
+  const backgroundEl = document.body;
+  const bgIcon = document.getElementById("background-icon");
 
   const params = new URLSearchParams(window.location.search);
   const id = params.get("id");
 
-  // 🔍 表示用（id指定がある場合）
- // 表示処理（背景画像含む）
-if (id) {
-  const docRef = doc(db, "cards", id);
-  getDoc(docRef).then(docSnap => {
-    if (docSnap.exists()) {
-      const data = docSnap.data();
-      document.getElementById("name").value = data.name;
-      document.getElementById("birthday").value = data.birthday;
-      document.getElementById("age").value = data.age;
-      document.getElementById("department").value = data.department;
-      document.getElementById("birthplace").value = data.birthplace;
-      document.getElementById("hobby").value = data.hobby;
+  let bgImgURL = ""; // 背景画像の保存用URL
 
-      if (data.imageUrl) {
-        document.getElementById("profile-img").src = data.imageUrl;
+  // 🔍 表示処理（id指定がある場合）
+  if (id) {
+    const docRef = doc(db, "cards", id);
+    getDoc(docRef).then(docSnap => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        document.getElementById("name").value = data.name;
+        document.getElementById("birthday").value = data.birthday;
+        document.getElementById("age").value = data.age;
+        document.getElementById("department").value = data.department;
+        document.getElementById("birthplace").value = data.birthplace;
+        document.getElementById("hobby").value = data.hobby;
+
+        if (data.imageUrl) {
+          profileImg.src = data.imageUrl;
+        }
+
+        if (data.backgroundUrl) {
+          backgroundEl.style.backgroundImage = `url('${data.backgroundUrl}')`;
+          bgImgURL = data.backgroundUrl;
+        }
+      } else {
+        alert("データが見つかりませんでした！");
       }
-
-      if (data.backgroundUrl) {
-        document.body.style.backgroundImage = `url('${data.backgroundUrl}')`;
-        bgImgURL = data.backgroundUrl; // ← 保存用にも代入しておく
-      }
-    } else {
-      alert("データが見つかりませんでした！");
-    }
-  });
-}
-
- // 保存処理（背景画像含む）
-async function saveAndRedirect() {
-  const newId = crypto.randomUUID();
-  const data = {
-    name: document.getElementById("name").value,
-    birthday: document.getElementById("birthday").value,
-    age: document.getElementById("age").value,
-    department: document.getElementById("department").value,
-    birthplace: document.getElementById("birthplace").value,
-    hobby: document.getElementById("hobby").value,
-    imageUrl: document.getElementById("profile-img").src,
-    backgroundUrl: bgImgURL || "" // 🔑 ここで保存！
-  };
-
-  try {
-    await setDoc(doc(db, "cards", newId), data);
-    window.location.href = `/preview?id=${newId}`;
-  } catch (e) {
-    alert("保存に失敗しました：" + e.message);
+    });
   }
-}
+
+  // 💾 保存処理
+  async function saveAndRedirect() {
+    const newId = crypto.randomUUID();
+    const data = {
+      name: document.getElementById("name").value,
+      birthday: document.getElementById("birthday").value,
+      age: document.getElementById("age").value,
+      department: document.getElementById("department").value,
+      birthplace: document.getElementById("birthplace").value,
+      hobby: document.getElementById("hobby").value,
+      imageUrl: profileImg.src,
+      backgroundUrl: bgImgURL || ""
+    };
+
+    try {
+      await setDoc(doc(db, "cards", newId), data);
+      window.location.href = `/preview?id=${newId}`;
+    } catch (e) {
+      alert("保存に失敗しました：" + e.message);
+    }
+  }
 
   // ✅ 作成ボタン処理
   document.getElementById("finish-button")?.addEventListener("click", () => {
     const checkbox = document.getElementById("agree-checkbox");
     if (checkbox && checkbox.checked) {
       document.getElementById("terms-modal").style.display = "none";
-      saveAndRedirect(); // ✅ 同意してたら保存
+      saveAndRedirect();
     } else {
-      document.getElementById("terms-notice").style.display = "flex"; // ❌ してなかったら注意
+      document.getElementById("terms-notice").style.display = "flex";
     }
   });
 
-  // 🔁 通知モーダル → 利用規約モーダルへ
+  // 🔁 通知→規約モーダル
   document.getElementById("notice-agree-btn")?.addEventListener("click", () => {
     document.getElementById("terms-notice").style.display = "none";
     document.getElementById("terms-modal").style.display = "flex";
   });
 
-  // ❎ 通知モーダル閉じるだけ
   document.getElementById("notice-close-btn")?.addEventListener("click", () => {
     document.getElementById("terms-notice").style.display = "none";
   });
 
-  // 📸 画像アップロード処理
+  // 📸 プロフィール画像アップロード処理
   imageInput?.addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -3101,34 +3105,31 @@ async function saveAndRedirect() {
     }
   });
 
-  // 📷 プロフィール画像クリックでファイル選択
   profileImg?.addEventListener('click', () => {
     imageInput?.click();
   });
-// 🌄 背景画像アップロード処理
-const bgInput = document.getElementById("background-input");
-const backgroundEl = document.body; // もしくは特定の背景用divでもOK
-let bgImgURL = ""; // 保存用URL
 
-bgInput?.addEventListener("change", async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
+  // 🌄 背景画像アップロード処理
+  bgInput?.addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-  const bgRef = ref(storage, 'backgrounds/' + crypto.randomUUID());
-  await uploadBytes(bgRef, file);
-  const downloadURL = await getDownloadURL(bgRef);
+    const bgRef = ref(storage, 'backgrounds/' + crypto.randomUUID());
+    await uploadBytes(bgRef, file);
+    const downloadURL = await getDownloadURL(bgRef);
 
-  // ✅ 表示だけ
-  backgroundEl.style.backgroundImage = `url('${downloadURL}')`;
+    backgroundEl.style.backgroundImage = `url('${downloadURL}')`;
+    bgImgURL = downloadURL;
 
-  // ✅ 保存用URL保持（idありなら即保存）
-  bgImgURL = downloadURL;
+    if (id) {
+      await setDoc(doc(db, "cards", id), { backgroundUrl: downloadURL }, { merge: true });
+    }
+  });
 
-  if (id) {
-    await setDoc(doc(db, "cards", id), { backgroundUrl: downloadURL }, { merge: true });
-  }
-});
-
+  // 📷 背景カメラアイコンをクリックしたらファイル選択
+  bgIcon?.addEventListener("click", () => {
+    bgInput?.click();
+  });
 </script>
 
 
