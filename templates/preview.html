@@ -2972,8 +2972,15 @@ text.addEventListener('click', enableEditing);
         document.getElementById("department").value = data.department;
         document.getElementById("birthplace").value = data.birthplace;
         document.getElementById("hobby").value = data.hobby;
-        if (data.imageUrl) profileImg.src = data.imageUrl;
-        if (data.backgroundUrl) document.body.style.backgroundImage = `url('${data.backgroundUrl}')`;
+
+        if (data.imageUrl) {
+          profileImg.src = data.imageUrl;
+          document.getElementById("profile-url").value = data.imageUrl;
+        }
+        if (data.backgroundUrl) {
+          document.body.style.backgroundImage = `url('${data.backgroundUrl}')`;
+          document.getElementById("background-url").value = data.backgroundUrl;
+        }
       } else {
         alert("データが見つかりませんでした！");
       }
@@ -2983,13 +2990,9 @@ text.addEventListener('click', enableEditing);
   async function saveAndRedirect() {
     const newId = crypto.randomUUID();
 
-    const profileSrc = profileImg?.src || "";
-    const finalProfileUrl = profileSrc;
-
-    const bgStyle = document.body.style.backgroundImage || "";
-    const bgMatch = bgStyle.match(/url\(["']?(.*?)["']?\)/);
-    const bgUrl = bgMatch ? bgMatch[1] : "";
-    const finalBackgroundUrl = bgUrl;
+    // ✅ hidden input から downloadURL を取得
+    const finalProfileUrl = document.getElementById("profile-url").value;
+    const finalBackgroundUrl = document.getElementById("background-url").value;
 
     const data = {
       name: document.getElementById("name").value,
@@ -3029,6 +3032,7 @@ text.addEventListener('click', enableEditing);
     document.getElementById("terms-notice").style.display = "none";
   });
 
+  // ✅ プロフィール画像アップロード処理
   imageInput?.addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -3036,11 +3040,13 @@ text.addEventListener('click', enableEditing);
     const imageRef = ref(storage, 'profile_images/' + crypto.randomUUID());
     await uploadBytes(imageRef, file);
     const downloadURL = await getDownloadURL(imageRef);
+
     profileImg.src = downloadURL;
+    document.getElementById("profile-url").value = downloadURL;
 
     if (id) {
       await setDoc(doc(db, "cards", id), { imageUrl: downloadURL }, { merge: true });
-      console.log("✅画像URLをFirestoreに保存:", downloadURL);
+      console.log("✅ 画像URLを保存しました：", downloadURL);
     }
   });
 
@@ -3048,6 +3054,7 @@ text.addEventListener('click', enableEditing);
     imageInput?.click();
   });
 
+  // ✅ 背景画像アップロード処理
   bgInput?.addEventListener("change", async function (e) {
     const file = e.target.files[0];
     if (!file) return;
@@ -3057,6 +3064,7 @@ text.addEventListener('click', enableEditing);
     const downloadURL = await getDownloadURL(storageRef);
 
     document.body.style.backgroundImage = `url('${downloadURL}')`;
+    document.getElementById("background-url").value = downloadURL;
 
     if (id) {
       await setDoc(doc(db, "cards", id), { backgroundUrl: downloadURL }, { merge: true });
