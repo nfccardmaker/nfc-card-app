@@ -2954,7 +2954,6 @@ text.addEventListener('click', enableEditing);
   const imageInput = document.getElementById('profile-input');
   const profileImg = document.getElementById('profile-img');
   const bgInput = document.getElementById("background-input");
-  const profileUrlInput = document.getElementById("profile-url"); // 🔥 追加
 
   const params = new URLSearchParams(window.location.search);
   const id = params.get("id");
@@ -2970,13 +2969,8 @@ text.addEventListener('click', enableEditing);
         document.getElementById("department").value = data.department;
         document.getElementById("birthplace").value = data.birthplace;
         document.getElementById("hobby").value = data.hobby;
-        if (data.imageUrl) {
-          profileImg.src = data.imageUrl;
-          profileUrlInput.value = data.imageUrl; // 🔥 保存済URLもinputに反映
-        }
-        if (data.backgroundUrl) {
-          document.body.style.backgroundImage = `url('${data.backgroundUrl}')`;
-        }
+        if (data.imageUrl) profileImg.src = data.imageUrl;
+        if (data.backgroundUrl) document.body.style.backgroundImage = `url('${data.backgroundUrl}')`;
       } else {
         alert("データが見つかりませんでした！");
       }
@@ -2986,12 +2980,13 @@ text.addEventListener('click', enableEditing);
   async function saveAndRedirect() {
     const newId = crypto.randomUUID();
 
-    // ✅ srcではなくdownloadURLの保存された値を使う
-    const finalProfileUrl = profileUrlInput.value;
+    const profileSrc = profileImg?.src || "";
+    const finalProfileUrl = profileSrc;
 
     const bgStyle = document.body.style.backgroundImage || "";
     const bgMatch = bgStyle.match(/url\(["']?(.*?)["']?\)/);
-    const finalBackgroundUrl = bgMatch ? bgMatch[1] : "";
+    const bgUrl = bgMatch ? bgMatch[1] : "";
+    const finalBackgroundUrl = bgUrl;
 
     const data = {
       name: document.getElementById("name").value,
@@ -3038,9 +3033,7 @@ text.addEventListener('click', enableEditing);
     const imageRef = ref(storage, 'profile_images/' + crypto.randomUUID());
     await uploadBytes(imageRef, file);
     const downloadURL = await getDownloadURL(imageRef);
-
     profileImg.src = downloadURL;
-    profileUrlInput.value = downloadURL; // ✅ 保存用inputに書き込み
 
     if (id) {
       await setDoc(doc(db, "cards", id), { imageUrl: downloadURL }, { merge: true });
@@ -3068,7 +3061,6 @@ text.addEventListener('click', enableEditing);
     }
   });
 </script>
-
 
 
 </body>
