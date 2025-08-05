@@ -2955,6 +2955,8 @@ text.addEventListener('click', enableEditing);
   const storage = getStorage(app);
 
   document.addEventListener("DOMContentLoaded", () => {
+    console.log("🔥 DOMContentLoaded 起動");
+
     const imageInput = document.getElementById('profile-input');
     const profileImg = document.getElementById('profile-img');
     const profileUrlInput = document.getElementById('profile-url');
@@ -2963,12 +2965,15 @@ text.addEventListener('click', enableEditing);
 
     const params = new URLSearchParams(window.location.search);
     const id = params.get("id");
+    console.log("✅ id:", id);
 
     if (id) {
       const docRef = doc(db, "cards", id);
       getDoc(docRef).then(docSnap => {
         if (docSnap.exists()) {
           const data = docSnap.data();
+          console.log("✅ Firestoreデータ:", data);
+
           document.getElementById("name").value = data.name;
           document.getElementById("birthday").value = data.birthday;
           document.getElementById("age").value = data.age;
@@ -2979,10 +2984,12 @@ text.addEventListener('click', enableEditing);
           if (data.imageUrl) {
             profileImg.src = data.imageUrl;
             profileUrlInput.value = data.imageUrl;
+            console.log("✅ imageUrl設定完了");
           }
           if (data.backgroundUrl) {
             document.body.style.backgroundImage = `url('${data.backgroundUrl}')`;
             bgUrlInput.value = data.backgroundUrl;
+            console.log("✅ backgroundUrl設定完了");
           }
         } else {
           alert("データが見つかりませんでした！");
@@ -2994,6 +3001,7 @@ text.addEventListener('click', enableEditing);
       const checkbox = document.getElementById("agree-checkbox");
       if (checkbox && checkbox.checked) {
         document.getElementById("terms-modal").style.display = "none";
+        console.log("✅ saveAndRedirect開始");
         saveAndRedirect();
       } else {
         document.getElementById("terms-notice").style.display = "flex";
@@ -3019,6 +3027,7 @@ text.addEventListener('click', enableEditing);
 
       profileImg.src = downloadURL;
       profileUrlInput.value = downloadURL;
+      console.log("✅ プロフィール画像アップロード完了", downloadURL);
 
       if (id) {
         await setDoc(doc(db, "cards", id), { imageUrl: downloadURL }, { merge: true });
@@ -3039,6 +3048,7 @@ text.addEventListener('click', enableEditing);
 
       document.body.style.backgroundImage = `url('${downloadURL}')`;
       bgUrlInput.value = downloadURL;
+      console.log("✅ 背景画像アップロード完了", downloadURL);
 
       if (id) {
         await setDoc(doc(db, "cards", id), { backgroundUrl: downloadURL }, { merge: true });
@@ -3047,9 +3057,13 @@ text.addEventListener('click', enableEditing);
 
     async function saveAndRedirect() {
       const newId = crypto.randomUUID();
+      console.log("🔥 新しいID生成:", newId);
 
       const finalProfileUrl = profileUrlInput.value;
       const finalBackgroundUrl = bgUrlInput.value;
+
+      console.log("✅ profile-url:", finalProfileUrl);
+      console.log("✅ background-url:", finalBackgroundUrl);
 
       const data = {
         name: document.getElementById("name").value,
@@ -3062,10 +3076,14 @@ text.addEventListener('click', enableEditing);
         backgroundUrl: finalBackgroundUrl
       };
 
+      console.log("✅ Firestore保存データ:", data);
+
       try {
         await setDoc(doc(db, "cards", newId), data);
+        console.log("✅ Firestore保存成功");
         window.location.href = `/preview?id=${newId}`;
       } catch (e) {
+        console.error("❌ Firestore保存エラー:", e);
         alert("保存に失敗しました：" + e.message);
       }
     }
