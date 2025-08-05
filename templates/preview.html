@@ -1306,9 +1306,12 @@ function insertPRTemplate(category) {
   scrollbar-width: none; /* Firefox用 */
   -ms-overflow-style: none; /* IE用 */
 ">
-<!-- ▼ カメラアイコン付きテンプレ追加ここから -->
+<<!-- ▼ カメラアイコン付きテンプレ追加ここから -->
 <img src="/static/camera.jpeg" onclick="document.getElementById('background-input').click()" 
      style="width:50px; height:50px; cursor:pointer; border-radius:8px; flex-shrink:0;">
+
+<input type="file" accept="image/*" id="background-input" class="hidden-input">
+<input type="hidden" id="background-url"> <!-- 🔥 downloadURL保存用 -->
 <!-- ▼ カメラアイコン付きテンプレ追加ここまで -->
   <img src="/static/haikei_1.jpeg" onclick="setBackground('/static/haikei_1.jpeg')" style="width:50px; height:50px; cursor:pointer; border-radius:8px; flex-shrink:0;">
 <img src="/static/haikei_2.jpeg" onclick="setBackground('/static/haikei_2.jpeg')" style="width:50px; height:50px; cursor:pointer; border-radius:8px; flex-shrink:0;">
