@@ -2954,124 +2954,124 @@ text.addEventListener('click', enableEditing);
   const db = getFirestore(app);
   const storage = getStorage(app);
 
-  const imageInput = document.getElementById('profile-input');
-  const profileImg = document.getElementById('profile-img');
-  const bgInput = document.getElementById("background-input");
+  document.addEventListener("DOMContentLoaded", () => {
+    const imageInput = document.getElementById('profile-input');
+    const profileImg = document.getElementById('profile-img');
+    const profileUrlInput = document.getElementById('profile-url');
+    const bgInput = document.getElementById("background-input");
+    const bgUrlInput = document.getElementById("background-url");
 
-  const params = new URLSearchParams(window.location.search);
-  const id = params.get("id");
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
 
-  if (id) {
-    const docRef = doc(db, "cards", id);
-    getDoc(docRef).then(docSnap => {
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        document.getElementById("name").value = data.name;
-        document.getElementById("birthday").value = data.birthday;
-        document.getElementById("age").value = data.age;
-        document.getElementById("department").value = data.department;
-        document.getElementById("birthplace").value = data.birthplace;
-        document.getElementById("hobby").value = data.hobby;
+    if (id) {
+      const docRef = doc(db, "cards", id);
+      getDoc(docRef).then(docSnap => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          document.getElementById("name").value = data.name;
+          document.getElementById("birthday").value = data.birthday;
+          document.getElementById("age").value = data.age;
+          document.getElementById("department").value = data.department;
+          document.getElementById("birthplace").value = data.birthplace;
+          document.getElementById("hobby").value = data.hobby;
 
-        if (data.imageUrl) {
-          profileImg.src = data.imageUrl;
-          document.getElementById("profile-url").value = data.imageUrl;
+          if (data.imageUrl) {
+            profileImg.src = data.imageUrl;
+            profileUrlInput.value = data.imageUrl;
+          }
+          if (data.backgroundUrl) {
+            document.body.style.backgroundImage = `url('${data.backgroundUrl}')`;
+            bgUrlInput.value = data.backgroundUrl;
+          }
+        } else {
+          alert("データが見つかりませんでした！");
         }
-        if (data.backgroundUrl) {
-          document.body.style.backgroundImage = `url('${data.backgroundUrl}')`;
-          document.getElementById("background-url").value = data.backgroundUrl;
-        }
+      });
+    }
+
+    document.getElementById("finish-button")?.addEventListener("click", () => {
+      const checkbox = document.getElementById("agree-checkbox");
+      if (checkbox && checkbox.checked) {
+        document.getElementById("terms-modal").style.display = "none";
+        saveAndRedirect();
       } else {
-        alert("データが見つかりませんでした！");
+        document.getElementById("terms-notice").style.display = "flex";
       }
     });
-  }
 
-  async function saveAndRedirect() {
-    const newId = crypto.randomUUID();
+    document.getElementById("notice-agree-btn")?.addEventListener("click", () => {
+      document.getElementById("terms-notice").style.display = "none";
+      document.getElementById("terms-modal").style.display = "flex";
+    });
 
-    // ✅ hidden input から downloadURL を取得
-    const finalProfileUrl = document.getElementById("profile-url").value;
-    const finalBackgroundUrl = document.getElementById("background-url").value;
+    document.getElementById("notice-close-btn")?.addEventListener("click", () => {
+      document.getElementById("terms-notice").style.display = "none";
+    });
 
-    const data = {
-      name: document.getElementById("name").value,
-      birthday: document.getElementById("birthday").value,
-      age: document.getElementById("age").value,
-      department: document.getElementById("department").value,
-      birthplace: document.getElementById("birthplace").value,
-      hobby: document.getElementById("hobby").value,
-      imageUrl: finalProfileUrl,
-      backgroundUrl: finalBackgroundUrl
-    };
+    imageInput?.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
 
-    try {
-      await setDoc(doc(db, "cards", newId), data);
-      window.location.href = `/preview?id=${newId}`;
-    } catch (e) {
-      alert("保存に失敗しました：" + e.message);
-    }
-  }
+      const imageRef = ref(storage, 'profile_images/' + crypto.randomUUID());
+      await uploadBytes(imageRef, file);
+      const downloadURL = await getDownloadURL(imageRef);
 
-  document.getElementById("finish-button")?.addEventListener("click", () => {
-    const checkbox = document.getElementById("agree-checkbox");
-    if (checkbox && checkbox.checked) {
-      document.getElementById("terms-modal").style.display = "none";
-      saveAndRedirect();
-    } else {
-      document.getElementById("terms-notice").style.display = "flex";
-    }
-  });
+      profileImg.src = downloadURL;
+      profileUrlInput.value = downloadURL;
 
-  document.getElementById("notice-agree-btn")?.addEventListener("click", () => {
-    document.getElementById("terms-notice").style.display = "none";
-    document.getElementById("terms-modal").style.display = "flex";
-  });
+      if (id) {
+        await setDoc(doc(db, "cards", id), { imageUrl: downloadURL }, { merge: true });
+      }
+    });
 
-  document.getElementById("notice-close-btn")?.addEventListener("click", () => {
-    document.getElementById("terms-notice").style.display = "none";
-  });
+    profileImg?.addEventListener('click', () => {
+      imageInput?.click();
+    });
 
-  // ✅ プロフィール画像アップロード処理
-  imageInput?.addEventListener('change', async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+    bgInput?.addEventListener("change", async function (e) {
+      const file = e.target.files[0];
+      if (!file) return;
 
-    const imageRef = ref(storage, 'profile_images/' + crypto.randomUUID());
-    await uploadBytes(imageRef, file);
-    const downloadURL = await getDownloadURL(imageRef);
+      const storageRef = ref(storage, 'backgrounds/' + crypto.randomUUID());
+      await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(storageRef);
 
-    profileImg.src = downloadURL;
-    document.getElementById("profile-url").value = downloadURL;
+      document.body.style.backgroundImage = `url('${downloadURL}')`;
+      bgUrlInput.value = downloadURL;
 
-    if (id) {
-      await setDoc(doc(db, "cards", id), { imageUrl: downloadURL }, { merge: true });
-      console.log("✅ 画像URLを保存しました：", downloadURL);
-    }
-  });
+      if (id) {
+        await setDoc(doc(db, "cards", id), { backgroundUrl: downloadURL }, { merge: true });
+      }
+    });
 
-  profileImg?.addEventListener('click', () => {
-    imageInput?.click();
-  });
+    async function saveAndRedirect() {
+      const newId = crypto.randomUUID();
 
-  // ✅ 背景画像アップロード処理
-  bgInput?.addEventListener("change", async function (e) {
-    const file = e.target.files[0];
-    if (!file) return;
+      const finalProfileUrl = profileUrlInput.value;
+      const finalBackgroundUrl = bgUrlInput.value;
 
-    const storageRef = ref(storage, 'backgrounds/' + crypto.randomUUID());
-    await uploadBytes(storageRef, file);
-    const downloadURL = await getDownloadURL(storageRef);
+      const data = {
+        name: document.getElementById("name").value,
+        birthday: document.getElementById("birthday").value,
+        age: document.getElementById("age").value,
+        department: document.getElementById("department").value,
+        birthplace: document.getElementById("birthplace").value,
+        hobby: document.getElementById("hobby").value,
+        imageUrl: finalProfileUrl,
+        backgroundUrl: finalBackgroundUrl
+      };
 
-    document.body.style.backgroundImage = `url('${downloadURL}')`;
-    document.getElementById("background-url").value = downloadURL;
-
-    if (id) {
-      await setDoc(doc(db, "cards", id), { backgroundUrl: downloadURL }, { merge: true });
-      console.log("✅ 背景画像URLを保存しました：", downloadURL);
+      try {
+        await setDoc(doc(db, "cards", newId), data);
+        window.location.href = `/preview?id=${newId}`;
+      } catch (e) {
+        alert("保存に失敗しました：" + e.message);
+      }
     }
   });
 </script>
+
 
 
 </body>
