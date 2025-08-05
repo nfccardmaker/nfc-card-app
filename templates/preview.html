@@ -1243,10 +1243,6 @@ function insertTemplate(type) {
 
   textarea.value = template + '\n\n⸻\n\n'; // ← 上書き（入れ替え）
 }
-const textarea = document.getElementById("your-textarea-id"); // ←実際のtextareaのIDに置き換えて！
-textarea.classList.remove("fade-in");
-void textarea.offsetWidth; // ←再アニメ用のトリック
-textarea.classList.add("fade-in");
 function showTemplateButtons() {
   const btns = document.getElementById('template-buttons');
   if (btns.style.display === 'flex') {
@@ -1254,7 +1250,16 @@ function showTemplateButtons() {
   } else {
     btns.style.display = 'flex';
   }
+
+  // ✅ テキストエリアにfade-inアニメーション
+  const textarea = document.getElementById("extra-text"); // ← 実在するIDに修正！
+  if (textarea) {
+    textarea.classList.remove("fade-in");
+    void textarea.offsetWidth; // ← アニメーションをリセットして再適用
+    textarea.classList.add("fade-in");
+  }
 }
+
 function showPRTemplateButtons() {
   const btnArea = document.getElementById('pr-template-buttons');
   btnArea.style.display = btnArea.style.display === 'flex' ? 'none' : 'flex';
