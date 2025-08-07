@@ -2950,17 +2950,16 @@ text.addEventListener('click', enableEditing);
     projectId: "nfc-card-app-79464",
     storageBucket: "nfc-card-app-79464.appspot.com",
     messagingSenderId: "200343990188",
-    appId: "1:200343990188:web:d65e97e3df92f3afb91409",
-    measurementId: "G-CSCLM88L8S"
+    appId: "1:200343990188:web:d65e97e3df92f3afb91409"
   };
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
+  // --- DOM取得（確実に存在確認） ---
   const imageInput = document.getElementById('profile-input');
   const profileImg = document.getElementById('profile-img');
   const profileUrlInput = document.getElementById('profile-url');
-
   const bgInput = document.getElementById('background-input');
   const bgUrlInput = document.getElementById('background-url');
   const backgroundEl = document.body;
@@ -2971,7 +2970,7 @@ text.addEventListener('click', enableEditing);
   let uploadingProfile = false;
   let uploadingBackground = false;
 
-  // 🧩 編集モード（再読み込み）
+  // --- 編集モード時の初期反映 ---
   if (id) {
     const docRef = doc(db, "cards", id);
     getDoc(docRef).then(docSnap => {
@@ -2986,12 +2985,11 @@ text.addEventListener('click', enableEditing);
 
         if (data.imageUrl) {
           profileImg.src = data.imageUrl;
-          profileUrlInput.value = data.imageUrl;
+          if (profileUrlInput) profileUrlInput.value = data.imageUrl;
         }
-
         if (data.backgroundUrl) {
           backgroundEl.style.backgroundImage = `url('${data.backgroundUrl}')`;
-          bgUrlInput.value = data.backgroundUrl;
+          if (bgUrlInput) bgUrlInput.value = data.backgroundUrl;
         }
       } else {
         alert("データが見つかりませんでした！");
@@ -2999,21 +2997,20 @@ text.addEventListener('click', enableEditing);
     });
   }
 
-  // ✅ 保存処理
+  // --- 保存処理 ---
   async function saveAndRedirect() {
     if (uploadingProfile || uploadingBackground) {
       alert("画像のアップロードが完了するまでお待ちください。");
       return;
     }
 
-    const imageUrl = profileUrlInput.value;
-    const backgroundUrl = bgUrlInput.value;
+    const imageUrl = profileUrlInput?.value || "";
+    const backgroundUrl = bgUrlInput?.value || "";
 
     if (!imageUrl || imageUrl.length < 50) {
       alert("プロフィール画像がまだ反映されていません！");
       return;
     }
-
     if (!backgroundUrl || backgroundUrl.length < 50) {
       alert("背景画像がまだ反映されていません！");
       return;
@@ -3027,8 +3024,8 @@ text.addEventListener('click', enableEditing);
       department: document.getElementById("department").value,
       birthplace: document.getElementById("birthplace").value,
       hobby: document.getElementById("hobby").value,
-      imageUrl: imageUrl,
-      backgroundUrl: backgroundUrl
+      imageUrl,
+      backgroundUrl
     };
 
     try {
@@ -3039,10 +3036,10 @@ text.addEventListener('click', enableEditing);
     }
   }
 
-  // ✅ 利用規約チェック
+  // --- 利用規約チェック処理 ---
   document.getElementById("finish-button")?.addEventListener("click", () => {
     const checkbox = document.getElementById("agree-checkbox");
-    if (checkbox && checkbox.checked) {
+    if (checkbox?.checked) {
       document.getElementById("terms-modal").style.display = "none";
       saveAndRedirect();
     } else {
@@ -3059,14 +3056,36 @@ text.addEventListener('click', enableEditing);
     document.getElementById("terms-notice").style.display = "none";
   });
 
-  // ✅ プロフィール画像アップロード
+  // --- base64変換処理（共通関数） ---
+  async function toBase64Compressed(file, maxWidth, maxHeight) {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          setTimeout(() => {
+            const canvas = document.createElement("canvas");
+            canvas.width = maxWidth;
+            canvas.height = maxHeight;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, maxWidth, maxHeight);
+            const base64 = canvas.toDataURL("image/jpeg", 0.8);
+            resolve(base64);
+          }, 0);
+        };
+        img.onerror = () => resolve(null);
+        img.src = event.target.result;
+      };
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // --- プロフィール画像選択 ---
   imageInput?.addEventListener("change", async (e) => {
     uploadingProfile = true;
-    const file = e.target.files[0];
-    if (!file) {
-      uploadingProfile = false;
-      return;
-    }
+    const file = e.target.files?.[0];
+    if (!file) return uploadingProfile = false;
 
     const base64 = await toBase64Compressed(file, 400, 400);
     if (!base64) {
@@ -3076,18 +3095,15 @@ text.addEventListener('click', enableEditing);
     }
 
     profileImg.src = base64;
-    profileUrlInput.value = base64;
+    if (profileUrlInput) profileUrlInput.value = base64;
     uploadingProfile = false;
   });
 
-  // ✅ 背景画像アップロード
+  // --- 背景画像選択 ---
   bgInput?.addEventListener("change", async (e) => {
     uploadingBackground = true;
-    const file = e.target.files[0];
-    if (!file) {
-      uploadingBackground = false;
-      return;
-    }
+    const file = e.target.files?.[0];
+    if (!file) return uploadingBackground = false;
 
     const base64 = await toBase64Compressed(file, 800, 1200);
     if (!base64) {
@@ -3097,34 +3113,11 @@ text.addEventListener('click', enableEditing);
     }
 
     backgroundEl.style.backgroundImage = `url('${base64}')`;
-    bgUrlInput.value = base64;
+    if (bgUrlInput) bgUrlInput.value = base64;
     uploadingBackground = false;
   });
 
-  // ✅ 圧縮base64関数（共通）
-  async function toBase64Compressed(file, maxWidth, maxHeight) {
-    return new Promise((resolve) => {
-      const img = new Image();
-      img.onload = () => {
-        setTimeout(() => {
-          const canvas = document.createElement("canvas");
-          canvas.width = maxWidth;
-          canvas.height = maxHeight;
-          const ctx = canvas.getContext("2d");
-          ctx.drawImage(img, 0, 0, maxWidth, maxHeight);
-          const base64 = canvas.toDataURL("image/jpeg", 0.8);
-          resolve(base64);
-        }, 0); // iOS安定化のため遅延実行
-      };
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        img.src = event.target.result;
-      };
-      reader.readAsDataURL(file);
-    });
-  }
-
-  // ✅ プロフィール画像クリックで選択
+  // --- プロフィール画像クリックで選択を開く ---
   profileImg?.addEventListener("click", () => {
     imageInput?.click();
   });
