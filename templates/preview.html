@@ -2961,6 +2961,10 @@ text.addEventListener('click', enableEditing);
   const profileImg = document.getElementById('profile-img');
   const profileUrlInput = document.getElementById('profile-url');
 
+  const bgInput = document.getElementById('background-input');
+  const bgUrlInput = document.getElementById('background-url');
+  const backgroundEl = document.body;
+
   const params = new URLSearchParams(window.location.search);
   const id = params.get("id");
 
@@ -2976,9 +2980,15 @@ text.addEventListener('click', enableEditing);
         document.getElementById("department").value = data.department || "";
         document.getElementById("birthplace").value = data.birthplace || "";
         document.getElementById("hobby").value = data.hobby || "";
+
         if (data.imageUrl) {
           profileImg.src = data.imageUrl;
           profileUrlInput.value = data.imageUrl;
+        }
+
+        if (data.backgroundUrl) {
+          backgroundEl.style.backgroundImage = `url('${data.backgroundUrl}')`;
+          bgUrlInput.value = data.backgroundUrl;
         }
       } else {
         alert("データが見つかりませんでした！");
@@ -2989,6 +2999,7 @@ text.addEventListener('click', enableEditing);
   // ✅ 保存処理
   async function saveAndRedirect() {
     const imageUrl = profileUrlInput.value;
+    const backgroundUrl = bgUrlInput.value;
 
     if (!imageUrl) {
       alert("プロフィール画像がまだアップロードされていません！");
@@ -3004,6 +3015,7 @@ text.addEventListener('click', enableEditing);
       birthplace: document.getElementById("birthplace").value,
       hobby: document.getElementById("hobby").value,
       imageUrl: imageUrl,
+      backgroundUrl: backgroundUrl
     };
 
     try {
@@ -3034,12 +3046,12 @@ text.addEventListener('click', enableEditing);
     document.getElementById("terms-notice").style.display = "none";
   });
 
-  // ✅ 画像アップロード（base64 + 圧縮）
+  // ✅ プロフィール画像アップロード（base64 + 圧縮）
   imageInput?.addEventListener("change", async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    const base64 = await toBase64Compressed(file, 400, 400); // ⚠️ サイズ制限
+    const base64 = await toBase64Compressed(file, 400, 400);
     if (!base64) {
       alert("画像変換に失敗しました。別の画像を試してください。");
       return;
@@ -3049,7 +3061,22 @@ text.addEventListener('click', enableEditing);
     profileUrlInput.value = base64;
   });
 
-  // ✅ base64化関数（画像圧縮付き）
+  // ✅ 背景画像アップロード（base64 + 圧縮）
+  bgInput?.addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const base64 = await toBase64Compressed(file, 800, 1200); // 🔧 背景サイズ
+    if (!base64) {
+      alert("背景画像の変換に失敗しました。別の画像を試してください。");
+      return;
+    }
+
+    backgroundEl.style.backgroundImage = `url('${base64}')`;
+    bgUrlInput.value = base64;
+  });
+
+  // ✅ base64化関数（圧縮あり）
   async function toBase64Compressed(file, maxWidth, maxHeight) {
     return new Promise((resolve) => {
       const img = new Image();
@@ -3059,7 +3086,7 @@ text.addEventListener('click', enableEditing);
         canvas.height = maxHeight;
         const ctx = canvas.getContext("2d");
         ctx.drawImage(img, 0, 0, maxWidth, maxHeight);
-        const base64 = canvas.toDataURL("image/jpeg", 0.8); // 🔧 画質圧縮80%
+        const base64 = canvas.toDataURL("image/jpeg", 0.8); // 画質80%
         resolve(base64);
       };
       const reader = new FileReader();
@@ -3075,6 +3102,7 @@ text.addEventListener('click', enableEditing);
     imageInput?.click();
   });
 </script>
+
 
 
 
