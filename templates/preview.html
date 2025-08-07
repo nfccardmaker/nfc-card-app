@@ -2943,6 +2943,7 @@ text.addEventListener('click', enableEditing);
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
   import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+  import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBCnMBQjzoxViJPv3YqpZDD_PXQEe2QTsA",
@@ -2956,6 +2957,7 @@ text.addEventListener('click', enableEditing);
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
+  const storage = getStorage(app);
 
   const imageInput = document.getElementById('profile-input');
   const profileImg = document.getElementById('profile-img');
@@ -2995,7 +2997,7 @@ text.addEventListener('click', enableEditing);
       department: document.getElementById("department").value,
       birthplace: document.getElementById("birthplace").value,
       hobby: document.getElementById("hobby").value,
-      imageUrl: profileUrlInput.value // ← base64をここで使う
+      imageUrl: profileUrlInput.value  // ✅ ここは downloadURL
     };
 
     try {
@@ -3025,25 +3027,25 @@ text.addEventListener('click', enableEditing);
     document.getElementById("terms-notice").style.display = "none";
   });
 
-  // 📸 base64で画像読み取り
-  imageInput?.addEventListener('change', (e) => {
+  // 📸 Storageにアップロード＆downloadURL取得
+  imageInput?.addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = function (event) {
-      const base64Data = event.target.result;
-      profileImg.src = base64Data;
-      profileUrlInput.value = base64Data;
-    };
-    reader.readAsDataURL(file);
+    const storageRef = ref(storage, 'profile_images/' + crypto.randomUUID());
+    await uploadBytes(storageRef, file);
+    const downloadURL = await getDownloadURL(storageRef);
+
+    profileImg.src = downloadURL;
+    profileUrlInput.value = downloadURL;
   });
 
-  // 📷 画像クリックで選択
+  // 📷 プロフィール画像クリックでファイル選択
   profileImg?.addEventListener('click', () => {
     imageInput?.click();
   });
 </script>
+
 
 
 </body>
