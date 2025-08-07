@@ -2943,6 +2943,7 @@ text.addEventListener('click', enableEditing);
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
   import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+  import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBCnMBQjzoxViJPv3YqpZDD_PXQEe2QTsA",
@@ -2950,24 +2951,29 @@ text.addEventListener('click', enableEditing);
     projectId: "nfc-card-app-79464",
     storageBucket: "nfc-card-app-79464.appspot.com",
     messagingSenderId: "200343990188",
-    appId: "1:200343990188:web:d65e97e3df92f3afb91409",
-    measurementId: "G-CSCLM88L8S"
+    appId: "1:200343990188:web:d65e97e3df92f3afb91409"
   };
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
+  const storage = getStorage(app);
 
-  const imageInput = document.getElementById('profile-input');
-  const profileImg = document.getElementById('profile-img');
-  const profileUrlInput = document.getElementById('profile-url');
+  const profileImg = document.getElementById("profile-img");
+  const profileInput = document.getElementById("profile-input");
+  const profileUrlInput = document.getElementById("profile-url");
+  const bgInput = document.getElementById("background-input");
+  const bgUrlInput = document.getElementById("background-url");
+  const backgroundEl = document.body;
 
   const params = new URLSearchParams(window.location.search);
   const id = params.get("id");
 
-  // 🧩 編集モード（再読み込み）
+  let profileURL = "";
+  let backgroundURL = "";
+
   if (id) {
     const docRef = doc(db, "cards", id);
-    getDoc(docRef).then(docSnap => {
+    getDoc(docRef).then((docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
         document.getElementById("name").value = data.name || "";
@@ -2976,48 +2982,52 @@ text.addEventListener('click', enableEditing);
         document.getElementById("department").value = data.department || "";
         document.getElementById("birthplace").value = data.birthplace || "";
         document.getElementById("hobby").value = data.hobby || "";
+
         if (data.imageUrl) {
           profileImg.src = data.imageUrl;
-          profileUrlInput.value = data.imageUrl;
+          profileURL = data.imageUrl;
+        }
+        if (data.backgroundUrl) {
+          backgroundEl.style.backgroundImage = `url('${data.backgroundUrl}')`;
+          backgroundURL = data.backgroundUrl;
         }
       } else {
-        alert("データが見つかりませんでした！");
+        alert("データが見つかりませんでした。");
       }
     });
   }
 
-  // ✅ 保存処理
-  async function saveAndRedirect() {
-    const imageUrl = profileUrlInput.value;
+  profileImg?.addEventListener("click", () => {
+    profileInput?.click();
+  });
 
-    if (!imageUrl) {
-      alert("プロフィール画像がまだアップロードされていません！");
-      return;
-    }
+  profileInput?.addEventListener("change", async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    const newId = crypto.randomUUID();
-    const data = {
-      name: document.getElementById("name").value,
-      birthday: document.getElementById("birthday").value,
-      age: document.getElementById("age").value,
-      department: document.getElementById("department").value,
-      birthplace: document.getElementById("birthplace").value,
-      hobby: document.getElementById("hobby").value,
-      imageUrl: imageUrl,
-    };
+    const fileRef = ref(storage, `profiles/${crypto.randomUUID()}`);
+    await uploadBytes(fileRef, file);
+    const url = await getDownloadURL(fileRef);
 
-    try {
-      await setDoc(doc(db, "cards", newId), data);
-      window.location.href = `/preview?id=${newId}`;
-    } catch (e) {
-      alert("保存に失敗しました：" + e.message);
-    }
-  }
+    profileImg.src = url;
+    profileURL = url;
+  });
 
-  // ✅ 利用規約チェック
+  bgInput?.addEventListener("change", async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const fileRef = ref(storage, `backgrounds/${crypto.randomUUID()}`);
+    await uploadBytes(fileRef, file);
+    const url = await getDownloadURL(fileRef);
+
+    backgroundEl.style.backgroundImage = `url('${url}')`;
+    backgroundURL = url;
+  });
+
   document.getElementById("finish-button")?.addEventListener("click", () => {
     const checkbox = document.getElementById("agree-checkbox");
-    if (checkbox && checkbox.checked) {
+    if (checkbox?.checked) {
       document.getElementById("terms-modal").style.display = "none";
       saveAndRedirect();
     } else {
@@ -3034,47 +3044,33 @@ text.addEventListener('click', enableEditing);
     document.getElementById("terms-notice").style.display = "none";
   });
 
-  // ✅ 画像アップロード（base64 + 圧縮）
-  imageInput?.addEventListener("change", async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const base64 = await toBase64Compressed(file, 400, 400); // ⚠️ サイズ制限
-    if (!base64) {
-      alert("画像変換に失敗しました。別の画像を試してください。");
+  async function saveAndRedirect() {
+    if (!profileURL || !backgroundURL) {
+      alert("画像がまだアップロードされていません！");
       return;
     }
 
-    profileImg.src = base64;
-    profileUrlInput.value = base64;
-  });
+    const newId = crypto.randomUUID();
+    const data = {
+      name: document.getElementById("name").value,
+      birthday: document.getElementById("birthday").value,
+      age: document.getElementById("age").value,
+      department: document.getElementById("department").value,
+      birthplace: document.getElementById("birthplace").value,
+      hobby: document.getElementById("hobby").value,
+      imageUrl: profileURL,
+      backgroundUrl: backgroundURL,
+    };
 
-  // ✅ base64化関数（画像圧縮付き）
-  async function toBase64Compressed(file, maxWidth, maxHeight) {
-    return new Promise((resolve) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        canvas.width = maxWidth;
-        canvas.height = maxHeight;
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0, maxWidth, maxHeight);
-        const base64 = canvas.toDataURL("image/jpeg", 0.8); // 🔧 画質圧縮80%
-        resolve(base64);
-      };
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        img.src = event.target.result;
-      };
-      reader.readAsDataURL(file);
-    });
+    try {
+      await setDoc(doc(db, "cards", newId), data);
+      window.location.href = `/preview?id=${newId}`;
+    } catch (e) {
+      alert("保存に失敗しました: " + e.message);
+    }
   }
-
-  // ✅ プロフィール画像クリックでファイル選択
-  profileImg?.addEventListener("click", () => {
-    imageInput?.click();
-  });
 </script>
+
 
 
 
