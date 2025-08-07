@@ -2971,12 +2971,12 @@ text.addEventListener('click', enableEditing);
     getDoc(docRef).then(docSnap => {
       if (docSnap.exists()) {
         const data = docSnap.data();
-        document.getElementById("name").value = data.name;
-        document.getElementById("birthday").value = data.birthday;
-        document.getElementById("age").value = data.age;
-        document.getElementById("department").value = data.department;
-        document.getElementById("birthplace").value = data.birthplace;
-        document.getElementById("hobby").value = data.hobby;
+        document.getElementById("name").value = data.name || "";
+        document.getElementById("birthday").value = data.birthday || "";
+        document.getElementById("age").value = data.age || "";
+        document.getElementById("department").value = data.department || "";
+        document.getElementById("birthplace").value = data.birthplace || "";
+        document.getElementById("hobby").value = data.hobby || "";
         if (data.imageUrl) {
           profileImg.src = data.imageUrl;
           profileUrlInput.value = data.imageUrl;
@@ -2988,8 +2988,14 @@ text.addEventListener('click', enableEditing);
   }
 
   async function saveAndRedirect() {
-    const newId = crypto.randomUUID();
+    const imageUrl = profileUrlInput.value;
 
+    if (!imageUrl) {
+      alert("プロフィール画像がまだアップロードされていません！");
+      return;
+    }
+
+    const newId = crypto.randomUUID();
     const data = {
       name: document.getElementById("name").value,
       birthday: document.getElementById("birthday").value,
@@ -2997,7 +3003,7 @@ text.addEventListener('click', enableEditing);
       department: document.getElementById("department").value,
       birthplace: document.getElementById("birthplace").value,
       hobby: document.getElementById("hobby").value,
-      imageUrl: profileUrlInput.value
+      imageUrl: imageUrl,
     };
 
     try {
@@ -3027,13 +3033,12 @@ text.addEventListener('click', enableEditing);
     document.getElementById("terms-notice").style.display = "none";
   });
 
-  // 🖼️ 圧縮してアップロード
-  imageInput?.addEventListener('change', async (e) => {
+  imageInput?.addEventListener("change", async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
     const compressedBlob = await compressImage(file, 400, 400);
-    const storageRef = ref(storage, 'profile_images/' + crypto.randomUUID());
+    const storageRef = ref(storage, "profile_images/" + crypto.randomUUID());
     await uploadBytes(storageRef, compressedBlob);
     const downloadURL = await getDownloadURL(storageRef);
 
@@ -3041,7 +3046,6 @@ text.addEventListener('click', enableEditing);
     profileUrlInput.value = downloadURL;
   });
 
-  // 🎨 canvas圧縮処理
   async function compressImage(file, maxWidth, maxHeight) {
     return new Promise((resolve) => {
       const img = new Image();
@@ -3061,11 +3065,11 @@ text.addEventListener('click', enableEditing);
     });
   }
 
-  // 📷 画像クリックで選択
-  profileImg?.addEventListener('click', () => {
+  profileImg?.addEventListener("click", () => {
     imageInput?.click();
   });
 </script>
+
 
 
 
