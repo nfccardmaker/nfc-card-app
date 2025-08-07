@@ -5,52 +5,69 @@
   <title>名刺プレビュー</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-  html, body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  font-family: 'Helvetica Neue', sans-serif;
-  background: linear-gradient(180deg, #ffe4ec, #fff1f7);
-  overflow: auto;
-}
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: 'Helvetica Neue', sans-serif;
+      background: linear-gradient(180deg, #ffe4ec, #fff1f7);
+      overflow: auto;
+      box-sizing: border-box;
+      overscroll-behavior: contain;
+      padding-bottom: 80px;
+    }
 
-
-
-    body {
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  overflow-x: hidden; /* 👈 横スクロール禁止！ */
-  padding-bottom: 0px; 
-}
     .main-wrapper {
       position: relative;
       min-height: 100vh;
-      padding-bottom: 140px; /* ツールバーを考慮 */
+      padding-bottom: 140px;
       box-sizing: border-box;
     }
+
     .card {
       width: 90%;
       max-width: 700px;
       margin: 30px auto;
-      border: 2px solid #ccc;
-      border-radius: 10px;
-      background-color: white;
+      border: 4px solid transparent;
+      border-radius: 20px;
+      background:
+        linear-gradient(white, white) padding-box,
+        linear-gradient(135deg, #ffd700, #ffec8b, #d4af37) border-box;
       overflow-y: auto;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
       display: flex;
       flex-direction: column;
     }
 
-   :root {
-  --bar-color: #add8e6; /* 最初は水色とかでOK */
-}
+    :root {
+      --bar-color: #add8e6;
+    }
 
-.header-bar {
-  background-color: var(--bar-color);  /* ← background-imageは使わない */
-  height: 40px;
-}
+    .header-bar {
+      background-color: var(--bar-color);
+      height: 40px;
+      overflow: hidden;
+      position: relative;
+    }
 
+    .scrolling-text {
+      white-space: nowrap;
+      display: inline-block;
+      padding-left: 100%;
+      animation: scroll-left 12s linear infinite;
+      color: white;
+      font-weight: bold;
+      font-size: 16px;
+      line-height: 40px;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    @keyframes scroll-left {
+      0% { transform: translateX(0%); }
+      100% { transform: translateX(-100%); }
+    }
 
     .student-id {
       display: flex;
@@ -85,21 +102,16 @@
     }
 
     .editable-text {
-  height: 28px;           /* 入力欄の高さを明示 */
-  line-height: 28px;      /* 高さと揃えて文字を中央に */
-  font-size: 14px;
-  border: none;
-  background: transparent;
-  border-bottom: 1px solid #ccc;
-  width: 100%;
-  padding: 0;             /* 上下のズレを防ぐため余計なpaddingは削除 */
-  box-sizing: border-box;
-}
-
-body {
-  padding-bottom: 10px;
-  box-sizing: border-box;
-}
+      height: 28px;
+      line-height: 28px;
+      font-size: 14px;
+      border: none;
+      background: transparent;
+      border-bottom: 1px solid #ccc;
+      width: 100%;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
     .toolbar {
       position: fixed;
@@ -114,11 +126,10 @@ body {
       gap: 16px;
       z-index: 1000;
       align-items: center;
-      
     }
 
     .toolbar img {
-      width: 28spx;
+      width: 28px;
       height: 28px;
       cursor: pointer;
     }
@@ -132,12 +143,11 @@ body {
       cursor: pointer;
     }
 
-        .hidden-input {
+    .hidden-input {
       opacity: 0;
       position: absolute;
       pointer-events: auto;
     }
-
 
     .sns-input {
       margin-left: 36px;
@@ -163,216 +173,187 @@ body {
       display: none;
     }
 
-  .text-sticker {
-  position: absolute;
-  border: none;
-  outline: none;
-  background: transparent;
-  font-size: 16px;
-  font-weight: bold;
-  pointer-events: auto;
-  /* color: black; ← 削除かコメントアウトしてください */
-}
-
-.sns-item {
-  position: relative; /* ボタンを上に重ねるために必要 */
-}
-
-.sns-delete-btn {
-  position: absolute;
-  top: -8px;
-  right: -8px;
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
-  z-index: 10;
-}
-#bg-template-list::-webkit-scrollbar {
-  display: none;
-}
-.youtube-section {
-  margin-top: 10px;
-  margin-bottom: 60px; /* ← 追加！ */
-  text-align: center;
-}
-#youtube-url {
-  width: 70%;
-  max-width: 500px;
-  padding: 5px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  font-size: 14px;
-  margin-top: 5px;
-}
-#youtube-player {
-  margin: 0;
-  padding: 0;
-  line-height: 0;
-}
-iframe {
-  width: 100%;
-  height: 200px; /* ← aspect-ratioと併用せず明示指定で高さ固定 */
-  border: none;
-  margin: 0 auto;
-  padding: 0;
-}
-body {
-  box-sizing: border-box;
-}
-body {
-  overscroll-behavior: contain; /* ← iOSスクロール跳ね返りを抑制 */
-  padding-bottom: 80px;
-}
-#page-wrapper {
-  position: relative;
-  min-height: 100vh;
-  overflow: visible;
-}
-#text-tools {
-  display: none;
-  position: fixed;
-  bottom: 80px;
-  left: 10px;
-  background: #fff;
-  padding: 10px 14px;
-  border-radius: 12px;
-  box-shadow: 0 0 8px rgba(0,0,0,0.1);
-  z-index: 9999;
-  font-family: 'Rounded Mplus 1c', 'Noto Sans JP', sans-serif;
-  width: fit-content;       /* ← 中身に合わせる */
-  max-width: 100vw;         /* ← スマホで飛び出さないよう保険 */
-  box-sizing: border-box;
-}
-
-.tool-row {
-  display: inline-flex;     /* ← 横に自然な幅だけ使う */
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 6px;
-}
-
-.tool-label {
-  font-weight: bold;
-  font-size: 13px;
-  color: #444;
-  width: 50px;
-}
-
-.tool-input {
-  flex: 1;
-  font-size: 13px;
-}
-
-#text-color-picker {
-  width: 30px;
-  height: 30px;
-  border: none;
-  padding: 0;
-  background: none;
-}
-
- #edit-toggle.floating-eye {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 9999;
-    width: 40px;
-    height: 40px;
-  }
-  .sns-icon-bar {
-  background-color: #ffffffcc;
-  border-radius: 12px;
-  padding: 8px 12px;
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  margin: 20px auto;
-  max-width: 300px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
-
-.sns-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  padding: 4px;
-  cursor: pointer;
-}
-@keyframes glow-temporary {
-  0% { box-shadow: 0 0 0px #00bfff; }
-  20% { box-shadow: 0 0 10px #00bfff; }
-  40% { box-shadow: 0 0 15px #00bfff; }
-  60% { box-shadow: 0 0 10px #00bfff; }
-  80% { box-shadow: 0 0 5px #00bfff; }
-  100% { box-shadow: none; }
-}
-
-.glow-once {
-  animation: glow-temporary 5s ease-in-out 1;
-   border-bottom: 1px solid #ccc;
-  border-radius: 8px;
-}
-.template-btn {
-    font-size: 13px;
-    padding: 5px 12px;
-    border-radius: 10px;
-    background-color: #f8f8ff;
-    border: 1px solid #bbb;
-    cursor: pointer;
-    transition: all 0.2s ease-in-out;
-  }
-
-  .template-btn:hover {
-    background-color: #ffe066;
-    transform: scale(1.05);
-  }
-
-  .fade-in {
-    animation: fadeIn 0.4s ease-in-out;
-  }
-
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
+    .text-sticker {
+      position: absolute;
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: 16px;
+      font-weight: bold;
+      pointer-events: auto;
     }
-    to {
-      opacity: 1;
-      transform: translateY(0);
+
+    .sns-item {
+      position: relative;
     }
-  }
-:root {
-  --bar-color: #add8e6;
-}
 
-.header-bar {
-  background-color: var(--bar-color);
-  height: 40px;
-  overflow: hidden;
-  position: relative;
-}
+    .sns-delete-btn {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      z-index: 10;
+    }
 
-.scrolling-text {
-  white-space: nowrap;
-  display: inline-block;
-  padding-left: 100%;
-  animation: scroll-left 12s linear infinite;
-  color: white;
-  font-weight: bold;
-  font-size: 16px;
-  line-height: 40px;
-  position: absolute;
-  top: 0;
-  left: 0;
-}
+    #bg-template-list::-webkit-scrollbar {
+      display: none;
+    }
 
-@keyframes scroll-left {
-  0% { transform: translateX(0%); }
-  100% { transform: translateX(-100%); }
-}
+    .youtube-section {
+      margin-top: 10px;
+      margin-bottom: 60px;
+      text-align: center;
+    }
 
+    #youtube-url {
+      width: 70%;
+      max-width: 500px;
+      padding: 5px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+      margin-top: 5px;
+    }
 
+    #youtube-player {
+      margin: 0;
+      padding: 0;
+      line-height: 0;
+    }
 
+    iframe {
+      width: 100%;
+      height: 200px;
+      border: none;
+      margin: 0 auto;
+      padding: 0;
+    }
+
+    #page-wrapper {
+      position: relative;
+      min-height: 100vh;
+      overflow: visible;
+    }
+
+    #text-tools {
+      display: none;
+      position: fixed;
+      bottom: 80px;
+      left: 10px;
+      background: #fff;
+      padding: 10px 14px;
+      border-radius: 12px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+      z-index: 9999;
+      font-family: 'Rounded Mplus 1c', 'Noto Sans JP', sans-serif;
+      width: fit-content;
+      max-width: 100vw;
+      box-sizing: border-box;
+    }
+
+    .tool-row {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .tool-label {
+      font-weight: bold;
+      font-size: 13px;
+      color: #444;
+      width: 50px;
+    }
+
+    .tool-input {
+      flex: 1;
+      font-size: 13px;
+    }
+
+    #text-color-picker {
+      width: 30px;
+      height: 30px;
+      border: none;
+      padding: 0;
+      background: none;
+    }
+
+    #edit-toggle.floating-eye {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 9999;
+      width: 40px;
+      height: 40px;
+    }
+
+    .sns-icon-bar {
+      background-color: #fff8f0;
+      border-radius: 16px;
+      border: 2px solid #ffd700;
+      padding: 8px 12px;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      margin: 20px auto;
+      max-width: 300px;
+      box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+    }
+
+    .sns-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      padding: 4px;
+      cursor: pointer;
+    }
+
+    @keyframes glow-temporary {
+      0% { box-shadow: 0 0 0px #00bfff; }
+      20% { box-shadow: 0 0 10px #00bfff; }
+      40% { box-shadow: 0 0 15px #00bfff; }
+      60% { box-shadow: 0 0 10px #00bfff; }
+      80% { box-shadow: 0 0 5px #00bfff; }
+      100% { box-shadow: none; }
+    }
+
+    .glow-once {
+      animation: glow-temporary 5s ease-in-out 1;
+      border-bottom: 1px solid #ccc;
+      border-radius: 8px;
+    }
+
+    .template-btn {
+      font-size: 13px;
+      padding: 5px 12px;
+      border-radius: 10px;
+      background-color: #f8f8ff;
+      border: 1px solid #bbb;
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+    }
+
+    .template-btn:hover {
+      background-color: #ffe066;
+      transform: scale(1.05);
+    }
+
+    .fade-in {
+      animation: fadeIn 0.4s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
   </style>
 </head>
 <body>
