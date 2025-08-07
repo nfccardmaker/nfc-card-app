@@ -803,25 +803,32 @@ window.onload = () => {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = () => {
-      profileImg.src = reader.result;
-    };
-    fetch('/upload_profile_image', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ image: reader.result })
-    })
-    .then(response => response.json())
-    .then(data => {
-      console.log('保存成功:', data);
-    })
-    .catch(error => {
-      console.error('アップロード失敗:', error);
-    });
 
-    reader.readAsDataURL(file);
+    reader.onload = () => {
+      const base64Data = reader.result;
+      profileImg.src = base64Data;
+
+      fetch('/upload_profile_image', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ image: base64Data }) // ✅ ここで初めて使える
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log('✅ 保存成功:', data);
+      })
+      .catch(error => {
+        console.error('❌ アップロード失敗:', error);
+      });
+    };
+
+    reader.onerror = () => {
+      console.error('❌ FileReader失敗:', reader.error);
+    };
+
+    reader.readAsDataURL(file); // ✅ 最後に読む
   });
 };
 
