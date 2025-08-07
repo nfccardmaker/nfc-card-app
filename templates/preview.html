@@ -2997,7 +2997,7 @@ text.addEventListener('click', enableEditing);
       department: document.getElementById("department").value,
       birthplace: document.getElementById("birthplace").value,
       hobby: document.getElementById("hobby").value,
-      imageUrl: profileUrlInput.value  // ✅ ここは downloadURL
+      imageUrl: profileUrlInput.value
     };
 
     try {
@@ -3027,20 +3027,41 @@ text.addEventListener('click', enableEditing);
     document.getElementById("terms-notice").style.display = "none";
   });
 
-  // 📸 Storageにアップロード＆downloadURL取得
+  // 🖼️ 圧縮してアップロード
   imageInput?.addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
+    const compressedBlob = await compressImage(file, 400, 400);
     const storageRef = ref(storage, 'profile_images/' + crypto.randomUUID());
-    await uploadBytes(storageRef, file);
+    await uploadBytes(storageRef, compressedBlob);
     const downloadURL = await getDownloadURL(storageRef);
 
     profileImg.src = downloadURL;
     profileUrlInput.value = downloadURL;
   });
 
-  // 📷 プロフィール画像クリックでファイル選択
+  // 🎨 canvas圧縮処理
+  async function compressImage(file, maxWidth, maxHeight) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = maxWidth;
+        canvas.height = maxHeight;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, maxWidth, maxHeight);
+        canvas.toBlob((blob) => resolve(blob), "image/jpeg", 0.9);
+      };
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // 📷 画像クリックで選択
   profileImg?.addEventListener('click', () => {
     imageInput?.click();
   });
