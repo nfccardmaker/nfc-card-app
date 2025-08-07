@@ -2943,7 +2943,6 @@ text.addEventListener('click', enableEditing);
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
   import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
-  import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBCnMBQjzoxViJPv3YqpZDD_PXQEe2QTsA",
@@ -2957,7 +2956,6 @@ text.addEventListener('click', enableEditing);
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
-  const storage = getStorage(app);
 
   const imageInput = document.getElementById('profile-input');
   const profileImg = document.getElementById('profile-img');
@@ -2966,7 +2964,6 @@ text.addEventListener('click', enableEditing);
   const params = new URLSearchParams(window.location.search);
   const id = params.get("id");
 
-  // 🔍 表示
   if (id) {
     const docRef = doc(db, "cards", id);
     getDoc(docRef).then(docSnap => {
@@ -2980,7 +2977,7 @@ text.addEventListener('click', enableEditing);
         document.getElementById("hobby").value = data.hobby;
         if (data.imageUrl) {
           profileImg.src = data.imageUrl;
-          profileUrlInput.value = data.imageUrl; // ← 🔥 hiddenにもセット
+          profileUrlInput.value = data.imageUrl;
         }
       } else {
         alert("データが見つかりませんでした！");
@@ -2988,7 +2985,6 @@ text.addEventListener('click', enableEditing);
     });
   }
 
-  // 💾 保存
   async function saveAndRedirect() {
     const newId = crypto.randomUUID();
 
@@ -2999,7 +2995,7 @@ text.addEventListener('click', enableEditing);
       department: document.getElementById("department").value,
       birthplace: document.getElementById("birthplace").value,
       hobby: document.getElementById("hobby").value,
-      imageUrl: profileUrlInput.value // ← 🔥 hiddenからURL取得
+      imageUrl: profileUrlInput.value // ← base64をここで使う
     };
 
     try {
@@ -3010,7 +3006,6 @@ text.addEventListener('click', enableEditing);
     }
   }
 
-  // ✅ 作成ボタン押下時の同意チェック
   document.getElementById("finish-button")?.addEventListener("click", () => {
     const checkbox = document.getElementById("agree-checkbox");
     if (checkbox && checkbox.checked) {
@@ -3021,7 +3016,6 @@ text.addEventListener('click', enableEditing);
     }
   });
 
-  // 利用規約通知モーダル操作
   document.getElementById("notice-agree-btn")?.addEventListener("click", () => {
     document.getElementById("terms-notice").style.display = "none";
     document.getElementById("terms-modal").style.display = "flex";
@@ -3031,25 +3025,21 @@ text.addEventListener('click', enableEditing);
     document.getElementById("terms-notice").style.display = "none";
   });
 
-  // 📸 アップロード処理
-  imageInput?.addEventListener('change', async (e) => {
+  // 📸 base64で画像読み取り
+  imageInput?.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    const imageRef = ref(storage, 'profile_images/' + crypto.randomUUID());
-    await uploadBytes(imageRef, file);
-    const downloadURL = await getDownloadURL(imageRef);
-
-    profileImg.src = downloadURL;
-    profileUrlInput.value = downloadURL; // 🔥 これで保存対象になる！
-
-    if (id) {
-      await setDoc(doc(db, "cards", id), { imageUrl: downloadURL }, { merge: true });
-      console.log("✅画像URLをFirestoreに保存:", downloadURL);
-    }
+    const reader = new FileReader();
+    reader.onload = function (event) {
+      const base64Data = event.target.result;
+      profileImg.src = base64Data;
+      profileUrlInput.value = base64Data;
+    };
+    reader.readAsDataURL(file);
   });
 
-  // 📷 プロフィール画像クリックでアップロード開く
+  // 📷 画像クリックで選択
   profileImg?.addEventListener('click', () => {
     imageInput?.click();
   });
