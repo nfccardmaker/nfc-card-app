@@ -2943,7 +2943,6 @@ text.addEventListener('click', enableEditing);
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
   import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
-  import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBCnMBQjzoxViJPv3YqpZDD_PXQEe2QTsA",
@@ -2957,7 +2956,6 @@ text.addEventListener('click', enableEditing);
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
-  const storage = getStorage(app);
 
   const imageInput = document.getElementById('profile-input');
   const profileImg = document.getElementById('profile-img');
@@ -2966,6 +2964,7 @@ text.addEventListener('click', enableEditing);
   const params = new URLSearchParams(window.location.search);
   const id = params.get("id");
 
+  // 🧩 編集モード（再読み込み）
   if (id) {
     const docRef = doc(db, "cards", id);
     getDoc(docRef).then(docSnap => {
@@ -2987,6 +2986,7 @@ text.addEventListener('click', enableEditing);
     });
   }
 
+  // ✅ 保存処理
   async function saveAndRedirect() {
     const imageUrl = profileUrlInput.value;
 
@@ -3014,6 +3014,7 @@ text.addEventListener('click', enableEditing);
     }
   }
 
+  // ✅ 利用規約チェック
   document.getElementById("finish-button")?.addEventListener("click", () => {
     const checkbox = document.getElementById("agree-checkbox");
     if (checkbox && checkbox.checked) {
@@ -3033,35 +3034,33 @@ text.addEventListener('click', enableEditing);
     document.getElementById("terms-notice").style.display = "none";
   });
 
+  // ✅ 画像アップロード（base64 + 圧縮）
   imageInput?.addEventListener("change", async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    const compressedBlob = await compressImage(file, 400, 400);
-    if (!compressedBlob) {
-      alert("画像圧縮に失敗しました。別の画像を試してください。");
+    const base64 = await toBase64Compressed(file, 400, 400); // ⚠️ サイズ制限
+    if (!base64) {
+      alert("画像変換に失敗しました。別の画像を試してください。");
       return;
     }
 
-    const storageRef = ref(storage, "profile_images/" + crypto.randomUUID());
-    await uploadBytes(storageRef, compressedBlob);
-    const downloadURL = await getDownloadURL(storageRef);
-
-    profileImg.src = downloadURL;
-    profileUrlInput.value = downloadURL;
+    profileImg.src = base64;
+    profileUrlInput.value = base64;
   });
 
-  async function compressImage(file, maxWidth, maxHeight) {
+  // ✅ base64化関数（画像圧縮付き）
+  async function toBase64Compressed(file, maxWidth, maxHeight) {
     return new Promise((resolve) => {
       const img = new Image();
-      img.crossOrigin = "anonymous"; // ✅ これが必要
       img.onload = () => {
         const canvas = document.createElement("canvas");
         canvas.width = maxWidth;
         canvas.height = maxHeight;
         const ctx = canvas.getContext("2d");
         ctx.drawImage(img, 0, 0, maxWidth, maxHeight);
-        canvas.toBlob((blob) => resolve(blob), "image/jpeg", 0.9);
+        const base64 = canvas.toDataURL("image/jpeg", 0.8); // 🔧 画質圧縮80%
+        resolve(base64);
       };
       const reader = new FileReader();
       reader.onload = (event) => {
@@ -3071,6 +3070,7 @@ text.addEventListener('click', enableEditing);
     });
   }
 
+  // ✅ プロフィール画像クリックでファイル選択
   profileImg?.addEventListener("click", () => {
     imageInput?.click();
   });
