@@ -2,7 +2,7 @@
   {
     "origin": ["https://nfc-card-app.onrender.com"],
     "method": ["GET", "POST", "PUT", "HEAD", "DELETE"],
-    "responseHeader": ["Content-Type"],
-    "maxAgeSeconds": 3600
+    "maxAgeSeconds": 3600,
+    "responseHeader": ["Content-Type", "Authorization"]
   }
 ]
