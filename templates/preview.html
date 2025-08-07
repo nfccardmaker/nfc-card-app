@@ -3061,12 +3061,18 @@ text.addEventListener('click', enableEditing);
 
   // ✅ プロフィール画像アップロード
   imageInput?.addEventListener("change", async (e) => {
-    uploadingProfile = true;
-    const file = e.target.files[0];
-    if (!file) {
-      uploadingProfile = false;
-      return;
-    }
+  imageInput.value = ""; // ←✨これを一番上に追加！
+
+  uploadingProfile = true;
+  const file = e.target.files[0];
+  if (!file) {
+    uploadingProfile = false;
+    return;
+  }
+
+  // ↓ このあとはそのままでOK（圧縮処理とか）
+});
+
 
     const base64 = await toBase64Compressed(file, 400, 400);
     if (!base64) {
@@ -3080,15 +3086,15 @@ text.addEventListener('click', enableEditing);
     uploadingProfile = false;
   });
 
-  // ✅ 背景画像アップロード
-  bgInput?.addEventListener("change", async (e) => {
-    uploadingBackground = true;
-    const file = e.target.files[0];
-    if (!file) {
-      uploadingBackground = false;
-      return;
-    }
+bgInput?.addEventListener("change", async (e) => {
+  bgInput.value = ""; // ←✨ここ追加でOK！！
 
+  uploadingBackground = true;
+  const file = e.target.files[0];
+  if (!file) {
+    uploadingBackground = false;
+    return;
+  }
     const base64 = await toBase64Compressed(file, 800, 1200);
     if (!base64) {
       alert("背景画像変換に失敗しました。");
