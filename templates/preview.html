@@ -2971,7 +2971,7 @@ text.addEventListener('click', enableEditing);
   let uploadingProfile = false;
   let uploadingBackground = false;
 
-  // 🤉 編集モード
+  // 🧩 編集モード（再読み込み）
   if (id) {
     const docRef = doc(db, "cards", id);
     getDoc(docRef).then(docSnap => {
@@ -3039,7 +3039,7 @@ text.addEventListener('click', enableEditing);
     }
   }
 
-  // ✅ 利用規約の確認
+  // ✅ 利用規約チェック
   document.getElementById("finish-button")?.addEventListener("click", () => {
     const checkbox = document.getElementById("agree-checkbox");
     if (checkbox && checkbox.checked) {
@@ -3061,19 +3061,20 @@ text.addEventListener('click', enableEditing);
 
   // ✅ プロフィール画像アップロード
   imageInput?.addEventListener("change", async (e) => {
-    imageInput.value = "";
     uploadingProfile = true;
     const file = e.target.files[0];
     if (!file) {
       uploadingProfile = false;
       return;
     }
+
     const base64 = await toBase64Compressed(file, 400, 400);
     if (!base64) {
       alert("画像変換に失敗しました。");
       uploadingProfile = false;
       return;
     }
+
     profileImg.src = base64;
     profileUrlInput.value = base64;
     uploadingProfile = false;
@@ -3081,25 +3082,26 @@ text.addEventListener('click', enableEditing);
 
   // ✅ 背景画像アップロード
   bgInput?.addEventListener("change", async (e) => {
-    bgInput.value = "";
     uploadingBackground = true;
     const file = e.target.files[0];
     if (!file) {
       uploadingBackground = false;
       return;
     }
+
     const base64 = await toBase64Compressed(file, 800, 1200);
     if (!base64) {
       alert("背景画像変換に失敗しました。");
       uploadingBackground = false;
       return;
     }
+
     backgroundEl.style.backgroundImage = `url('${base64}')`;
     bgUrlInput.value = base64;
     uploadingBackground = false;
   });
 
-  // ✅ 基本の画像圧縮関数
+  // ✅ 圧縮base64関数（共通）
   async function toBase64Compressed(file, maxWidth, maxHeight) {
     return new Promise((resolve) => {
       const img = new Image();
@@ -3112,7 +3114,7 @@ text.addEventListener('click', enableEditing);
           ctx.drawImage(img, 0, 0, maxWidth, maxHeight);
           const base64 = canvas.toDataURL("image/jpeg", 0.8);
           resolve(base64);
-        }, 0);
+        }, 0); // iOS安定化のため遅延実行
       };
       const reader = new FileReader();
       reader.onload = (event) => {
@@ -3122,7 +3124,7 @@ text.addEventListener('click', enableEditing);
     });
   }
 
-  // ✅ プロフィール画像をクリックで選択
+  // ✅ プロフィール画像クリックで選択
   profileImg?.addEventListener("click", () => {
     imageInput?.click();
   });
