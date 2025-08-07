@@ -1,0 +1,7 @@
+[
+  {
+    "origin": ["https://nfc-card-app.onrender.com"],
+    "method": ["GET", "POST", "PUT", "DELETE"],
+    "maxAgeSeconds": 3600
+  }
+]
