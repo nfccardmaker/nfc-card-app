@@ -3038,6 +3038,11 @@ text.addEventListener('click', enableEditing);
     if (!file) return;
 
     const compressedBlob = await compressImage(file, 400, 400);
+    if (!compressedBlob) {
+      alert("画像圧縮に失敗しました。別の画像を試してください。");
+      return;
+    }
+
     const storageRef = ref(storage, "profile_images/" + crypto.randomUUID());
     await uploadBytes(storageRef, compressedBlob);
     const downloadURL = await getDownloadURL(storageRef);
@@ -3049,6 +3054,7 @@ text.addEventListener('click', enableEditing);
   async function compressImage(file, maxWidth, maxHeight) {
     return new Promise((resolve) => {
       const img = new Image();
+      img.crossOrigin = "anonymous"; // ✅ これが必要
       img.onload = () => {
         const canvas = document.createElement("canvas");
         canvas.width = maxWidth;
@@ -3069,6 +3075,7 @@ text.addEventListener('click', enableEditing);
     imageInput?.click();
   });
 </script>
+
 
 
 
