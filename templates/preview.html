@@ -2986,10 +2986,12 @@ text.addEventListener('click', enableEditing);
         if (data.imageUrl) {
           profileImg.src = data.imageUrl;
           profileURL = data.imageUrl;
+          profileUrlInput.value = data.imageUrl;
         }
         if (data.backgroundUrl) {
           backgroundEl.style.backgroundImage = `url('${data.backgroundUrl}')`;
           backgroundURL = data.backgroundUrl;
+          bgUrlInput.value = data.backgroundUrl;
         }
       } else {
         alert("データが見つかりませんでした。");
@@ -3011,6 +3013,7 @@ text.addEventListener('click', enableEditing);
 
     profileImg.src = url;
     profileURL = url;
+    profileUrlInput.value = url; // ←これが重要
   });
 
   bgInput?.addEventListener("change", async (e) => {
@@ -3023,6 +3026,7 @@ text.addEventListener('click', enableEditing);
 
     backgroundEl.style.backgroundImage = `url('${url}')`;
     backgroundURL = url;
+    bgUrlInput.value = url; // ←これが重要
   });
 
   document.getElementById("finish-button")?.addEventListener("click", () => {
@@ -3045,7 +3049,11 @@ text.addEventListener('click', enableEditing);
   });
 
   async function saveAndRedirect() {
-    if (!profileURL || !backgroundURL) {
+    // ✅ URLが空ならhidden inputから補完
+    const finalProfileURL = profileURL || profileUrlInput.value;
+    const finalBackgroundURL = backgroundURL || bgUrlInput.value;
+
+    if (!finalProfileURL || !finalBackgroundURL) {
       alert("画像がまだアップロードされていません！");
       return;
     }
@@ -3058,8 +3066,8 @@ text.addEventListener('click', enableEditing);
       department: document.getElementById("department").value,
       birthplace: document.getElementById("birthplace").value,
       hobby: document.getElementById("hobby").value,
-      imageUrl: profileURL,
-      backgroundUrl: backgroundURL,
+      imageUrl: finalProfileURL,
+      backgroundUrl: finalBackgroundURL,
     };
 
     try {
@@ -3070,6 +3078,7 @@ text.addEventListener('click', enableEditing);
     }
   }
 </script>
+
 
 
 
