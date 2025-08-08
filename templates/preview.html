@@ -2965,7 +2965,8 @@ text.addEventListener('click', enableEditing);
   const db = getFirestore(app);
   const storage = getStorage(app, "gs://nfc-card-app-79464");
 
-  // 便利関数
+  // ===== Utils =====
+  const isIOS = () => /iP(hone|ad|od)/.test(navigator.platform) || /iPhone|iPad|iPod/.test(navigator.userAgent);
   const makeId = () => {
     if (globalThis.crypto?.randomUUID) return crypto.randomUUID();
     const u8 = new Uint8Array(16);
@@ -2991,35 +2992,73 @@ text.addEventListener('click', enableEditing);
     throw last;
   }
 
-  // 画像をプリロードしてから <img> を置換（Safari含む）
-  async function preloadAndSwapImg(imgEl, url) {
-    const img = new Image();
-    img.decoding = "async";
-    img.loading = "eager";
-    img.crossOrigin = "anonymous";
-    const loaded = new Promise((resolve, reject) => {
-      img.onload = resolve;
-      img.onerror = reject;
-    });
-    img.id = imgEl.id || "profile-img";
-    img.src = bust(url);
-    await loaded;
-    imgEl.replaceWith(img);
-    return img;
+  // ===== iOS Safari 対策: 画像の表示URLを解決（必要なら blob: に変換）=====
+  let currentObjectURLProfile = null;
+  let currentObjectURLBg = null;
+  function revokeObjURL(which) {
+    try {
+      if (which === "profile" && currentObjectURLProfile) {
+        URL.revokeObjectURL(currentObjectURLProfile);
+        currentObjectURLProfile = null;
+      }
+      if (which === "bg" && currentObjectURLBg) {
+        URL.revokeObjectURL(currentObjectURLBg);
+        currentObjectURLBg = null;
+      }
+    } catch {}
   }
 
-  // 背景を強制再描画（CSSのgradientがあっても上書きできるように）
-  async function setBackgroundImageForce(el, url) {
-    // 既存の background 指定があっても画像を最優先に
+  async function resolveDisplayURL(originalUrl, which) {
+    // iOS Safari はキャッシュや CORS 周りで <img> / background に再反映されない事がある
+    // そのため、iOS では fetch→Blob→ObjectURL にして確実に「新しいリソース」として読み込ませる
+    if (!isIOS()) return bust(originalUrl);
+    const res = await fetch(bust(originalUrl), { cache: "reload" });
+    const blob = await res.blob();
+    const obj = URL.createObjectURL(blob);
+    if (which === "profile") {
+      revokeObjURL("profile");
+      currentObjectURLProfile = obj;
+    } else if (which === "bg") {
+      revokeObjURL("bg");
+      currentObjectURLBg = obj;
+    }
+    return obj;
+  }
+
+  // <img> に安全に反映（置換しない：イベント/スタイルを保持）
+  async function setImgSrc(imgEl, originalUrl) {
+    if (!imgEl || !originalUrl) return;
+    const displayUrl = await resolveDisplayURL(originalUrl, "profile");
+    await new Promise((resolve, reject) => {
+      imgEl.decoding = "async";
+      imgEl.loading = "eager";
+      imgEl.crossOrigin = "anonymous";
+      imgEl.onload = () => resolve();
+      imgEl.onerror = (e) => reject(e);
+      imgEl.src = displayUrl;
+    }).catch(() => {
+      // ロード失敗時は最後の手段として直URL+bust を再試行
+      imgEl.src = bust(originalUrl);
+    });
+  }
+
+  // 背景を強制再描画
+  async function setBackgroundImageForce(el, originalUrl) {
+    if (!el || !originalUrl) return;
+    const displayUrl = await resolveDisplayURL(originalUrl, "bg");
     el.style.backgroundImage = "none";
     void el.offsetHeight; // reflow
-    el.style.backgroundImage = `url('${bust(url)}')`;
+    el.style.backgroundImage = `url('${displayUrl}')`;
     el.style.backgroundRepeat = "no-repeat";
     el.style.backgroundSize = "cover";
     el.style.backgroundPosition = "center";
   }
 
-  // DOM 構築後に全部セット（重複IDも拾う）
+  // ページ離脱時に blob URL 後始末
+  window.addEventListener("pagehide", () => { revokeObjURL("profile"); revokeObjURL("bg"); });
+  window.addEventListener("beforeunload", () => { revokeObjURL("profile"); revokeObjURL("bg"); });
+
+  // ===== メイン =====
   window.addEventListener("DOMContentLoaded", () => {
     const params = new URLSearchParams(window.location.search);
     const id = params.get("id");
@@ -3027,7 +3066,9 @@ text.addEventListener('click', enableEditing);
     const profileImg = document.getElementById("profile-img");
     const profileInput = document.getElementById("profile-input");
     const profileUrlInput = document.getElementById("profile-url");
-    const bgInputs = Array.from(document.querySelectorAll('#background-input')); // ← 重複ID対応
+
+    // ID が重複しているレイアウトもあるため、背景 input は NodeList で拾う
+    const bgInputs = Array.from(document.querySelectorAll("#background-input"));
     const bgUrlInput = document.getElementById("background-url");
     const backgroundEl = document.body;
 
@@ -3061,22 +3102,15 @@ text.addEventListener('click', enableEditing);
 
       // プロフィール画像
       if (data.imageUrl && profileImg) {
-        try {
-          const newNode = await preloadAndSwapImg(profileImg, data.imageUrl);
-          // 置換でイベント消えるので再バインド
-          newNode.addEventListener("click", () => profileInput?.click());
-          window.profileImg = newNode;
-        } catch {
-          (window.profileImg || profileImg).src = bust(data.imageUrl);
-        }
-        profileURL = data.imageUrl;
+        await setImgSrc(profileImg, data.imageUrl);
+        profileURL = data.imageUrl;              // 保存用（オリジナルURL）
         if (profileUrlInput) profileUrlInput.value = data.imageUrl;
       }
 
       // 背景
       if (data.backgroundUrl) {
         await setBackgroundImageForce(backgroundEl, data.backgroundUrl);
-        backgroundURL = data.backgroundUrl;
+        backgroundURL = data.backgroundUrl;      // 保存用（オリジナルURL）
         if (bgUrlInput) bgUrlInput.value = data.backgroundUrl;
       }
     })();
@@ -3103,18 +3137,14 @@ text.addEventListener('click', enableEditing);
         const url = await withRetry(() => getDownloadURL(fileRef));
         console.log("🌐 ダウンロードURL取得:", url);
 
-        try {
-          const baseNode = window.profileImg || profileImg;
-          const newNode = await preloadAndSwapImg(baseNode, url);
-          newNode.addEventListener("click", () => profileInput?.click()); // 置換後もクリック可
-          window.profileImg = newNode;
-        } catch {
-          (window.profileImg || profileImg).src = bust(url);
-        }
-        profileURL = url;
+        await setImgSrc(profileImg, url); // 表示は iOS 対策済み
+        profileURL = url;                 // 保存は downloadURL（オリジナル）
         if (profileUrlInput) profileUrlInput.value = url;
 
-        if (id) await setDoc(doc(db, "cards", id), { imageUrl: url }, { merge: true });
+        if (id) {
+          await setDoc(doc(db, "cards", id), { imageUrl: url }, { merge: true });
+          console.log("✅ FirestoreへプロフィールURL保存");
+        }
 
         // 旧ファイル削除（自分の前回URLだけ）
         if (oldURL) {
@@ -3155,11 +3185,14 @@ text.addEventListener('click', enableEditing);
           const url = await withRetry(() => getDownloadURL(fileRef));
           console.log("🌐 ダウンロードURL取得:", url);
 
-          await setBackgroundImageForce(backgroundEl, url);
-          backgroundURL = url;
+          await setBackgroundImageForce(backgroundEl, url); // 表示は iOS 対策済み
+          backgroundURL = url;                              // 保存は downloadURL（オリジナル）
           if (bgUrlInput) bgUrlInput.value = url;
 
-          if (id) await setDoc(doc(db, "cards", id), { backgroundUrl: url }, { merge: true });
+          if (id) {
+            await setDoc(doc(db, "cards", id), { backgroundUrl: url }, { merge: true });
+            console.log("✅ Firestoreへ背景URL保存");
+          }
 
           if (oldURL) {
             try {
@@ -3216,8 +3249,8 @@ text.addEventListener('click', enableEditing);
         department: getVal("department"),
         birthplace: getVal("birthplace"),
         hobby: getVal("hobby"),
-        imageUrl: finalProfileURL,
-        backgroundUrl: finalBackgroundURL,
+        imageUrl: finalProfileURL,       // ← 保存は downloadURL（blob URL は保存しない）
+        backgroundUrl: finalBackgroundURL
       };
 
       try {
@@ -3232,6 +3265,7 @@ text.addEventListener('click', enableEditing);
     }
   });
 </script>
+
 
 
 
