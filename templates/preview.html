@@ -133,12 +133,10 @@ body {
     }
 
         .hidden-input {
-  position: absolute;
-  left: -9999px; /* 画面外に飛ばす */
-  width: 0;
-  height: 0;
-  opacity: 0;    /* 完全透明 */
-}
+      opacity: 0;
+      position: absolute;
+      pointer-events: auto;
+    }
 
 
     .sns-input {
@@ -2954,22 +2952,12 @@ text.addEventListener('click', enableEditing);
 <!-- 🔧 スマホでコンソールを見る用（Eruda）。必ず最初に読み込む -->
 <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
 <script>
-  eruda.init();
+  eruda.init();            // 右下の丸ボタン → Console/Network 等が開ける
   console.log('🟢 Eruda ready');
+  // ついでにグローバルエラーも拾って見逃さないように
   window.addEventListener('error', e => console.error('💥 window error:', e.message, e.error));
   window.addEventListener('unhandledrejection', e => console.error('💥 unhandledrejection:', e.reason));
 </script>
-
-<style>
-  /* iOSでもfile inputが開ける非表示方式 */
-  .hidden-input {
-    position: absolute;
-    left: -9999px;
-    width: 0;
-    height: 0;
-    opacity: 0;
-  }
-</style>
 
 <script type="module">
   /***********************
@@ -3042,6 +3030,7 @@ text.addEventListener('click', enableEditing);
     throw last;
   }
 
+  // 画像をJPEGに再エンコード（iOS安定化）
   async function forceJpegBlob(fileOrBlob, maxDim = 2560) {
     L('forceJpegBlob.start', { size: fileOrBlob.size, type: fileOrBlob.type });
     const objUrl = URL.createObjectURL(fileOrBlob);
@@ -3065,6 +3054,8 @@ text.addEventListener('click', enableEditing);
 
       const jpegBlob = await new Promise((res, rej) => cv.toBlob(b => b?res(b):rej(new Error('toBlob null')), 'image/jpeg', 0.9));
       L('forceJpegBlob.done', { size: jpegBlob.size });
+
+      ctx.clearRect(0,0,w,h); cv.width = 0; cv.height = 0;
       return jpegBlob;
     } finally { URL.revokeObjectURL(objUrl); }
   }
@@ -3088,7 +3079,8 @@ text.addEventListener('click', enableEditing);
     imgEl.__hooked = true;
     imgEl.addEventListener('load', () => L(`${name}.load`, {
       src: imgEl.currentSrc || imgEl.src,
-      naturalWidth: imgEl.naturalWidth, naturalHeight: imgEl.naturalHeight
+      naturalWidth: imgEl.naturalWidth, naturalHeight: imgEl.naturalHeight,
+      width: imgEl.width, height: imgEl.height
     }));
     imgEl.addEventListener('error', (e) => E(`${name}.error`, e, imgEl.src));
   }
@@ -3096,150 +3088,327 @@ text.addEventListener('click', enableEditing);
   async function setImgSrc(imgEl, url) {
     if (!imgEl) return;
     const finalUrl = bust(url);
+    L('setImgSrc.start', { finalUrl });
     try { await waitUntilCdnReady(url); } catch(e) { W('setImgSrc.cdnSkip', e); }
     imgEl.src = '';
     await new Promise(r => requestAnimationFrame(r));
-    imgEl.decoding = 'async'; imgEl.crossOrigin = 'anonymous';
+    imgEl.decoding = 'async'; imgEl.loading = 'eager'; imgEl.crossOrigin = 'anonymous';
     hookImgDebug(imgEl, 'PROFILE');
+    L('setImgSrc.apply');
     imgEl.src = finalUrl;
+    setTimeout(() => { if (!imgEl.naturalWidth) W('setImgSrc.timeout', { current: imgEl.currentSrc || imgEl.src }); }, 3000);
   }
 
   async function setBackgroundImageForce(el, url) {
+    L('setBg.start', { url });
     try { await waitUntilCdnReady(url); } catch(e) { W('setBg.cdnSkip', e); }
+    el.style.backgroundImage = 'none';
+    void el.offsetHeight;
     const final = bust(url);
     el.style.backgroundImage = `url('${final}')`;
     el.style.backgroundRepeat = 'no-repeat';
     el.style.backgroundSize   = 'cover';
     el.style.backgroundPosition = 'center';
+    L('setBg.done', { final });
   }
 
   /***********************
    *  🚀 Main
    ***********************/
   window.addEventListener('DOMContentLoaded', () => {
+    L('DOM ready');
+
     const params = new URLSearchParams(window.location.search);
     const id = params.get('id');
+    L('params', { id });
 
     const profileImg      = document.getElementById('profile-img');
     const profileInput    = document.getElementById('profile-input');
     const profileUrlInput = document.getElementById('profile-url');
-    const bgInputs        = Array.from(document.querySelectorAll('#background-input'));
+    const bgInputs        = Array.from(document.querySelectorAll('#background-input')); // 重複ID対応
     const bgUrlInput      = document.getElementById('background-url');
     const backgroundEl    = document.body;
 
-    hookImgDebug(profileImg, 'PROFILE');
+    L('dom.refs', {
+      hasProfileImg: !!profileImg,
+      hasProfileInput: !!profileInput,
+      hasBgInputCount: bgInputs.length
+    });
+
+    hookImgDebug(profileImg, 'PROFILE'); // 初回も監視
 
     let profileURL = '';
     let backgroundURL = '';
     let uploadingProfile = false;
     let uploadingBg = false;
 
-    // ラベルクリックでファイル選択（iOS対応）
-    profileInput?.addEventListener('click', () => { profileInput.value = ""; });
+    // ====== iOS: 同じファイルを選んでも change が走るようにする ======
+    profileImg?.addEventListener('click', () => {
+      L('profileImg.click');
+      if (profileInput) profileInput.value = ""; // ←これが超大事（iOS対策）
+      profileInput?.click();
+    });
+    profileInput?.addEventListener('click', () => {
+      // 直接inputをタップした場合も保険でクリア
+      profileInput.value = "";
+    });
 
+    // ===== 再編集ロード =====
     (async () => {
-      if (!id) return;
+      if (!id) { L('edit.skip.noId'); return; }
+      L('edit.load', { id });
       try {
         const snap = await getDoc(doc(db, 'cards', id));
-        if (!snap.exists()) return;
+        if (!snap.exists()) { alert('データが見つかりませんでした。'); W('edit.noDoc', id); return; }
         const data = snap.data();
+        L('edit.data', data);
+
         const setVal = (i, v) => { const el = document.getElementById(i); if (el) el.value = v || ''; };
         ['name','birthday','age','department','birthplace','hobby'].forEach(k => setVal(k, data[k]));
 
-        if (data.imageUrl) {
-          await setImgSrc(profileImg, data.imageUrl);
+        if (data.imageUrl && profileImg) {
+          try { await setImgSrc(profileImg, data.imageUrl); }
+          catch (e) { W('edit.profile.setSrc.fail', e); profileImg.src = bust(data.imageUrl); }
           profileURL = data.imageUrl;
           if (profileUrlInput) profileUrlInput.value = data.imageUrl;
         }
+
         if (data.backgroundUrl) {
-          await setBackgroundImageForce(backgroundEl, data.backgroundUrl);
+          try { await setBackgroundImageForce(backgroundEl, data.backgroundUrl); }
+          catch (e) { W('edit.bg.set.fail', e); backgroundEl.style.backgroundImage = `url('${bust(data.backgroundUrl)}')`; }
           backgroundURL = data.backgroundUrl;
           if (bgUrlInput) bgUrlInput.value = data.backgroundUrl;
         }
-      } catch (e) { E('edit.load.fail', e); }
+      } catch (e) {
+        E('edit.load.fail', e);
+      }
     })();
 
+    // ===== プロフィール画像アップロード =====
     profileInput?.addEventListener('change', async (e) => {
       const file = e.target.files?.[0];
+      L('profile.change', { hasFile: !!file, uploadingProfile });
       if (!file || uploadingProfile) return;
       uploadingProfile = true;
+
       const oldURL = profileURL;
       try {
+        L('profile.file', { name: file.name, type: file.type, size: file.size });
         const newPath = `profiles/${makeId()}`;
         const fileRef = ref(storage, newPath);
+        L('profile.path', fileRef.fullPath);
+
         const jpegBlob = await forceJpegBlob(file);
-        await uploadBytes(fileRef, jpegBlob, { contentType: 'image/jpeg', cacheControl: 'no-store, no-cache, must-revalidate, max-age=0' });
+        L('profile.jpegBlob', { size: jpegBlob.size });
+
+        await uploadBytes(fileRef, jpegBlob, {
+          contentType: 'image/jpeg',
+          cacheControl: 'no-store, no-cache, must-revalidate, max-age=0'
+        });
+        L('profile.upload.OK');
+
         const url = await withRetry(() => getDownloadURL(fileRef));
+        L('profile.url', url);
+
         await setImgSrc(profileImg, url);
+        L('profile.setImgSrc.done');
+
         profileURL = url;
         profileUrlInput && (profileUrlInput.value = url);
-        if (id) await setDoc(doc(db, 'cards', id), { imageUrl: url }, { merge: true });
-        if (oldURL) {
-          try { const oldPath = pathFromUrl(oldURL); if (oldPath) await deleteObject(ref(storage, oldPath)); } catch {}
+
+        if (id) {
+          await setDoc(doc(db, 'cards', id), { imageUrl: url }, { merge: true });
+          L('profile.firestore.merge.OK');
         }
-      } finally { uploadingProfile = false; e.target.value = ''; }
+
+        if (oldURL) {
+          try {
+            const oldPath = pathFromUrl(oldURL);
+            if (oldPath) { await deleteObject(ref(storage, oldPath)); L('profile.old.delete.OK'); }
+          } catch (err) { W('profile.old.delete.FAIL', err); }
+        }
+      } catch (err) {
+        E('profile.FAIL', err);
+        alert('プロフィール画像の更新に失敗しました。');
+      } finally {
+        uploadingProfile = false;
+        e.target.value = ''; // 同じファイルでも再度 change させる
+        L('profile.done');
+      }
     });
 
-    // 背景画像アップロード
-    bgInputs.forEach((bgInput) => {
+    // ★★★ ここから追加：グローバル捕捉で change を確実に拾う（差し替え/再生成にも強い）★★★
+    document.addEventListener('change', async (ev) => {
+      if (!ev.target || ev.target.id !== 'profile-input') return;
+      const file = ev.target.files?.[0];
+      L('profile.change(GLOBAL)', { hasFile: !!file, uploadingProfile });
+      if (!file || uploadingProfile) return;
+      uploadingProfile = true;
+
+      const oldURL = profileURL;
+      try {
+        L('profile.file(GLOBAL)', { name: file.name, type: file.type, size: file.size });
+        const newPath = `profiles/${makeId()}`;
+        const fileRef = ref(storage, newPath);
+        L('profile.path(GLOBAL)', fileRef.fullPath);
+
+        const jpegBlob = await forceJpegBlob(file);
+        L('profile.jpegBlob(GLOBAL)', { size: jpegBlob.size });
+
+        await uploadBytes(fileRef, jpegBlob, {
+          contentType: 'image/jpeg',
+          cacheControl: 'no-store, no-cache, must-revalidate, max-age=0'
+        });
+        L('profile.upload.OK(GLOBAL)');
+
+        const url = await withRetry(() => getDownloadURL(fileRef));
+        L('profile.url(GLOBAL)', url);
+
+        await setImgSrc(profileImg, url);
+        L('profile.setImgSrc.done(GLOBAL)');
+
+        profileURL = url;
+        profileUrlInput && (profileUrlInput.value = url);
+
+        if (id) {
+          await setDoc(doc(db, 'cards', id), { imageUrl: url }, { merge: true });
+          L('profile.firestore.merge.OK(GLOBAL)');
+        }
+
+        if (oldURL) {
+          try {
+            const oldPath = pathFromUrl(oldURL);
+            if (oldPath) { await deleteObject(ref(storage, oldPath)); L('profile.old.delete.OK(GLOBAL)'); }
+          } catch (err) { W('profile.old.delete.FAIL(GLOBAL)', err); }
+        }
+      } catch (err) {
+        E('profile.FAIL(GLOBAL)', err);
+        alert('プロフィール画像の更新に失敗しました。');
+      } finally {
+        uploadingProfile = false;
+        ev.target.value = '';
+        L('profile.done(GLOBAL)');
+      }
+    }, true);
+    // ★★★ 追加ここまで ★★★
+
+    // ===== 背景画像アップロード（重複IDすべて） =====
+    bgInputs.forEach((bgInput, idx) => {
+      // iOS対策：クリック毎にクリア
       bgInput?.addEventListener('click', () => { bgInput.value = ""; });
       bgInput?.addEventListener('change', async (e) => {
         const file = e.target.files?.[0];
+        L('bg.change', { idx, hasFile: !!file, uploadingBg });
         if (!file || uploadingBg) return;
         uploadingBg = true;
+
         const oldURL = backgroundURL;
         try {
+          L('bg.file', { name: file.name, type: file.type, size: file.size });
           const newPath = `backgrounds/${makeId()}`;
           const fileRef = ref(storage, newPath);
+          L('bg.path', fileRef.fullPath);
+
           const jpegBlob = await forceJpegBlob(file);
-          await uploadBytes(fileRef, jpegBlob, { contentType: 'image/jpeg', cacheControl: 'no-store, no-cache, must-revalidate, max-age=0' });
+          L('bg.jpegBlob', { size: jpegBlob.size });
+
+          await uploadBytes(fileRef, jpegBlob, {
+            contentType: 'image/jpeg',
+            cacheControl: 'no-store, no-cache, must-revalidate, max-age=0'
+          });
+          L('bg.upload.OK');
+
           const url = await withRetry(() => getDownloadURL(fileRef));
+          L('bg.url', url);
+
           await setBackgroundImageForce(backgroundEl, url);
+          L('bg.set.done');
+
           backgroundURL = url;
           bgUrlInput && (bgUrlInput.value = url);
-          if (id) await setDoc(doc(db, 'cards', id), { backgroundUrl: url }, { merge: true });
-          if (oldURL) {
-            try { const oldPath = pathFromUrl(oldURL); if (oldPath) await deleteObject(ref(storage, oldPath)); } catch {}
+
+          if (id) {
+            await setDoc(doc(db, 'cards', id), { backgroundUrl: url }, { merge: true });
+            L('bg.firestore.merge.OK');
           }
-        } finally { uploadingBg = false; e.target.value = ''; }
+
+          if (oldURL) {
+            try {
+              const oldPath = pathFromUrl(oldURL);
+              if (oldPath) { await deleteObject(ref(storage, oldPath)); L('bg.old.delete.OK'); }
+            } catch (err) { W('bg.old.delete.FAIL', err); }
+          }
+        } catch (err) {
+          E('bg.FAIL', err);
+          alert('背景の更新に失敗しました。');
+        } finally {
+          uploadingBg = false;
+          e.target.value = '';
+          L('bg.done');
+        }
       });
     });
 
+    // ===== 保存 =====
     document.getElementById('finish-button')?.addEventListener('click', () => {
+      L('finish.click');
       const checkbox = document.getElementById('agree-checkbox');
       if (checkbox?.checked) {
-        document.getElementById('terms-modal').style.display = 'none';
+        document.getElementById('terms-modal')?.style && (document.getElementById('terms-modal').style.display = 'none');
         saveAndRedirect();
       } else {
-        document.getElementById('terms-notice').style.display = 'flex';
+        document.getElementById('terms-notice')?.style && (document.getElementById('terms-notice').style.display = 'flex');
       }
     });
-
     document.getElementById('notice-agree-btn')?.addEventListener('click', () => {
+      L('notice.agree');
       document.getElementById('terms-notice').style.display = 'none';
       document.getElementById('terms-modal').style.display = 'flex';
     });
+    document.getElementById('notice-close-btn')?.addEventListener('click', () => {
+      L('notice.close');
+      document.getElementById('terms-notice').style.display = 'none';
+    });
 
     async function saveAndRedirect() {
+      L('save.start');
       const finalProfileURL   = profileURL   || profileUrlInput?.value;
       const finalBackgroundURL= backgroundURL || bgUrlInput?.value;
+      L('save.check', { finalProfileURL, finalBackgroundURL });
+
       if (!finalProfileURL || !finalBackgroundURL) {
         alert('画像がまだアップロードされていません！');
+        W('save.block', { finalProfileURL, finalBackgroundURL });
         return;
       }
-      const targetId = id || makeId();
+
+      const targetId = id || (globalThis.crypto?.randomUUID?.() ?? makeId());
       const getVal = (i) => document.getElementById(i)?.value || "";
       const data = {
-        name: getVal("name"), birthday: getVal("birthday"), age: getVal("age"),
-        department: getVal("department"), birthplace: getVal("birthplace"),
-        hobby: getVal("hobby"), imageUrl: finalProfileURL, backgroundUrl: finalBackgroundURL,
+        name: getVal("name"),
+        birthday: getVal("birthday"),
+        age: getVal("age"),
+        department: getVal("department"),
+        birthplace: getVal("birthplace"),
+        hobby: getVal("hobby"),
+        imageUrl: finalProfileURL,
+        backgroundUrl: finalBackgroundURL,
       };
-      await setDoc(doc(db, "cards", targetId), data, { merge: true });
-      window.location.href = `/preview?id=${targetId}`;
+
+      try {
+        L('save.firestore.start', { targetId, data });
+        await setDoc(doc(db, "cards", targetId), data, { merge: true });
+        L('save.firestore.OK');
+        const next = `/preview?id=${targetId}`;
+        L('save.redirect', next);
+        window.location.href = next;
+      } catch (e) {
+        E('save.firestore.FAIL', e);
+        alert("保存に失敗しました: " + e.message);
+      }
     }
   });
 </script>
-
 
 
 
