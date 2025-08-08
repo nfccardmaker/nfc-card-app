@@ -2952,6 +2952,7 @@ text.addEventListener('click', enableEditing);
   import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
   import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
 
+  // ===== Firebase =====
   const firebaseConfig = {
     apiKey: "AIzaSyBCnMBQjzoxViJPv3YqpZDD_PXQEe2QTsA",
     authDomain: "nfc-card-app-79464.firebaseapp.com",
@@ -2964,6 +2965,7 @@ text.addEventListener('click', enableEditing);
   const db = getFirestore(app);
   const storage = getStorage(app, "gs://nfc-card-app-79464");
 
+  // ===== DOM =====
   const profileImg = document.getElementById("profile-img");
   const profileInput = document.getElementById("profile-input");
   const profileUrlInput = document.getElementById("profile-url");
@@ -2974,11 +2976,13 @@ text.addEventListener('click', enableEditing);
   const params = new URLSearchParams(window.location.search);
   const id = params.get("id");
 
+  // ===== State =====
   let profileURL = "";
   let backgroundURL = "";
   let uploadingProfile = false;
   let uploadingBg = false;
 
+  // ===== Utils =====
   const makeId = () => {
     if (globalThis.crypto?.randomUUID) return crypto.randomUUID();
     const u8 = new Uint8Array(16);
@@ -2995,10 +2999,7 @@ text.addEventListener('click', enableEditing);
   };
   const bust = (url) => url + (url.includes("?") ? "&" : "?") + "t=" + Date.now();
 
-  function getSafeProfileImg() {
-    return window.profileImg || document.getElementById("profile-img");
-  }
-
+  // 画像をプリロードしてから <img> を置換（Safariでも確実に反映）
   async function preloadAndSwapImg(imgEl, url) {
     const img = new Image();
     img.decoding = "async";
@@ -3012,16 +3013,17 @@ text.addEventListener('click', enableEditing);
     img.src = bust(url);
     await loaded;
     imgEl.replaceWith(img);
-    window.profileImg = img;
     return img;
   }
 
+  // 背景を強制再描画してから設定（Safari対策）
   async function setBackgroundImageForce(el, url) {
     el.style.backgroundImage = "none";
-    void el.offsetHeight;
+    void el.offsetHeight; // reflow
     el.style.backgroundImage = `url('${bust(url)}')`;
   }
 
+  // 小さめリトライ（ネット揺らぎ対策）
   async function withRetry(fn, tries = 3, delay = 150) {
     let last;
     for (let i = 0; i < tries; i++) {
@@ -3031,11 +3033,14 @@ text.addEventListener('click', enableEditing);
     throw last;
   }
 
+  // ===== 初期ロード（再編集） =====
   if (id) {
+    console.log("📄 再編集モード / id:", id);
     const docRef = doc(db, "cards", id);
     getDoc(docRef).then(async (snap) => {
       if (!snap.exists()) { alert("データが見つかりませんでした。"); return; }
       const data = snap.data();
+      console.log("📅 データ取得:", data);
 
       document.getElementById("name").value = data.name || "";
       document.getElementById("birthday").value = data.birthday || "";
@@ -3046,11 +3051,9 @@ text.addEventListener('click', enableEditing);
 
       if (data.imageUrl) {
         try {
-          const newNode = await preloadAndSwapImg(getSafeProfileImg(), data.imageUrl);
-          window.profileImg = newNode;
-        } catch {
-          getSafeProfileImg().src = bust(data.imageUrl);
-        }
+          const newNode = await preloadAndSwapImg(profileImg, data.imageUrl);
+          window.profileImg = newNode; // 次回参照用
+        } catch { profileImg.src = bust(data.imageUrl); }
         profileURL = data.imageUrl;
         profileUrlInput.value = data.imageUrl;
       }
@@ -3062,67 +3065,81 @@ text.addEventListener('click', enableEditing);
     });
   }
 
+  // 画像クリックで選択
   profileImg?.addEventListener("click", () => profileInput?.click());
 
+  // ===== プロフィール画像アップロード =====
   profileInput?.addEventListener("change", async (e) => {
     const file = e.target.files?.[0];
     if (!file || uploadingProfile) return;
     uploadingProfile = true;
+    console.log("📤 プロフィール画像選択:", file.name);
 
-    const oldURL = profileURL;
+    const oldURL = profileURL; // 後で削除
     try {
       const newPath = `profiles/${makeId()}`;
       const fileRef = ref(storage, newPath);
+      console.log("📂 Firebaseパス:", fileRef.fullPath);
 
       await uploadBytes(fileRef, file, {
         contentType: file.type || "application/octet-stream",
         cacheControl: "no-store, no-cache, must-revalidate, max-age=0"
       });
+      console.log("✅ アップロード成功");
 
       const url = await withRetry(() => getDownloadURL(fileRef));
+      console.log("🌐 ダウンロードURL取得:", url);
 
       try {
-        const newNode = await preloadAndSwapImg(getSafeProfileImg(), url);
+        const newNode = await preloadAndSwapImg(window.profileImg || profileImg, url);
         window.profileImg = newNode;
       } catch {
-        getSafeProfileImg().src = bust(url);
+        (window.profileImg || profileImg).src = bust(url);
       }
       profileURL = url;
       profileUrlInput.value = url;
 
       if (id) await setDoc(doc(db, "cards", id), { imageUrl: url }, { merge: true });
 
+      // 成功後に旧ファイル削除（同じカードのときだけ）
       if (oldURL) {
         try {
           const oldPath = pathFromUrl(oldURL);
-          if (oldPath) await deleteObject(ref(storage, oldPath));
-        } catch (err) {}
+          if (oldPath) { await deleteObject(ref(storage, oldPath)); console.log("🗑️ 旧プロフィール画像削除"); }
+        } catch (err) { console.warn("⚠️ 旧プロフィール削除失敗（継続）:", err); }
       }
     } catch (err) {
+      console.error("❌ プロフィール画像アップロード失敗:", err);
       alert("プロフィール画像の更新に失敗しました。もう一度お試しください。");
     } finally {
       uploadingProfile = false;
-      e.target.value = "";
+      e.target.value = ""; // 連続選択対策
     }
   });
 
+  // ===== 背景画像アップロード =====
   bgInput?.addEventListener("change", async (e) => {
     const file = e.target.files?.[0];
     if (!file || uploadingBg) return;
     uploadingBg = true;
+    console.log("📤 背景画像選択:", file.name);
 
-    const oldURL = backgroundURL;
+    const oldURL = backgroundURL; // 後で削除
     try {
       const newPath = `backgrounds/${makeId()}`;
       const fileRef = ref(storage, newPath);
+      console.log("📂 Firebaseパス:", fileRef.fullPath);
 
       await uploadBytes(fileRef, file, {
         contentType: file.type || "application/octet-stream",
         cacheControl: "no-store, no-cache, must-revalidate, max-age=0"
       });
+      console.log("✅ アップロード成功");
 
       const url = await withRetry(() => getDownloadURL(fileRef));
+      console.log("🌐 ダウンロードURL取得:", url);
 
+      // 背景の強制再描画
       await setBackgroundImageForce(backgroundEl, url);
 
       backgroundURL = url;
@@ -3130,20 +3147,23 @@ text.addEventListener('click', enableEditing);
 
       if (id) await setDoc(doc(db, "cards", id), { backgroundUrl: url }, { merge: true });
 
+      // 成功後に旧ファイル削除
       if (oldURL) {
         try {
           const oldPath = pathFromUrl(oldURL);
-          if (oldPath) await deleteObject(ref(storage, oldPath));
-        } catch (err) {}
+          if (oldPath) { await deleteObject(ref(storage, oldPath)); console.log("🗑️ 旧背景画像削除"); }
+        } catch (err) { console.warn("⚠️ 旧背景削除失敗（継続）:", err); }
       }
     } catch (err) {
+      console.error("❌ 背景画像アップロード失敗:", err);
       alert("背景の更新に失敗しました。もう一度お試しください。");
     } finally {
       uploadingBg = false;
-      e.target.value = "";
+      e.target.value = ""; // 連続選択対策
     }
   });
 
+  // ===== 利用規約 & 保存 =====
   document.getElementById("finish-button")?.addEventListener("click", () => {
     const checkbox = document.getElementById("agree-checkbox");
     if (checkbox?.checked) {
@@ -3162,8 +3182,11 @@ text.addEventListener('click', enableEditing);
   });
 
   async function saveAndRedirect() {
-    const finalProfileURL = profileURL || profileUrlInput.value?.trim();
-    const finalBackgroundURL = backgroundURL || bgUrlInput.value?.trim();
+    const finalProfileURL = profileURL || profileUrlInput.value;
+    const finalBackgroundURL = backgroundURL || bgUrlInput.value;
+
+    console.log("🛡️ 保存チェック - Profile:", finalProfileURL);
+    console.log("🛡️ 保存チェック - Background:", finalBackgroundURL);
 
     if (!finalProfileURL || !finalBackgroundURL) {
       alert("画像がまだアップロードされていません！");
@@ -3183,9 +3206,12 @@ text.addEventListener('click', enableEditing);
     };
 
     try {
+      console.log("📤 Firestore保存開始");
       await setDoc(doc(db, "cards", targetId), data, { merge: true });
+      console.log("✅ Firestore保存完了");
       window.location.href = `/preview?id=${targetId}`;
     } catch (e) {
+      console.error("❌ 保存失敗:", e);
       alert("保存に失敗しました: " + e.message);
     }
   }
