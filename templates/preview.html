@@ -2965,17 +2965,7 @@ text.addEventListener('click', enableEditing);
   const db = getFirestore(app);
   const storage = getStorage(app, "gs://nfc-card-app-79464");
 
-  // ✅ UUIDフォールバック（古いSafari対策）
-  const makeId = () => {
-    if (crypto && typeof crypto.randomUUID === "function") return crypto.randomUUID();
-    // v4相当の簡易フォールバック
-    const u8 = new Uint8Array(16);
-    crypto.getRandomValues(u8);
-    u8[6] = (u8[6] & 0x0f) | 0x40;
-    u8[8] = (u8[8] & 0x3f) | 0x80;
-    return [...u8].map((b, i) => (i===4||i===6||i===8||i===10?'-':'') + b.toString(16).padStart(2,'0')).join('');
-  };
-
+  // ---- DOM ----
   const profileImg = document.getElementById("profile-img");
   const profileInput = document.getElementById("profile-input");
   const profileUrlInput = document.getElementById("profile-url");
@@ -2989,123 +2979,147 @@ text.addEventListener('click', enableEditing);
   let profileURL = "";
   let backgroundURL = "";
 
+  // 二重実行ガード
+  let uploadingProfile = false;
+  let uploadingBg = false;
+
+  // UUID フォールバック（古いSafari対策）
+  const makeId = () => {
+    if (globalThis.crypto?.randomUUID) return crypto.randomUUID();
+    const u8 = new Uint8Array(16);
+    (globalThis.crypto?.getRandomValues ?? ((a)=>a.forEach((_,i)=>a[i]=Math.random()*256|0)))(u8);
+    u8[6] = (u8[6] & 0x0f) | 0x40;
+    u8[8] = (u8[8] & 0x3f) | 0x80;
+    return [...u8].map((b,i)=>([4,6,8,10].includes(i)?'-':'')+b.toString(16).padStart(2,'0')).join('');
+  };
+
+  // 旧URL -> パス復元
+  const pathFromUrl = (url) => {
+    try {
+      const p = new URL(url).pathname.split("/o/")[1].split("?")[0];
+      return decodeURIComponent(p); // e.g. "profiles/xxx"
+    } catch { return null; }
+  };
+
+  // ---- 再編集ロード ----
   if (id) {
     console.log("📄 再編集モード / id:", id);
     const docRef = doc(db, "cards", id);
-    getDoc(docRef).then((docSnap) => {
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        console.log("📅 データ取得:", data);
+    getDoc(docRef).then((snap) => {
+      if (!snap.exists()) { alert("データが見つかりませんでした。"); return; }
+      const data = snap.data();
+      console.log("📅 データ取得:", data);
 
-        document.getElementById("name").value = data.name || "";
-        document.getElementById("birthday").value = data.birthday || "";
-        document.getElementById("age").value = data.age || "";
-        document.getElementById("department").value = data.department || "";
-        document.getElementById("birthplace").value = data.birthplace || "";
-        document.getElementById("hobby").value = data.hobby || "";
+      document.getElementById("name").value = data.name || "";
+      document.getElementById("birthday").value = data.birthday || "";
+      document.getElementById("age").value = data.age || "";
+      document.getElementById("department").value = data.department || "";
+      document.getElementById("birthplace").value = data.birthplace || "";
+      document.getElementById("hobby").value = data.hobby || "";
 
-        if (data.imageUrl) {
-          profileImg.src = data.imageUrl + "&t=" + Date.now(); // キャッシュ殺し
-          profileURL = data.imageUrl;
-          profileUrlInput.value = data.imageUrl;
-        }
-        if (data.backgroundUrl) {
-          backgroundEl.style.backgroundImage = `url('${data.backgroundUrl}&t=${Date.now()}')`; // キャッシュ殺し
-          backgroundURL = data.backgroundUrl;
-          bgUrlInput.value = data.backgroundUrl;
-        }
-      } else {
-        alert("データが見つかりませんでした。");
+      if (data.imageUrl) {
+        profileImg.src = data.imageUrl + "&t=" + Date.now(); // キャッシュ無効化
+        profileURL = data.imageUrl;
+        profileUrlInput.value = data.imageUrl;
+      }
+      if (data.backgroundUrl) {
+        backgroundEl.style.backgroundImage = `url('${data.backgroundUrl}&t=${Date.now()}')`;
+        backgroundURL = data.backgroundUrl;
+        bgUrlInput.value = data.backgroundUrl;
       }
     });
   }
 
-  profileImg?.addEventListener("click", () => {
-    profileInput?.click();
-  });
+  // 画像クリックで選択
+  profileImg?.addEventListener("click", () => profileInput?.click());
 
-  // ✅ プロフィール画像
+  // ---- プロフィール画像アップロード ----
   profileInput?.addEventListener("change", async (e) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file || uploadingProfile) return;
+    uploadingProfile = true;
     console.log("📤 プロフィール画像選択:", file.name);
 
+    const oldURL = profileURL; // 後で削除するため退避
     try {
-      if (profileURL) {
-        try {
-          const oldPath = decodeURIComponent(new URL(profileURL).pathname.split("/o/")[1].split("?")[0]);
-          await deleteObject(ref(storage, oldPath));
-          console.log("🗑️ 旧プロフィール画像削除");
-        } catch (err) {
-          console.warn("⚠️ 古いプロフィール画像の削除に失敗:", err);
-        }
-      }
-
       const newPath = `profiles/${makeId()}`;
       const fileRef = ref(storage, newPath);
       console.log("📂 Firebaseパス:", fileRef.fullPath);
 
-      // ✅ Content-Type付与（Safari対策）
       await uploadBytes(fileRef, file, { contentType: file.type || "application/octet-stream" });
       console.log("✅ アップロード成功");
 
       const url = await getDownloadURL(fileRef);
       console.log("🌐 ダウンロードURL取得:", url);
 
-      profileImg.src = url + "&t=" + Date.now();
+      profileImg.src = url + "&t=" + Date.now(); // 表示更新
       profileURL = url;
       profileUrlInput.value = url;
 
-      if (id) {
-        await setDoc(doc(db, "cards", id), { imageUrl: url }, { merge: true });
+      if (id) await setDoc(doc(db, "cards", id), { imageUrl: url }, { merge: true });
+
+      // 成功後に旧ファイル削除（同じカードのときだけ）
+      if (oldURL) {
+        try {
+          const oldPath = pathFromUrl(oldURL);
+          if (oldPath) { await deleteObject(ref(storage, oldPath)); console.log("🗑️ 旧プロフィール画像削除"); }
+        } catch (err) { console.warn("⚠️ 旧プロフィール削除失敗（継続）:", err); }
       }
     } catch (err) {
       console.error("❌ プロフィール画像アップロード失敗:", err);
       alert("プロフィール画像の更新に失敗しました。もう一度お試しください。");
+    } finally {
+      uploadingProfile = false;
+      e.target.value = ""; // 連続選択で change が発火しない問題の回避
     }
   });
 
-  // ✅ 背景画像
+  // ---- 背景画像アップロード ----
   bgInput?.addEventListener("change", async (e) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file || uploadingBg) return;
+    uploadingBg = true;
     console.log("📤 背景画像選択:", file.name);
 
+    const oldURL = backgroundURL; // 後で削除するため退避
     try {
-      if (backgroundURL) {
-        try {
-          const oldPath = decodeURIComponent(new URL(backgroundURL).pathname.split("/o/")[1].split("?")[0]);
-          await deleteObject(ref(storage, oldPath));
-          console.log("🗑️ 旧背景画像削除");
-        } catch (err) {
-          console.warn("⚠️ 古い背景画像の削除に失敗:", err);
-        }
-      }
-
       const newPath = `backgrounds/${makeId()}`;
       const fileRef = ref(storage, newPath);
       console.log("📂 Firebaseパス:", fileRef.fullPath);
 
-      // ✅ Content-Type付与（Safari対策）
       await uploadBytes(fileRef, file, { contentType: file.type || "application/octet-stream" });
       console.log("✅ アップロード成功");
 
       const url = await getDownloadURL(fileRef);
       console.log("🌐 ダウンロードURL取得:", url);
 
+      // Safariの描画更新を確実に
+      backgroundEl.style.backgroundImage = "none";
+      void backgroundEl.offsetHeight; // 強制リフロー
       backgroundEl.style.backgroundImage = `url('${url}&t=${Date.now()}')`;
+
       backgroundURL = url;
       bgUrlInput.value = url;
 
-      if (id) {
-        await setDoc(doc(db, "cards", id), { backgroundUrl: url }, { merge: true });
+      if (id) await setDoc(doc(db, "cards", id), { backgroundUrl: url }, { merge: true });
+
+      // 成功後に旧ファイル削除（同じカードのときだけ）
+      if (oldURL) {
+        try {
+          const oldPath = pathFromUrl(oldURL);
+          if (oldPath) { await deleteObject(ref(storage, oldPath)); console.log("🗑️ 旧背景画像削除"); }
+        } catch (err) { console.warn("⚠️ 旧背景削除失敗（継続）:", err); }
       }
     } catch (err) {
       console.error("❌ 背景画像アップロード失敗:", err);
       alert("背景の更新に失敗しました。もう一度お試しください。");
+    } finally {
+      uploadingBg = false;
+      e.target.value = ""; // 連続選択対策
     }
   });
 
+  // ---- 利用規約 & 保存 ----
   document.getElementById("finish-button")?.addEventListener("click", () => {
     const checkbox = document.getElementById("agree-checkbox");
     if (checkbox?.checked) {
@@ -3115,12 +3129,10 @@ text.addEventListener('click', enableEditing);
       document.getElementById("terms-notice").style.display = "flex";
     }
   });
-
   document.getElementById("notice-agree-btn")?.addEventListener("click", () => {
     document.getElementById("terms-notice").style.display = "none";
     document.getElementById("terms-modal").style.display = "flex";
   });
-
   document.getElementById("notice-close-btn")?.addEventListener("click", () => {
     document.getElementById("terms-notice").style.display = "none";
   });
@@ -3137,7 +3149,7 @@ text.addEventListener('click', enableEditing);
       return;
     }
 
-    const targetId = id || crypto.randomUUID?.() || makeId();
+    const targetId = id || (globalThis.crypto?.randomUUID?.() ?? makeId());
     const data = {
       name: document.getElementById("name").value,
       birthday: document.getElementById("birthday").value,
@@ -3160,6 +3172,7 @@ text.addEventListener('click', enableEditing);
     }
   }
 </script>
+
 
 
 
