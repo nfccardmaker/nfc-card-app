@@ -798,16 +798,31 @@ function downloadCard() {
 }
 
 window.onload = () => {
-  canvas.style.display = 'none';
-  const profileImg = document.getElementById("profile-img");
+  // canvasが無ければスキップ（ここで死ぬと全部動かなくなる）
+  const canvasEl = document.querySelector('canvas');
+  if (canvasEl) canvasEl.style.display = 'none';
+
+  const profileImg   = document.getElementById("profile-img");
   const profileInput = document.getElementById("profile-input");
 
-  profileImg.addEventListener("click", () => {
-    profileInput.click();
-  });
+  if (!profileImg || !profileInput) {
+    console.warn('profile elements missing');
+    return;
+  }
+
+  // 画像タップ → 開く直前に value=''（iOSで同じ画像でもchangeを出す）
+  function openPicker() {
+    profileInput.value = '';
+    if (profileInput.showPicker) profileInput.showPicker(); // iOSで安定
+    else profileInput.click();
+  }
+
+  // モバイルでも拾えるように click/touchend 両方
+  profileImg.addEventListener("click", openPicker);
+  profileImg.addEventListener("touchend", (e) => { e.preventDefault(); openPicker(); }, { passive: false });
 
   profileInput.addEventListener("change", (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files && e.target.files[0];
     if (!file) return;
 
     const reader = new FileReader();
@@ -818,27 +833,23 @@ window.onload = () => {
 
       fetch('/upload_profile_image', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ image: base64Data }) // ✅ ここで初めて使える
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: base64Data })
       })
-      .then(response => response.json())
-      .then(data => {
-        console.log('✅ 保存成功:', data);
-      })
-      .catch(error => {
-        console.error('❌ アップロード失敗:', error);
-      });
+      .then(r => r.json())
+      .then(data => console.log('✅ 保存成功:', data))
+      .catch(err => console.error('❌ アップロード失敗:', err))
+      .finally(() => { e.target.value = ''; }); // ← 連続選択OK
     };
 
     reader.onerror = () => {
       console.error('❌ FileReader失敗:', reader.error);
     };
 
-    reader.readAsDataURL(file); // ✅ 最後に読む
+    reader.readAsDataURL(file);
   });
 };
+
 
 let textEnabled = false;
 let textFirstTapDone = false;
