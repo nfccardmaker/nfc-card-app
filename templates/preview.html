@@ -2949,16 +2949,6 @@ input.addEventListener('blur', activateScrolling);
 // ← ここ追加：流れるテキストを押すと再編集できる
 text.addEventListener('click', enableEditing);
 </script>
-<!-- 🔧 スマホでコンソールを見る用（Eruda）。必ず最初に読み込む -->
-<script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-<script>
-  eruda.init();            // 右下の丸ボタン → Console/Network 等が開ける
-  console.log('🟢 Eruda ready');
-  // ついでにグローバルエラーも拾って見逃さないように
-  window.addEventListener('error', e => console.error('💥 window error:', e.message, e.error));
-  window.addEventListener('unhandledrejection', e => console.error('💥 unhandledrejection:', e.reason));
-</script>
-
 <script type="module">
   /***********************
    *  🔧 Eruda (mobile console)
@@ -3043,7 +3033,6 @@ text.addEventListener('click', enableEditing);
       });
       let w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
       L('forceJpegBlob.loaded', { w, h });
-
       if (Math.max(w, h) > maxDim) {
         const s = maxDim / Math.max(w,h); w = Math.round(w*s); h = Math.round(h*s);
         L('forceJpegBlob.resize', { w, h });
@@ -3051,10 +3040,8 @@ text.addEventListener('click', enableEditing);
       const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
       const ctx = cv.getContext('2d', { alpha: true });
       ctx.drawImage(img, 0, 0, w, h);
-
       const jpegBlob = await new Promise((res, rej) => cv.toBlob(b => b?res(b):rej(new Error('toBlob null')), 'image/jpeg', 0.9));
       L('forceJpegBlob.done', { size: jpegBlob.size });
-
       ctx.clearRect(0,0,w,h); cv.width = 0; cv.height = 0;
       return jpegBlob;
     } finally { URL.revokeObjectURL(objUrl); }
@@ -3113,7 +3100,7 @@ text.addEventListener('click', enableEditing);
   }
 
   /***********************
-   *  🔁 共通: プロフィール処理
+   *  🔁 共通: プロフィール処理（状態/本体）
    ***********************/
   let __pfUploading = false;
   let __pfCurrentURL = '';
@@ -3121,40 +3108,31 @@ text.addEventListener('click', enableEditing);
   async function handleProfileFile(file, { id, profileImg, profileUrlInput }) {
     if (!file || __pfUploading) return;
     __pfUploading = true;
-
     const oldURL = __pfCurrentURL || profileUrlInput?.value || '';
-
     try {
       L('profile.file(HOOK)', { name: file.name, type: file.type, size: file.size });
-
       const newPath = `profiles/${makeId()}`;
       const fileRef = ref(storage, newPath);
-
       const jpegBlob = await forceJpegBlob(file);
       await uploadBytes(fileRef, jpegBlob, {
         contentType: 'image/jpeg',
         cacheControl: 'no-store, no-cache, must-revalidate, max-age=0'
       });
       L('profile.upload.OK(HOOK)');
-
       const url = await withRetry(() => getDownloadURL(fileRef));
       L('profile.url(HOOK)', url);
-
       await setImgSrc(profileImg, url);
       if (profileUrlInput) profileUrlInput.value = url;
-
       if (id) {
         await setDoc(doc(db, 'cards', id), { imageUrl: url }, { merge: true });
         L('profile.firestore.merge.OK(HOOK)');
       }
-
       if (oldURL) {
         try {
           const oldPath = pathFromUrl(oldURL);
           if (oldPath) { await deleteObject(ref(storage, oldPath)); L('profile.old.delete.OK(HOOK)'); }
         } catch (err) { W('profile.old.delete.FAIL(HOOK)', err); }
       }
-
       __pfCurrentURL = url;
     } catch (err) {
       E('profile.FAIL(HOOK)', err);
@@ -3187,20 +3165,20 @@ text.addEventListener('click', enableEditing);
       hasBgInputCount: bgInputs.length
     });
 
-    hookImgDebug(profileImg, 'PROFILE'); // 初回も監視
+    hookImgDebug(profileImg, 'PROFILE');
 
     let backgroundURL = '';
     let uploadingBg = false;
 
-    // ====== iOS: 同じファイルを選んでも change が走るようにする ======
+    // 画像タップ時は毎回 value を消す（同じ写真でも change 発火）
     profileImg?.addEventListener('click', () => {
       L('profileImg.click');
-      if (profileInput) profileInput.value = ""; // ←超重要（iOS対策）
+      if (profileInput) profileInput.value = "";
       profileInput?.click();
     });
     profileInput?.addEventListener('click', () => { profileInput.value = ""; });
 
-    // ===== 再編集ロード =====
+    // ---- 再編集ロード
     (async () => {
       if (!id) { L('edit.skip.noId'); return; }
       L('edit.load', { id });
@@ -3219,28 +3197,25 @@ text.addEventListener('click', enableEditing);
           __pfCurrentURL = data.imageUrl;
           if (profileUrlInput) profileUrlInput.value = data.imageUrl;
         }
-
         if (data.backgroundUrl) {
           try { await setBackgroundImageForce(backgroundEl, data.backgroundUrl); }
           catch (e) { W('edit.bg.set.fail', e); backgroundEl.style.backgroundImage = `url('${bust(data.backgroundUrl)}')`; }
           backgroundURL = data.backgroundUrl;
           if (bgUrlInput) bgUrlInput.value = data.backgroundUrl;
         }
-      } catch (e) {
-        E('edit.load.fail', e);
-      }
+      } catch (e) { E('edit.load.fail', e); }
     })();
 
-    // ===== プロフィール画像アップロード（ローカルのchangeは外し、グローバル捕捉に一本化） =====
+    // ---- プロフィール画像: グローバル捕捉（change/input）
     document.addEventListener('change', async (ev) => {
       if (ev.target?.id !== 'profile-input') return;
       const file = ev.target.files?.[0];
       L('profile.change(GLOBAL)', { hasFile: !!file, uploading: __pfUploading });
       await handleProfileFile(file, { id, profileImg, profileUrlInput });
-      ev.target.value = ''; // 同じファイルでも再度 change させる
+      ev.target.value = '';
       L('profile.done(GLOBAL)');
     }, true);
-    // Safari保険
+
     document.addEventListener('input', async (ev) => {
       if (ev.target?.id !== 'profile-input') return;
       const file = ev.target.files?.[0];
@@ -3250,7 +3225,35 @@ text.addEventListener('click', enableEditing);
       L('profile.done(INPUT)');
     }, true);
 
-    // ===== 背景画像アップロード（重複IDすべて） =====
+    // ---- iOS保険: フォーカス戻り & ポーリングで files を検知
+    (function installProfileFallback(){
+      const input = profileInput;
+      const img   = profileImg;
+      let lastName = '', lastSize = 0;
+
+      async function tryPick(reason){
+        const f = input?.files?.[0];
+        if (!f) return;
+        if (f.name === lastName && f.size === lastSize) return;
+        lastName = f.name; lastSize = f.size;
+        L('profile.fallback.detect', { reason, name: f.name, size: f.size });
+        await handleProfileFile(f, { id, profileImg: img, profileUrlInput });
+        if (input) input.value = '';
+      }
+
+      window.addEventListener('focus', () => tryPick('focus'), true);
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') tryPick('visibility');
+      }, true);
+      window.addEventListener('pageshow', () => tryPick('pageshow'), true);
+
+      img?.addEventListener('click', () => {
+        let n = 0;
+        const t = setInterval(() => { n++; tryPick('poll'); if (n >= 5) clearInterval(t); }, 500);
+      });
+    })();
+
+    // ---- 背景画像アップロード（重複IDすべて）
     bgInputs.forEach((bgInput, idx) => {
       bgInput?.addEventListener('click', () => { bgInput.value = ""; });
       bgInput?.addEventListener('change', async (e) => {
@@ -3306,7 +3309,7 @@ text.addEventListener('click', enableEditing);
       });
     });
 
-    // ===== 保存 =====
+    // ---- 保存
     document.getElementById('finish-button')?.addEventListener('click', () => {
       L('finish.click');
       const checkbox = document.getElementById('agree-checkbox');
