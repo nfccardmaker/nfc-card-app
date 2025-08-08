@@ -396,11 +396,19 @@ body {
 
     <div class="student-id">
   <div class="left-section">
-    <label for="profile-input">
-      <img id="profile-img" src="/static/profile_icon.jpeg" alt="プロフィール画像" style="cursor:pointer;">
-    </label>
-    <input type="file" accept="image/*" id="profile-input" class="hidden-input">
-    <input type="hidden" id="profile-url">
+   <!-- ▼ プロフィール画像（背景と同じonclick方式） -->
+<img src="/static/profile_icon.jpeg"
+     id="profile-img"
+     alt="プロフィール画像"
+     style="cursor:pointer;"
+     onclick="document.getElementById('profile-input').click()">
+
+<!-- ▼ ファイル選択 -->
+<input type="file" accept="image/*" id="profile-input" class="hidden-input">
+
+<!-- ▼ 保存用URL -->
+<input type="hidden" id="profile-url">
+
   </div>
 
   <div class="info-section">
