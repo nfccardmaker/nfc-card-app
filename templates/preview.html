@@ -2999,6 +2999,7 @@ text.addEventListener('click', enableEditing);
   };
   const bust = (url) => url + (url.includes("?") ? "&" : "?") + "t=" + Date.now();
 
+  // 画像をプリロードしてから <img> を置換（Safariでも確実に反映）
   async function preloadAndSwapImg(imgEl, url) {
     const img = new Image();
     img.decoding = "async";
@@ -3015,12 +3016,14 @@ text.addEventListener('click', enableEditing);
     return img;
   }
 
+  // 背景を強制再描画してから設定（Safari対策）
   async function setBackgroundImageForce(el, url) {
     el.style.backgroundImage = "none";
-    void el.offsetHeight;
+    void el.offsetHeight; // reflow
     el.style.backgroundImage = `url('${bust(url)}')`;
   }
 
+  // 小さめリトライ（ネット揺らぎ対策）
   async function withRetry(fn, tries = 3, delay = 150) {
     let last;
     for (let i = 0; i < tries; i++) {
@@ -3048,29 +3051,31 @@ text.addEventListener('click', enableEditing);
 
       if (data.imageUrl) {
         try {
-          const newNode = await preloadAndSwapImg(profileImg, bust(data.imageUrl)); // ✅ bust追加
-          window.profileImg = newNode;
-        } catch { profileImg.src = bust(data.imageUrl); } // ✅ bust追加
+          const newNode = await preloadAndSwapImg(profileImg, data.imageUrl);
+          window.profileImg = newNode; // 次回参照用
+        } catch { profileImg.src = bust(data.imageUrl); }
         profileURL = data.imageUrl;
         profileUrlInput.value = data.imageUrl;
       }
       if (data.backgroundUrl) {
-        await setBackgroundImageForce(backgroundEl, bust(data.backgroundUrl)); // ✅ bust追加
+        await setBackgroundImageForce(backgroundEl, data.backgroundUrl);
         backgroundURL = data.backgroundUrl;
         bgUrlInput.value = data.backgroundUrl;
       }
     });
   }
 
+  // 画像クリックで選択
   profileImg?.addEventListener("click", () => profileInput?.click());
 
+  // ===== プロフィール画像アップロード =====
   profileInput?.addEventListener("change", async (e) => {
     const file = e.target.files?.[0];
     if (!file || uploadingProfile) return;
     uploadingProfile = true;
     console.log("📤 プロフィール画像選択:", file.name);
 
-    const oldURL = profileURL;
+    const oldURL = profileURL; // 後で削除
     try {
       const newPath = `profiles/${makeId()}`;
       const fileRef = ref(storage, newPath);
@@ -3096,6 +3101,7 @@ text.addEventListener('click', enableEditing);
 
       if (id) await setDoc(doc(db, "cards", id), { imageUrl: url }, { merge: true });
 
+      // 成功後に旧ファイル削除（同じカードのときだけ）
       if (oldURL) {
         try {
           const oldPath = pathFromUrl(oldURL);
@@ -3107,17 +3113,18 @@ text.addEventListener('click', enableEditing);
       alert("プロフィール画像の更新に失敗しました。もう一度お試しください。");
     } finally {
       uploadingProfile = false;
-      e.target.value = "";
+      e.target.value = ""; // 連続選択対策
     }
   });
 
+  // ===== 背景画像アップロード =====
   bgInput?.addEventListener("change", async (e) => {
     const file = e.target.files?.[0];
     if (!file || uploadingBg) return;
     uploadingBg = true;
     console.log("📤 背景画像選択:", file.name);
 
-    const oldURL = backgroundURL;
+    const oldURL = backgroundURL; // 後で削除
     try {
       const newPath = `backgrounds/${makeId()}`;
       const fileRef = ref(storage, newPath);
@@ -3132,6 +3139,7 @@ text.addEventListener('click', enableEditing);
       const url = await withRetry(() => getDownloadURL(fileRef));
       console.log("🌐 ダウンロードURL取得:", url);
 
+      // 背景の強制再描画
       await setBackgroundImageForce(backgroundEl, url);
 
       backgroundURL = url;
@@ -3139,6 +3147,7 @@ text.addEventListener('click', enableEditing);
 
       if (id) await setDoc(doc(db, "cards", id), { backgroundUrl: url }, { merge: true });
 
+      // 成功後に旧ファイル削除
       if (oldURL) {
         try {
           const oldPath = pathFromUrl(oldURL);
@@ -3150,10 +3159,11 @@ text.addEventListener('click', enableEditing);
       alert("背景の更新に失敗しました。もう一度お試しください。");
     } finally {
       uploadingBg = false;
-      e.target.value = "";
+      e.target.value = ""; // 連続選択対策
     }
   });
 
+  // ===== 利用規約 & 保存 =====
   document.getElementById("finish-button")?.addEventListener("click", () => {
     const checkbox = document.getElementById("agree-checkbox");
     if (checkbox?.checked) {
