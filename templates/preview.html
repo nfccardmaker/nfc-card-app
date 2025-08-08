@@ -2982,7 +2982,7 @@ text.addEventListener('click', enableEditing);
   };
   const bust = (url) => url + (url.includes("?") ? "&" : "?") + "t=" + Date.now();
 
-  async function withRetry(fn, tries = 3, delay = 150) {
+  async function withRetry(fn, tries = 3, delay = 200) {
     let last;
     for (let i = 0; i < tries; i++) {
       try { return await fn(); }
@@ -2991,9 +2991,8 @@ text.addEventListener('click', enableEditing);
     throw last;
   }
 
-  // iOS対策：File/Blob を必ず JPEG Blob に変換して返す（HEIC/空mimetypeでもOK）
-  async function forceJpegBlob(fileOrBlob) {
-    if (fileOrBlob && /^image\/jpeg$/i.test(fileOrBlob.type)) return fileOrBlob;
+  // ---- iOS/Safari対策 1: 画像を必ずJPEG&縮小してからアップロード ----
+  async function forceJpegBlob(fileOrBlob, maxDim = 2560) {
     const objUrl = URL.createObjectURL(fileOrBlob);
     try {
       const img = await new Promise((resolve, reject) => {
@@ -3002,41 +3001,68 @@ text.addEventListener('click', enableEditing);
         im.onerror = reject;
         im.src = objUrl;
       });
+
+      let { naturalWidth: w, naturalHeight: h } = img;
+      if (!w || !h) { w = img.width; h = img.height; }
+      // リサイズ（長辺をmaxDim以内）
+      if (Math.max(w, h) > maxDim) {
+        const scale = maxDim / Math.max(w, h);
+        w = Math.round(w * scale);
+        h = Math.round(h * scale);
+      }
+
       const canvas = document.createElement('canvas');
-      canvas.width = img.naturalWidth || img.width || 0;
-      canvas.height = img.naturalHeight || img.height || 0;
+      canvas.width = w; canvas.height = h;
       const ctx = canvas.getContext('2d', { alpha: true });
-      ctx.drawImage(img, 0, 0);
-      const jpegBlob = await new Promise((resolve, reject) =>
-        canvas.toBlob(b => b ? resolve(b) : reject(new Error('toBlob failed')), 'image/jpeg', 0.92)
-      );
+      ctx.drawImage(img, 0, 0, w, h);
+
+      const jpegBlob = await new Promise((resolve, reject) => {
+        canvas.toBlob(b => b ? resolve(b) : reject(new Error('toBlob null')), 'image/jpeg', 0.9);
+      });
+
+      // メモリ開放ヒント
+      ctx.clearRect(0,0,w,h);
+      canvas.width = 0; canvas.height = 0;
+
       return jpegBlob;
     } finally {
       URL.revokeObjectURL(objUrl);
     }
   }
 
-  // 画像のプリロード（置換しないで src を安全に更新）
+  // ---- iOS/Safari対策 2: CDNに乗るまで待つ（配信遅延吸収）----
+  async function waitUntilCdnReady(url, { tries = 6, delay = 300 } = {}) {
+    let lastErr;
+    for (let i = 0; i < tries; i++) {
+      try {
+        const res = await fetch(bust(url), { method: 'GET', cache: 'reload' });
+        if (res.ok) return;
+        lastErr = new Error(`status ${res.status}`);
+      } catch (e) {
+        lastErr = e;
+      }
+      await new Promise(r => setTimeout(r, delay * (i+1)));
+    }
+    if (lastErr) throw lastErr;
+  }
+
+  // ---- iOS/Safari対策 3: 同じ<img>で確実に再描画させる ----
   async function setImgSrc(imgEl, url) {
     if (!imgEl) return;
+    const finalUrl = bust(url);
+    // 先にCDN到達を確認
+    await waitUntilCdnReady(url);
+    // 一度空にして次フレームでセット（Safari再描画）
+    imgEl.src = '';
+    await new Promise(r => requestAnimationFrame(r));
     imgEl.decoding = "async";
     imgEl.loading = "eager";
     imgEl.crossOrigin = "anonymous";
-    const tmp = new Image();
-    tmp.decoding = "async";
-    tmp.loading = "eager";
-    tmp.crossOrigin = "anonymous";
-    const finalUrl = bust(url);
-    await new Promise((resolve, reject) => {
-      tmp.onload = resolve;
-      tmp.onerror = reject;
-      tmp.src = finalUrl;
-    });
-    imgEl.src = finalUrl; // ← 同じ要素のsrcだけ差し替える（イベントは消えない）
+    imgEl.src = finalUrl;
   }
 
-  // 背景を強制再描画（Safari対策）
   async function setBackgroundImageForce(el, url) {
+    await waitUntilCdnReady(url);
     el.style.backgroundImage = "none";
     void el.offsetHeight;
     const finalUrl = bust(url);
@@ -3063,7 +3089,6 @@ text.addEventListener('click', enableEditing);
     let uploadingProfile = false;
     let uploadingBg = false;
 
-    // 画像クリック→ファイル選択
     profileImg?.addEventListener("click", () => profileInput?.click());
 
     // ===== 再編集ロード =====
@@ -3085,13 +3110,14 @@ text.addEventListener('click', enableEditing);
 
       if (data.imageUrl && profileImg) {
         try { await setImgSrc(profileImg, data.imageUrl); }
-        catch { profileImg.src = bust(data.imageUrl); }
+        catch (e) { console.warn(e); profileImg.src = bust(data.imageUrl); }
         profileURL = data.imageUrl;
         if (profileUrlInput) profileUrlInput.value = data.imageUrl;
       }
 
       if (data.backgroundUrl) {
-        await setBackgroundImageForce(backgroundEl, data.backgroundUrl);
+        try { await setBackgroundImageForce(backgroundEl, data.backgroundUrl); }
+        catch (e) { console.warn(e); backgroundEl.style.backgroundImage = `url('${bust(data.backgroundUrl)}')`; }
         backgroundURL = data.backgroundUrl;
         if (bgUrlInput) bgUrlInput.value = data.backgroundUrl;
       }
@@ -3110,7 +3136,7 @@ text.addEventListener('click', enableEditing);
         const fileRef = ref(storage, newPath);
         console.log("📂 Firebaseパス:", fileRef.fullPath);
 
-        // ★ ここが重要：必ず JPEG で上げる
+        // 必ずJPEG & 縮小
         const jpegBlob = await forceJpegBlob(file);
         await uploadBytes(fileRef, jpegBlob, {
           contentType: "image/jpeg",
@@ -3121,8 +3147,7 @@ text.addEventListener('click', enableEditing);
         const url = await withRetry(() => getDownloadURL(fileRef));
         console.log("🌐 ダウンロードURL取得:", url);
 
-        try { await setImgSrc(profileImg, url); }
-        catch { profileImg.src = bust(url); }
+        await setImgSrc(profileImg, url);
 
         profileURL = url;
         if (profileUrlInput) profileUrlInput.value = url;
@@ -3158,7 +3183,6 @@ text.addEventListener('click', enableEditing);
           const fileRef = ref(storage, newPath);
           console.log("📂 Firebaseパス:", fileRef.fullPath);
 
-          // ★ ここも必ず JPEG に変換
           const jpegBlob = await forceJpegBlob(file);
           await uploadBytes(fileRef, jpegBlob, {
             contentType: "image/jpeg",
@@ -3170,6 +3194,7 @@ text.addEventListener('click', enableEditing);
           console.log("🌐 ダウンロードURL取得:", url);
 
           await setBackgroundImageForce(backgroundEl, url);
+
           backgroundURL = url;
           if (bgUrlInput) bgUrlInput.value = url;
 
@@ -3246,6 +3271,7 @@ text.addEventListener('click', enableEditing);
     }
   });
 </script>
+
 
 
 
