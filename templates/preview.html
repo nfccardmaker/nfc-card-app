@@ -2950,9 +2950,8 @@ text.addEventListener('click', enableEditing);
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
   import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
-  import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
+  import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
 
-  // ✅ Firebase初期化
   const firebaseConfig = {
     apiKey: "AIzaSyBCnMBQjzoxViJPv3YqpZDD_PXQEe2QTsA",
     authDomain: "nfc-card-app-79464.firebaseapp.com",
@@ -2965,7 +2964,7 @@ text.addEventListener('click', enableEditing);
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
   const storage = getStorage(app, "gs://nfc-card-app-79464");
-  // ✅ DOM取得
+
   const profileImg = document.getElementById("profile-img");
   const profileInput = document.getElementById("profile-input");
   const profileUrlInput = document.getElementById("profile-url");
@@ -2979,7 +2978,6 @@ text.addEventListener('click', enableEditing);
   let profileURL = "";
   let backgroundURL = "";
 
-  // ✅ データ読み込み（再編集）
   if (id) {
     console.log("📄 再編集モード / id:", id);
     const docRef = doc(db, "cards", id);
@@ -3011,18 +3009,26 @@ text.addEventListener('click', enableEditing);
     });
   }
 
-  // ✅ プロフィール画像クリック→input開く
   profileImg?.addEventListener("click", () => {
     profileInput?.click();
   });
 
-  // ✅ プロフィール画像アップロード処理
   profileInput?.addEventListener("change", async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
     console.log("📤 プロフィール画像選択:", file.name);
 
     try {
+      if (profileURL) {
+        try {
+          const oldPath = decodeURIComponent(new URL(profileURL).pathname.split("/o/")[1].split("?")[0]);
+          await deleteObject(ref(storage, oldPath));
+          console.log("🗑️ 旧プロフィール画像削除");
+        } catch (err) {
+          console.warn("⚠️ 古いプロフィール画像の削除に失敗:", err);
+        }
+      }
+
       const fileRef = ref(storage, `profiles/${crypto.randomUUID()}`);
       console.log("📂 Firebaseパス:", fileRef.fullPath);
 
@@ -3040,13 +3046,22 @@ text.addEventListener('click', enableEditing);
     }
   });
 
-  // ✅ 背景画像アップロード処理
   bgInput?.addEventListener("change", async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
     console.log("📤 背景画像選択:", file.name);
 
     try {
+      if (backgroundURL) {
+        try {
+          const oldPath = decodeURIComponent(new URL(backgroundURL).pathname.split("/o/")[1].split("?")[0]);
+          await deleteObject(ref(storage, oldPath));
+          console.log("🗑️ 旧背景画像削除");
+        } catch (err) {
+          console.warn("⚠️ 古い背景画像の削除に失敗:", err);
+        }
+      }
+
       const fileRef = ref(storage, `backgrounds/${crypto.randomUUID()}`);
       console.log("📂 Firebaseパス:", fileRef.fullPath);
 
@@ -3064,7 +3079,6 @@ text.addEventListener('click', enableEditing);
     }
   });
 
-  // ✅ 利用規約処理
   document.getElementById("finish-button")?.addEventListener("click", () => {
     const checkbox = document.getElementById("agree-checkbox");
     if (checkbox?.checked) {
@@ -3084,7 +3098,6 @@ text.addEventListener('click', enableEditing);
     document.getElementById("terms-notice").style.display = "none";
   });
 
-  // ✅ 保存＆遷移
   async function saveAndRedirect() {
     const finalProfileURL = profileURL || profileUrlInput.value;
     const finalBackgroundURL = backgroundURL || bgUrlInput.value;
@@ -3120,6 +3133,7 @@ text.addEventListener('click', enableEditing);
     }
   }
 </script>
+
 
 
 
