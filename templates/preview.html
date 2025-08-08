@@ -392,8 +392,6 @@ body {
   <div class="scrolling-text" id="scrolling-text" style="display: none;"></div>
 </div>
 
-
-
     <div class="student-id">
   <div class="left-section">
    <!-- ▼ プロフィール画像（背景と同じonclick方式） -->
@@ -3178,12 +3176,14 @@ text.addEventListener('click', enableEditing);
     let backgroundURL = '';
     let uploadingBg = false;
 
-    // 画像タップ時は毎回 value を消す（同じ写真でも change 発火）
-    profileImg?.addEventListener('click', () => {
-      L('profileImg.click');
-      if (profileInput) profileInput.value = "";
-      profileInput?.click();
-    });
+    // ❌ プロフィールの programmatic click は削除（背景と同じ「onclick起動」前提）
+    // profileImg?.addEventListener('click', () => {
+    //   L('profileImg.click');
+    //   if (profileInput) profileInput.value = "";
+    //   profileInput?.click();
+    // });
+
+    // 同じファイルでも発火させるため、input 自身をタップした時は value を都度クリア
     profileInput?.addEventListener('click', () => { profileInput.value = ""; });
 
     // ---- 再編集ロード
@@ -3255,6 +3255,7 @@ text.addEventListener('click', enableEditing);
       }, true);
       window.addEventListener('pageshow', () => tryPick('pageshow'), true);
 
+      // 画像クリック後に短時間ポーリング（選択直後の取りこぼし防止）
       img?.addEventListener('click', () => {
         let n = 0;
         const t = setInterval(() => { n++; tryPick('poll'); if (n >= 5) clearInterval(t); }, 500);
