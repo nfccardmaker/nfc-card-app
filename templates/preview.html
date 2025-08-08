@@ -2979,12 +2979,12 @@ text.addEventListener('click', enableEditing);
   let backgroundURL = "";
 
   if (id) {
-    console.log("\ud83d\udcc4 \u518d\u7de8\u96c6\u30e2\u30fc\u30c9 / id:", id);
+    console.log("📄 再編集モード / id:", id);
     const docRef = doc(db, "cards", id);
     getDoc(docRef).then((docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
-        console.log("\ud83d\udcc5 \u30c7\u30fc\u30bf\u53d6\u5f97:", data);
+        console.log("📅 データ取得:", data);
 
         document.getElementById("name").value = data.name || "";
         document.getElementById("birthday").value = data.birthday || "";
@@ -2994,17 +2994,17 @@ text.addEventListener('click', enableEditing);
         document.getElementById("hobby").value = data.hobby || "";
 
         if (data.imageUrl) {
-          profileImg.src = data.imageUrl;
+          profileImg.src = data.imageUrl + "&t=" + Date.now(); // ✅ キャッシュ防止
           profileURL = data.imageUrl;
           profileUrlInput.value = data.imageUrl;
         }
         if (data.backgroundUrl) {
-          backgroundEl.style.backgroundImage = `url('${data.backgroundUrl}')`;
+          backgroundEl.style.backgroundImage = `url('${data.backgroundUrl}&t=${Date.now()}')`; // ✅ キャッシュ防止
           backgroundURL = data.backgroundUrl;
           bgUrlInput.value = data.backgroundUrl;
         }
       } else {
-        alert("\u30c7\u30fc\u30bf\u304c\u898b\u3064\u304b\u308a\u307e\u305b\u3093\u3067\u3057\u305f\u3002");
+        alert("データが見つかりませんでした。");
       }
     });
   }
@@ -3016,27 +3016,27 @@ text.addEventListener('click', enableEditing);
   profileInput?.addEventListener("change", async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    console.log("\ud83d\udcc4 \u30d7\u30ed\u30d5\u30a3\u30fc\u30eb\u753b\u50cf\u9078\u629e:", file.name);
+    console.log("📤 プロフィール画像選択:", file.name);
 
     try {
       if (profileURL) {
         try {
           const oldPath = decodeURIComponent(new URL(profileURL).pathname.split("/o/")[1].split("?")[0]);
           await deleteObject(ref(storage, oldPath));
-          console.log("\ud83d\uddd1\ufe0f \u65e7\u30d7\u30ed\u30d5\u30a3\u30fc\u30eb\u753b\u50cf\u524a\u9664");
+          console.log("🗑️ 旧プロフィール画像削除");
         } catch (err) {
-          console.warn("\u26a0\ufe0f \u53e4\u3044\u30d7\u30ed\u30d5\u30a3\u30fc\u30eb\u753b\u50cf\u306e\u524a\u9664\u306b\u5931\u6557:", err);
+          console.warn("⚠️ 古いプロフィール画像の削除に失敗:", err);
         }
       }
 
       const fileRef = ref(storage, `profiles/${crypto.randomUUID()}`);
-      console.log("\ud83d\udcc2 Firebase\u30d1\u30b9:", fileRef.fullPath);
+      console.log("📂 Firebaseパス:", fileRef.fullPath);
 
       await uploadBytes(fileRef, file);
-      console.log("\u2705 \u30a2\u30c3\u30d7\u30ed\u30fc\u30c9\u6210\u529f");
+      console.log("✅ アップロード成功");
 
       const url = await getDownloadURL(fileRef);
-      console.log("\ud83c\udf10 \u30c0\u30a6\u30f3\u30ed\u30fc\u30c9URL\u53d6\u5f97:", url);
+      console.log("🌐 ダウンロードURL取得:", url);
 
       profileImg.src = url + "&t=" + Date.now();
       profileURL = url;
@@ -3046,34 +3046,34 @@ text.addEventListener('click', enableEditing);
         await setDoc(doc(db, "cards", id), { imageUrl: url }, { merge: true });
       }
     } catch (err) {
-      console.error("\u274c \u30d7\u30ed\u30d5\u30a3\u30fc\u30eb\u753b\u50cf\u30a2\u30c3\u30d7\u30ed\u30fc\u30c9\u5931\u6557:", err);
+      console.error("❌ プロフィール画像アップロード失敗:", err);
     }
   });
 
   bgInput?.addEventListener("change", async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    console.log("\ud83d\udcc4 \u80cc\u666f\u753b\u50cf\u9078\u629e:", file.name);
+    console.log("📤 背景画像選択:", file.name);
 
     try {
       if (backgroundURL) {
         try {
           const oldPath = decodeURIComponent(new URL(backgroundURL).pathname.split("/o/")[1].split("?")[0]);
           await deleteObject(ref(storage, oldPath));
-          console.log("\ud83d\uddd1\ufe0f \u65e7\u80cc\u666f\u753b\u50cf\u524a\u9664");
+          console.log("🗑️ 旧背景画像削除");
         } catch (err) {
-          console.warn("\u26a0\ufe0f \u53e4\u3044\u80cc\u666f\u753b\u50cf\u306e\u524a\u9664\u306b\u5931\u6557:", err);
+          console.warn("⚠️ 古い背景画像の削除に失敗:", err);
         }
       }
 
       const fileRef = ref(storage, `backgrounds/${crypto.randomUUID()}`);
-      console.log("\ud83d\udcc2 Firebase\u30d1\u30b9:", fileRef.fullPath);
+      console.log("📂 Firebaseパス:", fileRef.fullPath);
 
       await uploadBytes(fileRef, file);
-      console.log("\u2705 \u30a2\u30c3\u30d7\u30ed\u30fc\u30c9\u6210\u529f");
+      console.log("✅ アップロード成功");
 
       const url = await getDownloadURL(fileRef);
-      console.log("\ud83c\udf10 \u30c0\u30a6\u30f3\u30ed\u30fc\u30c9URL\u53d6\u5f97:", url);
+      console.log("🌐 ダウンロードURL取得:", url);
 
       backgroundEl.style.backgroundImage = `url('${url}&t=${Date.now()}')`;
       backgroundURL = url;
@@ -3083,7 +3083,7 @@ text.addEventListener('click', enableEditing);
         await setDoc(doc(db, "cards", id), { backgroundUrl: url }, { merge: true });
       }
     } catch (err) {
-      console.error("\u274c \u80cc\u666f\u753b\u50cf\u30a2\u30c3\u30d7\u30ed\u30fc\u30c9\u5931\u6557:", err);
+      console.error("❌ 背景画像アップロード失敗:", err);
     }
   });
 
@@ -3110,11 +3110,11 @@ text.addEventListener('click', enableEditing);
     const finalProfileURL = profileURL || profileUrlInput.value;
     const finalBackgroundURL = backgroundURL || bgUrlInput.value;
 
-    console.log("\ud83e\udd6a \u4fdd\u5b58\u30c1\u30a7\u30c3\u30af - Profile:", finalProfileURL);
-    console.log("\ud83e\udd6a \u4fdd\u5b58\u30c1\u30a7\u30c3\u30af - Background:", finalBackgroundURL);
+    console.log("🛡️ 保存チェック - Profile:", finalProfileURL);
+    console.log("🛡️ 保存チェック - Background:", finalBackgroundURL);
 
     if (!finalProfileURL || !finalBackgroundURL) {
-      alert("\u753b\u50cf\u304c\u307e\u3060\u30a2\u30c3\u30d7\u30ed\u30fc\u30c9\u3055\u308c\u3066\u3044\u307e\u305b\u3093\uff01");
+      alert("画像がまだアップロードされていません！");
       return;
     }
 
@@ -3131,13 +3131,13 @@ text.addEventListener('click', enableEditing);
     };
 
     try {
-      console.log("\ud83d\udce4 Firestore\u4fdd\u5b58\u958b\u59cb");
+      console.log("📤 Firestore保存開始");
       await setDoc(doc(db, "cards", targetId), data, { merge: true });
-      console.log("\u2705 Firestore\u4fdd\u5b58\u5b8c\u4e86");
+      console.log("✅ Firestore保存完了");
       window.location.href = `/preview?id=${targetId}`;
     } catch (e) {
-      console.error("\u274c \u4fdd\u5b58\u5931\u6557:", e);
-      alert("\u4fdd\u5b58\u306b\u5931\u6557\u3057\u307e\u3057\u305f: " + e.message);
+      console.error("❌ 保存失敗:", e);
+      alert("保存に失敗しました: " + e.message);
     }
   }
 </script>
