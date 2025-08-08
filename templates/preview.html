@@ -3039,6 +3039,7 @@ text.addEventListener('click', enableEditing);
       });
       let w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
       L('forceJpegBlob.loaded', { w, h });
+
       if (Math.max(w, h) > maxDim) {
         const s = maxDim / Math.max(w,h); w = Math.round(w*s); h = Math.round(h*s);
         L('forceJpegBlob.resize', { w, h });
@@ -3046,8 +3047,10 @@ text.addEventListener('click', enableEditing);
       const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
       const ctx = cv.getContext('2d', { alpha: true });
       ctx.drawImage(img, 0, 0, w, h);
+
       const jpegBlob = await new Promise((res, rej) => cv.toBlob(b => b?res(b):rej(new Error('toBlob null')), 'image/jpeg', 0.9));
       L('forceJpegBlob.done', { size: jpegBlob.size });
+
       ctx.clearRect(0,0,w,h); cv.width = 0; cv.height = 0;
       return jpegBlob;
     } finally { URL.revokeObjectURL(objUrl); }
@@ -3214,24 +3217,13 @@ text.addEventListener('click', enableEditing);
       } catch (e) { E('edit.load.fail', e); }
     })();
 
-    // ---- プロフィール画像: グローバル捕捉（change/input）
-    document.addEventListener('change', async (ev) => {
-      if (ev.target?.id !== 'profile-input') return;
-      const file = ev.target.files?.[0];
-      L('profile.change(GLOBAL)', { hasFile: !!file, uploading: __pfUploading });
+    // ---- プロフィール画像: 直接 change で処理（背景と同じに統一）
+    profileInput?.addEventListener('change', async (e) => {
+      const file = e.target.files?.[0];
+      L('profile.change(DIRECT)', { hasFile: !!file, uploading: __pfUploading });
       await handleProfileFile(file, { id, profileImg, profileUrlInput });
-      ev.target.value = '';
-      L('profile.done(GLOBAL)');
-    }, true);
-
-    document.addEventListener('input', async (ev) => {
-      if (ev.target?.id !== 'profile-input') return;
-      const file = ev.target.files?.[0];
-      L('profile.input(GLOBAL)', { hasFile: !!file, uploading: __pfUploading });
-      await handleProfileFile(file, { id, profileImg, profileUrlInput });
-      ev.target.value = '';
-      L('profile.done(INPUT)');
-    }, true);
+      e.target.value = '';   // 同じファイルでも再選択できるように
+    });
 
     // ---- iOS保険: フォーカス戻り & ポーリングで files を検知
     (function installProfileFallback(){
@@ -3378,6 +3370,7 @@ text.addEventListener('click', enableEditing);
     }
   });
 </script>
+
 
 
 
