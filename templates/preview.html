@@ -3113,6 +3113,58 @@ text.addEventListener('click', enableEditing);
   }
 
   /***********************
+   *  🔁 共通: プロフィール処理
+   ***********************/
+  let __pfUploading = false;
+  let __pfCurrentURL = '';
+
+  async function handleProfileFile(file, { id, profileImg, profileUrlInput }) {
+    if (!file || __pfUploading) return;
+    __pfUploading = true;
+
+    const oldURL = __pfCurrentURL || profileUrlInput?.value || '';
+
+    try {
+      L('profile.file(HOOK)', { name: file.name, type: file.type, size: file.size });
+
+      const newPath = `profiles/${makeId()}`;
+      const fileRef = ref(storage, newPath);
+
+      const jpegBlob = await forceJpegBlob(file);
+      await uploadBytes(fileRef, jpegBlob, {
+        contentType: 'image/jpeg',
+        cacheControl: 'no-store, no-cache, must-revalidate, max-age=0'
+      });
+      L('profile.upload.OK(HOOK)');
+
+      const url = await withRetry(() => getDownloadURL(fileRef));
+      L('profile.url(HOOK)', url);
+
+      await setImgSrc(profileImg, url);
+      if (profileUrlInput) profileUrlInput.value = url;
+
+      if (id) {
+        await setDoc(doc(db, 'cards', id), { imageUrl: url }, { merge: true });
+        L('profile.firestore.merge.OK(HOOK)');
+      }
+
+      if (oldURL) {
+        try {
+          const oldPath = pathFromUrl(oldURL);
+          if (oldPath) { await deleteObject(ref(storage, oldPath)); L('profile.old.delete.OK(HOOK)'); }
+        } catch (err) { W('profile.old.delete.FAIL(HOOK)', err); }
+      }
+
+      __pfCurrentURL = url;
+    } catch (err) {
+      E('profile.FAIL(HOOK)', err);
+      alert('プロフィール画像の更新に失敗しました。');
+    } finally {
+      __pfUploading = false;
+    }
+  }
+
+  /***********************
    *  🚀 Main
    ***********************/
   window.addEventListener('DOMContentLoaded', () => {
@@ -3137,21 +3189,16 @@ text.addEventListener('click', enableEditing);
 
     hookImgDebug(profileImg, 'PROFILE'); // 初回も監視
 
-    let profileURL = '';
     let backgroundURL = '';
-    let uploadingProfile = false;
     let uploadingBg = false;
 
     // ====== iOS: 同じファイルを選んでも change が走るようにする ======
     profileImg?.addEventListener('click', () => {
       L('profileImg.click');
-      if (profileInput) profileInput.value = ""; // ←これが超大事（iOS対策）
+      if (profileInput) profileInput.value = ""; // ←超重要（iOS対策）
       profileInput?.click();
     });
-    profileInput?.addEventListener('click', () => {
-      // 直接inputをタップした場合も保険でクリア
-      profileInput.value = "";
-    });
+    profileInput?.addEventListener('click', () => { profileInput.value = ""; });
 
     // ===== 再編集ロード =====
     (async () => {
@@ -3169,7 +3216,7 @@ text.addEventListener('click', enableEditing);
         if (data.imageUrl && profileImg) {
           try { await setImgSrc(profileImg, data.imageUrl); }
           catch (e) { W('edit.profile.setSrc.fail', e); profileImg.src = bust(data.imageUrl); }
-          profileURL = data.imageUrl;
+          __pfCurrentURL = data.imageUrl;
           if (profileUrlInput) profileUrlInput.value = data.imageUrl;
         }
 
@@ -3184,117 +3231,27 @@ text.addEventListener('click', enableEditing);
       }
     })();
 
-    // ===== プロフィール画像アップロード =====
-    profileInput?.addEventListener('change', async (e) => {
-      const file = e.target.files?.[0];
-      L('profile.change', { hasFile: !!file, uploadingProfile });
-      if (!file || uploadingProfile) return;
-      uploadingProfile = true;
-
-      const oldURL = profileURL;
-      try {
-        L('profile.file', { name: file.name, type: file.type, size: file.size });
-        const newPath = `profiles/${makeId()}`;
-        const fileRef = ref(storage, newPath);
-        L('profile.path', fileRef.fullPath);
-
-        const jpegBlob = await forceJpegBlob(file);
-        L('profile.jpegBlob', { size: jpegBlob.size });
-
-        await uploadBytes(fileRef, jpegBlob, {
-          contentType: 'image/jpeg',
-          cacheControl: 'no-store, no-cache, must-revalidate, max-age=0'
-        });
-        L('profile.upload.OK');
-
-        const url = await withRetry(() => getDownloadURL(fileRef));
-        L('profile.url', url);
-
-        await setImgSrc(profileImg, url);
-        L('profile.setImgSrc.done');
-
-        profileURL = url;
-        profileUrlInput && (profileUrlInput.value = url);
-
-        if (id) {
-          await setDoc(doc(db, 'cards', id), { imageUrl: url }, { merge: true });
-          L('profile.firestore.merge.OK');
-        }
-
-        if (oldURL) {
-          try {
-            const oldPath = pathFromUrl(oldURL);
-            if (oldPath) { await deleteObject(ref(storage, oldPath)); L('profile.old.delete.OK'); }
-          } catch (err) { W('profile.old.delete.FAIL', err); }
-        }
-      } catch (err) {
-        E('profile.FAIL', err);
-        alert('プロフィール画像の更新に失敗しました。');
-      } finally {
-        uploadingProfile = false;
-        e.target.value = ''; // 同じファイルでも再度 change させる
-        L('profile.done');
-      }
-    });
-
-    // ★★★ ここから追加：グローバル捕捉で change を確実に拾う（差し替え/再生成にも強い）★★★
+    // ===== プロフィール画像アップロード（ローカルのchangeは外し、グローバル捕捉に一本化） =====
     document.addEventListener('change', async (ev) => {
-      if (!ev.target || ev.target.id !== 'profile-input') return;
+      if (ev.target?.id !== 'profile-input') return;
       const file = ev.target.files?.[0];
-      L('profile.change(GLOBAL)', { hasFile: !!file, uploadingProfile });
-      if (!file || uploadingProfile) return;
-      uploadingProfile = true;
-
-      const oldURL = profileURL;
-      try {
-        L('profile.file(GLOBAL)', { name: file.name, type: file.type, size: file.size });
-        const newPath = `profiles/${makeId()}`;
-        const fileRef = ref(storage, newPath);
-        L('profile.path(GLOBAL)', fileRef.fullPath);
-
-        const jpegBlob = await forceJpegBlob(file);
-        L('profile.jpegBlob(GLOBAL)', { size: jpegBlob.size });
-
-        await uploadBytes(fileRef, jpegBlob, {
-          contentType: 'image/jpeg',
-          cacheControl: 'no-store, no-cache, must-revalidate, max-age=0'
-        });
-        L('profile.upload.OK(GLOBAL)');
-
-        const url = await withRetry(() => getDownloadURL(fileRef));
-        L('profile.url(GLOBAL)', url);
-
-        await setImgSrc(profileImg, url);
-        L('profile.setImgSrc.done(GLOBAL)');
-
-        profileURL = url;
-        profileUrlInput && (profileUrlInput.value = url);
-
-        if (id) {
-          await setDoc(doc(db, 'cards', id), { imageUrl: url }, { merge: true });
-          L('profile.firestore.merge.OK(GLOBAL)');
-        }
-
-        if (oldURL) {
-          try {
-            const oldPath = pathFromUrl(oldURL);
-            if (oldPath) { await deleteObject(ref(storage, oldPath)); L('profile.old.delete.OK(GLOBAL)'); }
-          } catch (err) { W('profile.old.delete.FAIL(GLOBAL)', err); }
-        }
-      } catch (err) {
-        E('profile.FAIL(GLOBAL)', err);
-        alert('プロフィール画像の更新に失敗しました。');
-      } finally {
-        uploadingProfile = false;
-        ev.target.value = '';
-        L('profile.done(GLOBAL)');
-      }
+      L('profile.change(GLOBAL)', { hasFile: !!file, uploading: __pfUploading });
+      await handleProfileFile(file, { id, profileImg, profileUrlInput });
+      ev.target.value = ''; // 同じファイルでも再度 change させる
+      L('profile.done(GLOBAL)');
     }, true);
-    // ★★★ 追加ここまで ★★★
+    // Safari保険
+    document.addEventListener('input', async (ev) => {
+      if (ev.target?.id !== 'profile-input') return;
+      const file = ev.target.files?.[0];
+      L('profile.input(GLOBAL)', { hasFile: !!file, uploading: __pfUploading });
+      await handleProfileFile(file, { id, profileImg, profileUrlInput });
+      ev.target.value = '';
+      L('profile.done(INPUT)');
+    }, true);
 
     // ===== 背景画像アップロード（重複IDすべて） =====
     bgInputs.forEach((bgInput, idx) => {
-      // iOS対策：クリック毎にクリア
       bgInput?.addEventListener('click', () => { bgInput.value = ""; });
       bgInput?.addEventListener('change', async (e) => {
         const file = e.target.files?.[0];
@@ -3372,7 +3329,7 @@ text.addEventListener('click', enableEditing);
 
     async function saveAndRedirect() {
       L('save.start');
-      const finalProfileURL   = profileURL   || profileUrlInput?.value;
+      const finalProfileURL   = __pfCurrentURL || profileUrlInput?.value;
       const finalBackgroundURL= backgroundURL || bgUrlInput?.value;
       L('save.check', { finalProfileURL, finalBackgroundURL });
 
