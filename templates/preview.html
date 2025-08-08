@@ -2957,7 +2957,6 @@ text.addEventListener('click', enableEditing);
   window.addEventListener('unhandledrejection', e => console.error('💥 unhandledrejection:', e.reason));
 </script>
 
-<!-- ここから本体。あなたのコード（iOS/Safari対策入り版） -->
 <script type="module">
   /***********************
    *  🔧 Eruda (mobile console)
@@ -2979,9 +2978,7 @@ text.addEventListener('click', enableEditing);
   const T0 = performance.now();
   const L = (tag, ...args) => console.log(`[${((performance.now()-T0)/1000).toFixed(3)}s][${tag}]`, ...args);
   const W = (tag, ...args) => console.warn(`[${((performance.now()-T0)/1000).toFixed(3)}s][${tag}]`, ...args);
-  const E = (tag, ...args) => console.error(`[${((performance.now()-T0).toFixed(0))}ms][${tag}]`, ...args);
-
-  // 予期しないエラーも必ずログ
+  const E = (tag, ...args) => console.error(`[${(performance.now()-T0).toFixed(0)}ms][${tag}]`, ...args);
   window.addEventListener('error', (ev) => E('window.error', ev.message, ev.filename+':'+ev.lineno+':'+ev.colno, ev.error));
   window.addEventListener('unhandledrejection', (ev) => E('unhandledrejection', ev.reason));
 
@@ -3123,12 +3120,12 @@ text.addEventListener('click', enableEditing);
     const id = params.get('id');
     L('params', { id });
 
-    const profileImg     = document.getElementById('profile-img');
-    const profileInput   = document.getElementById('profile-input');
-    const profileUrlInput= document.getElementById('profile-url');
-    const bgInputs       = Array.from(document.querySelectorAll('#background-input')); // 重複ID対応
-    const bgUrlInput     = document.getElementById('background-url');
-    const backgroundEl   = document.body;
+    const profileImg      = document.getElementById('profile-img');
+    const profileInput    = document.getElementById('profile-input');
+    const profileUrlInput = document.getElementById('profile-url');
+    const bgInputs        = Array.from(document.querySelectorAll('#background-input')); // 重複ID対応
+    const bgUrlInput      = document.getElementById('background-url');
+    const backgroundEl    = document.body;
 
     L('dom.refs', {
       hasProfileImg: !!profileImg,
@@ -3143,8 +3140,16 @@ text.addEventListener('click', enableEditing);
     let uploadingProfile = false;
     let uploadingBg = false;
 
-    // 画像クリック→ファイル選択
-    profileImg?.addEventListener('click', () => { L('profileImg.click'); profileInput?.click(); });
+    // ====== iOS: 同じファイルを選んでも change が走るようにする ======
+    profileImg?.addEventListener('click', () => {
+      L('profileImg.click');
+      if (profileInput) profileInput.value = ""; // ←これが超大事（iOS対策）
+      profileInput?.click();
+    });
+    profileInput?.addEventListener('click', () => {
+      // 直接inputをタップした場合も保険でクリア
+      profileInput.value = "";
+    });
 
     // ===== 再編集ロード =====
     (async () => {
@@ -3232,6 +3237,8 @@ text.addEventListener('click', enableEditing);
 
     // ===== 背景画像アップロード（重複IDすべて） =====
     bgInputs.forEach((bgInput, idx) => {
+      // iOS対策：クリック毎にクリア
+      bgInput?.addEventListener('click', () => { bgInput.value = ""; });
       bgInput?.addEventListener('change', async (e) => {
         const file = e.target.files?.[0];
         L('bg.change', { idx, hasFile: !!file, uploadingBg });
@@ -3309,7 +3316,7 @@ text.addEventListener('click', enableEditing);
     async function saveAndRedirect() {
       L('save.start');
       const finalProfileURL   = profileURL   || profileUrlInput?.value;
-      const finalBackgroundURL= backgroundURL|| bgUrlInput?.value;
+      const finalBackgroundURL= backgroundURL || bgUrlInput?.value;
       L('save.check', { finalProfileURL, finalBackgroundURL });
 
       if (!finalProfileURL || !finalBackgroundURL) {
