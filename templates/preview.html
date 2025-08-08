@@ -2952,6 +2952,33 @@ text.addEventListener('click', enableEditing);
   import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
   import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
 
+  // ====== スマホでコンソールを見る：vConsole 動的ロード ======
+  function isMobileUA() {
+    const ua = navigator.userAgent || navigator.vendor || "";
+    return /android|iphone|ipad|ipod|iemobile|opera mini/i.test(ua);
+  }
+  function enableMobileConsole({ force = false } = {}) {
+    const hasDebugParam = new URLSearchParams(location.search).has("debug");
+    if (!(force || hasDebugParam || isMobileUA())) return;
+    // すでに読み込み済みなら二重起動しない
+    if (window.VConsole) { try { new window.VConsole(); } catch {} return; }
+    const s = document.createElement("script");
+    s.src = "https://unpkg.com/vconsole/dist/vconsole.min.js";
+    s.async = true;
+    s.onload = () => {
+      try {
+        new window.VConsole();
+        console.log("[vConsole] enabled");
+      } catch (e) {
+        console.warn("[vConsole] init failed", e);
+      }
+    };
+    s.onerror = () => console.warn("[vConsole] load error");
+    document.head.appendChild(s);
+  }
+  // 起動（モバイル or ?debug=1 で有効）
+  enableMobileConsole();
+
   // ===== Firebase =====
   const firebaseConfig = {
     apiKey: "AIzaSyBCnMBQjzoxViJPv3YqpZDD_PXQEe2QTsA",
@@ -3004,7 +3031,6 @@ text.addEventListener('click', enableEditing);
 
       let { naturalWidth: w, naturalHeight: h } = img;
       if (!w || !h) { w = img.width; h = img.height; }
-      // リサイズ（長辺をmaxDim以内）
       if (Math.max(w, h) > maxDim) {
         const scale = maxDim / Math.max(w, h);
         w = Math.round(w * scale);
@@ -3020,7 +3046,6 @@ text.addEventListener('click', enableEditing);
         canvas.toBlob(b => b ? resolve(b) : reject(new Error('toBlob null')), 'image/jpeg', 0.9);
       });
 
-      // メモリ開放ヒント
       ctx.clearRect(0,0,w,h);
       canvas.width = 0; canvas.height = 0;
 
@@ -3050,9 +3075,7 @@ text.addEventListener('click', enableEditing);
   async function setImgSrc(imgEl, url) {
     if (!imgEl) return;
     const finalUrl = bust(url);
-    // 先にCDN到達を確認
     await waitUntilCdnReady(url);
-    // 一度空にして次フレームでセット（Safari再描画）
     imgEl.src = '';
     await new Promise(r => requestAnimationFrame(r));
     imgEl.decoding = "async";
@@ -3271,6 +3294,7 @@ text.addEventListener('click', enableEditing);
     }
   });
 </script>
+
 
 
 
