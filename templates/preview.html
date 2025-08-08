@@ -2947,37 +2947,21 @@ input.addEventListener('blur', activateScrolling);
 // ← ここ追加：流れるテキストを押すと再編集できる
 text.addEventListener('click', enableEditing);
 </script>
+<!-- 🔧 スマホでコンソールを見る用（Eruda）。必ず最初に読み込む -->
+<script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+<script>
+  eruda.init();            // 右下の丸ボタン → Console/Network 等が開ける
+  console.log('🟢 Eruda ready');
+  // ついでにグローバルエラーも拾って見逃さないように
+  window.addEventListener('error', e => console.error('💥 window error:', e.message, e.error));
+  window.addEventListener('unhandledrejection', e => console.error('💥 unhandledrejection:', e.reason));
+</script>
+
+<!-- ここから本体。あなたのコード（iOS/Safari対策入り版） -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
   import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
   import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
-
-  // ====== スマホでコンソールを見る：vConsole 動的ロード ======
-  function isMobileUA() {
-    const ua = navigator.userAgent || navigator.vendor || "";
-    return /android|iphone|ipad|ipod|iemobile|opera mini/i.test(ua);
-  }
-  function enableMobileConsole({ force = false } = {}) {
-    const hasDebugParam = new URLSearchParams(location.search).has("debug");
-    if (!(force || hasDebugParam || isMobileUA())) return;
-    // すでに読み込み済みなら二重起動しない
-    if (window.VConsole) { try { new window.VConsole(); } catch {} return; }
-    const s = document.createElement("script");
-    s.src = "https://unpkg.com/vconsole/dist/vconsole.min.js";
-    s.async = true;
-    s.onload = () => {
-      try {
-        new window.VConsole();
-        console.log("[vConsole] enabled");
-      } catch (e) {
-        console.warn("[vConsole] init failed", e);
-      }
-    };
-    s.onerror = () => console.warn("[vConsole] load error");
-    document.head.appendChild(s);
-  }
-  // 起動（モバイル or ?debug=1 で有効）
-  enableMobileConsole();
 
   // ===== Firebase =====
   const firebaseConfig = {
@@ -3048,14 +3032,13 @@ text.addEventListener('click', enableEditing);
 
       ctx.clearRect(0,0,w,h);
       canvas.width = 0; canvas.height = 0;
-
       return jpegBlob;
     } finally {
       URL.revokeObjectURL(objUrl);
     }
   }
 
-  // ---- iOS/Safari対策 2: CDNに乗るまで待つ（配信遅延吸収）----
+  // ---- iOS/Safari対策 2: CDNに乗るまで待つ ----
   async function waitUntilCdnReady(url, { tries = 6, delay = 300 } = {}) {
     let lastErr;
     for (let i = 0; i < tries; i++) {
@@ -3063,9 +3046,7 @@ text.addEventListener('click', enableEditing);
         const res = await fetch(bust(url), { method: 'GET', cache: 'reload' });
         if (res.ok) return;
         lastErr = new Error(`status ${res.status}`);
-      } catch (e) {
-        lastErr = e;
-      }
+      } catch (e) { lastErr = e; }
       await new Promise(r => setTimeout(r, delay * (i+1)));
     }
     if (lastErr) throw lastErr;
@@ -3074,14 +3055,15 @@ text.addEventListener('click', enableEditing);
   // ---- iOS/Safari対策 3: 同じ<img>で確実に再描画させる ----
   async function setImgSrc(imgEl, url) {
     if (!imgEl) return;
-    const finalUrl = bust(url);
     await waitUntilCdnReady(url);
+    const finalUrl = bust(url);
     imgEl.src = '';
     await new Promise(r => requestAnimationFrame(r));
     imgEl.decoding = "async";
     imgEl.loading = "eager";
     imgEl.crossOrigin = "anonymous";
     imgEl.src = finalUrl;
+    console.log('🖼️ setImgSrc ->', finalUrl);
   }
 
   async function setBackgroundImageForce(el, url) {
@@ -3093,6 +3075,7 @@ text.addEventListener('click', enableEditing);
     el.style.backgroundRepeat = "no-repeat";
     el.style.backgroundSize = "cover";
     el.style.backgroundPosition = "center";
+    console.log('🌆 setBackground ->', finalUrl);
   }
 
   // ===== Main =====
@@ -3159,7 +3142,6 @@ text.addEventListener('click', enableEditing);
         const fileRef = ref(storage, newPath);
         console.log("📂 Firebaseパス:", fileRef.fullPath);
 
-        // 必ずJPEG & 縮小
         const jpegBlob = await forceJpegBlob(file);
         await uploadBytes(fileRef, jpegBlob, {
           contentType: "image/jpeg",
@@ -3294,6 +3276,7 @@ text.addEventListener('click', enableEditing);
     }
   });
 </script>
+
 
 
 
