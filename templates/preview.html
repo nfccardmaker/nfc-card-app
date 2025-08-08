@@ -2996,19 +2996,8 @@ text.addEventListener('click', enableEditing);
   const bust = (url) => url + (url.includes("?") ? "&" : "?") + "t=" + Date.now();
 
   async function preloadAndSwapImg(imgEl, url) {
-    const img = new Image();
-    img.decoding = "async";
-    img.loading = "eager";
-    img.crossOrigin = "anonymous";
-    const loaded = new Promise((resolve, reject) => {
-      img.onload = resolve;
-      img.onerror = reject;
-    });
-    img.id = imgEl.id || "profile-img";
-    img.src = bust(url);
-    await loaded;
-    imgEl.replaceWith(img);
-    return img;
+    imgEl.src = bust(url);
+    return imgEl;
   }
 
   async function setBackgroundImageForce(el, url) {
@@ -3043,9 +3032,7 @@ text.addEventListener('click', enableEditing);
 
       if (data.imageUrl) {
         try {
-          const newNode = await preloadAndSwapImg(profileImg, data.imageUrl);
-          newNode.addEventListener("click", () => profileInput?.click()); // ← 再登録
-          window.profileImg = newNode;
+          await preloadAndSwapImg(profileImg, data.imageUrl);
         } catch { profileImg.src = bust(data.imageUrl); }
         profileURL = data.imageUrl;
         profileUrlInput.value = data.imageUrl;
@@ -3058,7 +3045,11 @@ text.addEventListener('click', enableEditing);
     });
   }
 
-  profileImg?.addEventListener("click", () => profileInput?.click());
+  document.querySelector(".left-section")?.addEventListener("click", (e) => {
+    if (e.target.id === "profile-img") {
+      profileInput?.click();
+    }
+  });
 
   profileInput?.addEventListener("change", async (e) => {
     const file = e.target.files?.[0];
@@ -3082,11 +3073,9 @@ text.addEventListener('click', enableEditing);
       console.log("🌐 ダウンロードURL取得:", url);
 
       try {
-        const newNode = await preloadAndSwapImg(window.profileImg || profileImg, url);
-        newNode.addEventListener("click", () => profileInput?.click()); // ← 再登録
-        window.profileImg = newNode;
+        await preloadAndSwapImg(profileImg, url);
       } catch {
-        (window.profileImg || profileImg).src = bust(url);
+        profileImg.src = bust(url);
       }
       profileURL = url;
       profileUrlInput.value = url;
