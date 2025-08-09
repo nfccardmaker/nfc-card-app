@@ -3198,6 +3198,28 @@ text.addEventListener('click', enableEditing);
 
     let backgroundURL = '';
     let uploadingBg = false;
+// ★ テンプレ背景を適用＆Firestoreに保存（HTMLの onclick から呼ばれる）
+window.setBackground = async function(url) {
+  try {
+    L('bg.theme.click', { url });
+
+    // 画面に即反映（CDN待ち＋キャッシュバスター付き）
+    await setBackgroundImageForce(backgroundEl, url);
+
+    // フォーム値/状態を更新（saveAndRedirect が拾う）
+    backgroundURL = url;
+    if (bgUrlInput) bgUrlInput.value = url;
+
+    // 再編集中なら即Firestore保存
+    if (typeof db !== 'undefined' && typeof id !== 'undefined' && id) {
+      await setDoc(doc(db, "cards", id), { backgroundUrl: url }, { merge: true });
+      L('bg.theme.saved', { id, url });
+    }
+  } catch (e) {
+    E('bg.theme.fail', e);
+    alert('背景の適用に失敗しました。');
+  }
+};
 
     // ❌ プロフィールの programmatic click は削除（背景と同じ「onclick起動」前提）
     // profileImg?.addEventListener('click', () => {
