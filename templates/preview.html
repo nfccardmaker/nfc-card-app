@@ -1245,30 +1245,36 @@ function insertTemplate(type) {
   let template = "";
 
   switch(type) {
-  case 'club':
-    template = "高校のときは〇〇部やってて、放課後はだいたい部活にいたかも。まあまあガチでやってたから、体力とか気合いはそれなりにある…はず！先輩後輩とのノリとか、地味にコミュ力鍛えられた気もする笑";
-    break;
+    case 'club':
+      template = "高校のときは〇〇部やってて、放課後はだいたい部活にいたかも。まあまあガチでやってたから、体力とか気合いはそれなりにある…はず！先輩後輩とのノリとか、地味にコミュ力鍛えられた気もする笑";
+      break;
 
-  case 'study':
-    template = "〇〇系を勉強してるけど、内容はわりとニッチでおもしろいかも。課題はエグい時あるけど、締切には一応ちゃんと間に合わせてる笑わりと計画立ててコツコツやるタイプです、多分。";
-    break;
+    case 'study':
+      template = "〇〇系を勉強してるけど、内容はわりとニッチでおもしろいかも。課題はエグい時あるけど、締切には一応ちゃんと間に合わせてる笑わりと計画立ててコツコツやるタイプです、多分。";
+      break;
 
-  case 'circle':
-    template = "〇〇系のサークル入ってて、イベントとかで騒いでること多いかも。飲みとか合宿とか、エモい思い出いろいろできてる！ガチよりエンジョイ派だけど、人と関わるのはわりと好き。";
-    break;
+    case 'circle':
+      template = "〇〇系のサークル入ってて、イベントとかで騒いでること多いかも。飲みとか合宿とか、エモい思い出いろいろできてる！ガチよりエンジョイ派だけど、人と関わるのはわりと好き。";
+      break;
 
-  case 'parttime':
-    template = "〇〇のバイトしてるんだけど、接客とか慣れると意外と楽しい。最初は緊張してたけど、今はお客さんと軽く雑談とかもしてる笑責任とか時間とか、ちょっとは大人になった気がする。";
-    break;
+    case 'parttime':
+      template = "〇〇のバイトしてるんだけど、接客とか慣れると意外と楽しい。最初は緊張してたけど、今はお客さんと軽く雑談とかもしてる笑責任とか時間とか、ちょっとは大人になった気がする。";
+      break;
 
-  case 'hobby':
-    template = "〇〇が趣味で、スキあらばやってるかも。ひとりの時間にハマれるのが最高なんよ〜！同じ趣味の人と話せたらめっちゃ盛り上がるタイプ。たぶん、めっちゃ語る笑";
-    break;
+    case 'hobby':
+      template = "〇〇が趣味で、スキあらばやってるかも。ひとりの時間にハマれるのが最高なんよ〜！同じ趣味の人と話せたらめっちゃ盛り上がるタイプ。たぶん、めっちゃ語る笑";
+      break;
+  }
+
+  // textareaに反映
+  textarea.value = template + '\n\n⸻\n\n';
+
+  // 🔽 Firestoreに即保存（idがある場合のみ）
+  if (typeof db !== 'undefined' && typeof id !== 'undefined' && id) {
+    setDoc(doc(db, "cards", id), { extraText: textarea.value }, { merge: true });
+  }
 }
 
-
-  textarea.value = template + '\n\n⸻\n\n'; // ← 上書き（入れ替え）
-}
 function showTemplateButtons() {
   const btns = document.getElementById('template-buttons');
   if (btns.style.display === 'flex') {
@@ -3210,8 +3216,19 @@ text.addEventListener('click', enableEditing);
         const data = snap.data();
         L('edit.data', data);
 
+        // ★ ここを置換：ID → Firestoreキーのマッピングで復元
         const setVal = (i, v) => { const el = document.getElementById(i); if (el) el.value = v || ''; };
-        ['name','birthday','age','department','birthplace','hobby'].forEach(k => setVal(k, data[k]));
+        const fieldMap = {
+          name: 'name',
+          birthday: 'birthday',
+          age: 'age',
+          department: 'department',
+          birthplace: 'birthplace',
+          hobby: 'hobby',
+          'self-pr-textarea': 'selfPr',
+          'extra-text': 'extraText',
+        };
+        Object.entries(fieldMap).forEach(([idKey, dataKey]) => setVal(idKey, data[dataKey]));
 
         if (data.imageUrl && profileImg) {
           try { await setImgSrc(profileImg, data.imageUrl); }
@@ -3363,6 +3380,8 @@ text.addEventListener('click', enableEditing);
         department: getVal("department"),
         birthplace: getVal("birthplace"),
         hobby: getVal("hobby"),
+        selfPr: getVal("self-pr-textarea"),   // ★ 追加：自己PR
+        extraText: getVal("extra-text"),      // ★ 追加：記入欄
         imageUrl: finalProfileURL,
         backgroundUrl: finalBackgroundURL,
       };
@@ -3381,14 +3400,6 @@ text.addEventListener('click', enableEditing);
     }
   });
 </script>
-
-
-
-
-
-
-
-
 
 
 </body>
