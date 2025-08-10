@@ -1195,62 +1195,7 @@ document.getElementById('finish-button').addEventListener('click', async () => {
   */
 });
 
-function embedYouTubeVideo() {
-  const input = document.getElementById('youtube-url');
-  const player = document.getElementById('youtube-player');
-  let url = input.value.trim();
 
-  // m.youtube → www.youtube に変換
-  url = url.replace("m.youtube.com", "www.youtube.com");
-
-  const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/);
-  if (match && match[1]) {
-    const videoId = match[1];
-    player.innerHTML = `
-      <div style="
-        border-radius: 18px;
-        overflow: hidden;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.12);
-        max-width: 90vw;
-        margin: 0 auto 12px auto;
-      ">
-        <iframe width="100%" height="200" 
-          src="https://www.youtube.com/embed/${videoId}" 
-          frameborder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-          allowfullscreen>
-        </iframe>
-      </div>
-    `;
-  } else {
-    player.innerHTML = "<p style='color:red;'>正しいYouTubeのURLを入力してください。</p>";
-  }
-}
-
-function embedSpotify() {
-  const url = document.getElementById("spotify-url").value.trim();
-
-  if (!url.includes("open.spotify.com")) {
-    alert("Spotifyの正しいURLを入力してください。");
-    return;
-  }
-
-  try {
-    const parsed = new URL(url);
-    const cleanPath = parsed.pathname.replace('/intl-ja', '');  // ← ここで取り除く
-    const embedUrl = "https://open.spotify.com/embed" + cleanPath;
-
-    const iframe = `
-      <iframe src="${embedUrl}" 
-        style="width: calc(100% - 40px); height: 152px; border-radius:12px; display: block; margin: 0 auto;" 
-        frameborder="0" allowtransparency="true" allow="encrypted-media">
-      </iframe>
-    `;
-    document.getElementById("spotify-player").innerHTML = iframe;
-  } catch {
-    alert("URLの形式が正しくありません。");
-  }
-}
 function showTemplateButtons() {
   const btns = document.getElementById('template-buttons');
   btns.style.display = 'flex';
