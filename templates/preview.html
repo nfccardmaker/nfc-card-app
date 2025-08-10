@@ -3207,6 +3207,91 @@ window.handleBlur = async function(type){
   }
 };
 
+  /***********************
+   *  🎵 YouTube / Spotify  ←★ 追加ブロック（追記）
+   ***********************/
+  const LINKS_DRAFT_KEY = "fureta_draft_links";
+  const readLinksDraft  = () => JSON.parse(localStorage.getItem(LINKS_DRAFT_KEY) || "{}");
+  const writeLinksDraft = (obj) => localStorage.setItem(LINKS_DRAFT_KEY, JSON.stringify(obj));
+
+  async function saveLinks(partial){
+    const merged = { ...readLinksDraft(), ...partial };
+    writeLinksDraft(merged);
+    if (__currentId) {
+      await setDoc(doc(db, "cards", __currentId), { links: merged }, { merge: true });
+      L('links.save', merged);
+    } else {
+      L('links.draft.save', merged);
+    }
+  }
+
+  function normalizeYouTube(url){
+    try{
+      const u = new URL(url.replace("m.youtube.com","www.youtube.com"));
+      let videoId = "";
+      if (u.hostname.includes("youtu.be")) videoId = u.pathname.slice(1);
+      else if (u.pathname.startsWith("/shorts/")) videoId = u.pathname.split("/")[2] || "";
+      else if (u.pathname.startsWith("/embed/"))  videoId = u.pathname.split("/")[2] || "";
+      else videoId = u.searchParams.get("v") || "";
+      if (!videoId) return null;
+      return { rawUrl: url, videoId, embedUrl: `https://www.youtube.com/embed/${videoId}` };
+    } catch { return null; }
+  }
+  function normalizeSpotify(url){
+    try{
+      const u = new URL(url);
+      if (!u.hostname.includes("spotify.com")) return null;
+      let path = u.pathname.replace(/^\/intl-[a-z-]+\//, "/").replace(/\/$/, "");
+      const [type, sid] = path.split("/").filter(Boolean);
+      if (!type || !sid) return null;
+      return { rawUrl: url, type, spotifyId: sid, embedUrl: `https://open.spotify.com/embed/${type}/${sid}` };
+    } catch { return null; }
+  }
+
+  function renderYouTube(embedUrl){
+    const el = document.getElementById('youtube-player');
+    if (!el) return;
+    el.innerHTML = embedUrl ? `
+      <div style="border-radius:18px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.12); max-width:90vw; margin:0 auto 12px;">
+        <iframe width="100%" height="200" src="${embedUrl}" frameborder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowfullscreen></iframe>
+      </div>` : "";
+  }
+  function renderSpotify(embedUrl){
+    const el = document.getElementById('spotify-player');
+    if (!el) return;
+    el.innerHTML = embedUrl ? `
+      <iframe src="${embedUrl}" style="width: calc(100% - 40px); height: 152px; border-radius:12px; display:block; margin:0 auto;"
+        frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>` : "";
+  }
+
+  // HTMLのonclickから呼ばれる
+  window.embedYouTubeVideo = async function (){
+    const raw = document.getElementById('youtube-url')?.value?.trim();
+    if (!raw) return;
+    const norm = normalizeYouTube(raw);
+    if (!norm){ alert('正しいYouTubeのURLを入力してください。'); await saveLinks({ youtube:null }); return; }
+    renderYouTube(norm.embedUrl);
+    await saveLinks({ youtube: norm });
+  };
+  window.embedSpotify = async function (){
+    const raw = document.getElementById('spotify-url')?.value?.trim();
+    if (!raw) return;
+    const norm = normalizeSpotify(raw);
+    if (!norm){ alert('Spotifyの正しいURLを入力してください。'); await saveLinks({ spotify:null }); return; }
+    renderSpotify(norm.embedUrl);
+    await saveLinks({ spotify: norm });
+  };
+  // ✕ボタン
+  window.hideYouTubeSection = async function (){
+    const i = document.getElementById('youtube-url'); if (i) i.value = '';
+    renderYouTube(''); await saveLinks({ youtube:null });
+  };
+  window.hideSpotifySection = async function (){
+    const i = document.getElementById('spotify-url'); if (i) i.value = '';
+    renderSpotify(''); await saveLinks({ spotify:null });
+  };
 
   /***********************
    *  🔁 共通: プロフィール処理（状態/本体）
@@ -3345,6 +3430,18 @@ window.handleBlur = async function(type){
             if (el) el.value = data[key];
           }
         });
+
+        // ★ YouTube / Spotify 復元（Firestore > draft）
+        const links = data?.links || readLinksDraft();
+        if (links?.youtube?.embedUrl){
+          const y = document.getElementById('youtube-url'); if (y) y.value = links.youtube.rawUrl || "";
+          renderYouTube(links.youtube.embedUrl);
+        }
+        if (links?.spotify?.embedUrl){
+          const s = document.getElementById('spotify-url'); if (s) s.value = links.spotify.rawUrl || "";
+          renderSpotify(links.spotify.embedUrl);
+        }
+        if (links) localStorage.setItem(LINKS_DRAFT_KEY, JSON.stringify(links));
 
         if (data.imageUrl && profileImg) {
           try { await setImgSrc(profileImg, data.imageUrl); }
@@ -3489,6 +3586,10 @@ window.handleBlur = async function(type){
 
       const targetId = id || (globalThis.crypto?.randomUUID?.() ?? makeId());
       const getVal = (i) => document.getElementById(i)?.value || "";
+
+      // ▼ 追加：YouTube/Spotifyのドラフトも保存に含める
+      const linksDraft = readLinksDraft();
+
       const data = {
         name: getVal("name"),
         birthday: getVal("birthday"),
@@ -3501,7 +3602,8 @@ window.handleBlur = async function(type){
         imageUrl: finalProfileURL,
         backgroundUrl: finalBackgroundURL,
         // ★ SNSリンクをまとめて保存
-        ...snsLinks
+        ...snsLinks,
+        ...(linksDraft ? { links: linksDraft } : {}) // ★ 追加：YouTube/Spotify
       };
 
       try {
@@ -3518,6 +3620,7 @@ window.handleBlur = async function(type){
     }
   });
 </script>
+
 
 
 
