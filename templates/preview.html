@@ -3158,30 +3158,39 @@ text.addEventListener('click', enableEditing);
   let __currentId = null;
 
   // SNSアイコン初回クリック判定用フラグ
-const __snsOpenedOnce = Object.fromEntries(SNS_KEYS.map(k => [k, false]));
+  const __snsOpenedOnce = Object.fromEntries(SNS_KEYS.map(k => [k, false]));
 
-window.handleIconClick = function(type){
-  const inp = document.getElementById(`input-${type}`);
-  const alreadyOpened = __snsOpenedOnce[type] === true;
+  window.handleIconClick = function(type){
+    const inp = document.getElementById(`input-${type}`);
+    const alreadyOpened = __snsOpenedOnce[type] === true;
 
-  if (!alreadyOpened) {
-    __snsOpenedOnce[type] = true; // 初回クリック済みにする
-    const url = SNS_OFFICIAL[type];
-    if (url) window.open(url, '_blank', 'noopener');
-    return; // 初回はここで終わる
-  }
+    if (!alreadyOpened) {
+      __snsOpenedOnce[type] = true; // 初回クリック済みにする
+      const url = SNS_OFFICIAL[type];
+      if (url) window.open(url, '_blank', 'noopener');
+      return; // 初回はここで終わる
+    }
 
-  // 2回目以降は公式を開かず入力欄にフォーカス
-  if (inp) {
-    inp.style.display = '';
-    inp.focus();
-  }
-};
+    // 2回目以降は公式を開かず入力欄にフォーカス
+    if (inp) {
+      inp.style.display = 'block'; // ← 明示的に表示
+      inp.scrollIntoView?.({ block: 'center', inline: 'nearest' });
+      inp.focus();
+    }
+  };
 
   // 入力欄 onblur：メモリ反映、再編集中なら即Firestoreにmerge保存
   window.handleBlur = async function(type){
-    const v = document.getElementById(`input-${type}`)?.value.trim() || '';
+    const inputEl = document.getElementById(`input-${type}`);
+    const v = inputEl?.value.trim() || '';
     snsLinks[type] = v;
+
+    // 入力欄を隠す
+    if (inputEl) inputEl.style.display = 'none';
+
+    // ※ blurしたら“次はまた公式へ”に戻したい場合は↓のコメントを外す
+    // __snsOpenedOnce[type] = false;
+
     if (__currentId) {
       try {
         await setDoc(doc(db, 'cards', __currentId), { [type]: v }, { merge: true });
@@ -3502,6 +3511,7 @@ window.handleIconClick = function(type){
     }
   });
 </script>
+
 
 
 </body>
