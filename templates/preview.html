@@ -3129,6 +3129,42 @@ text.addEventListener('click', enableEditing);
   }
 
   /***********************
+   *  🌐 SNS Setups  ※追加
+   ***********************/
+  const SNS_KEYS = ['instagram','line','bereal','x','tiktok'];
+  const snsLinks = Object.fromEntries(SNS_KEYS.map(k => [k, '']));
+  const SNS_OFFICIAL = {
+    instagram: 'https://www.instagram.com/',
+    line:      'https://line.me/ja/',
+    bereal:    'https://bere.al/',
+    x:         'https://twitter.com/',
+    tiktok:    'https://www.tiktok.com/'
+  };
+  let __currentId = null;
+
+  // アイコン押下時：公式を開く＋入力欄にフォーカス
+  window.handleIconClick = function(type){
+    const url = SNS_OFFICIAL[type];
+    if (url) window.open(url, '_blank', 'noopener');
+    const inp = document.getElementById(`input-${type}`);
+    if (inp) { inp.style.display = ''; inp.focus(); }
+  };
+
+  // 入力欄 onblur：メモリ反映、再編集中なら即Firestoreにmerge保存
+  window.handleBlur = async function(type){
+    const v = document.getElementById(`input-${type}`)?.value.trim() || '';
+    snsLinks[type] = v;
+    if (__currentId) {
+      try {
+        await setDoc(doc(db, 'cards', __currentId), { [type]: v }, { merge: true });
+        L('sns.autosave', { type, v });
+      } catch(e) {
+        W('sns.autosave.fail', e);
+      }
+    }
+  };
+
+  /***********************
    *  🔁 共通: プロフィール処理（状態/本体）
    ***********************/
   let __pfUploading = false;
@@ -3180,6 +3216,7 @@ text.addEventListener('click', enableEditing);
     const params = new URLSearchParams(window.location.search);
     const id = params.get('id');
     L('params', { id });
+    __currentId = id; // ★ SNSオートセーブ用に共有
 
     const profileImg      = document.getElementById('profile-img');
     const profileInput    = document.getElementById('profile-input');
@@ -3198,28 +3235,29 @@ text.addEventListener('click', enableEditing);
 
     let backgroundURL = '';
     let uploadingBg = false;
-// ★ テンプレ背景を適用＆Firestoreに保存（HTMLの onclick から呼ばれる）
-window.setBackground = async function(url) {
-  try {
-    L('bg.theme.click', { url });
 
-    // 画面に即反映（CDN待ち＋キャッシュバスター付き）
-    await setBackgroundImageForce(backgroundEl, url);
+    // ★ テンプレ背景を適用＆Firestoreに保存（HTMLの onclick から呼ばれる）
+    window.setBackground = async function(url) {
+      try {
+        L('bg.theme.click', { url });
 
-    // フォーム値/状態を更新（saveAndRedirect が拾う）
-    backgroundURL = url;
-    if (bgUrlInput) bgUrlInput.value = url;
+        // 画面に即反映（CDN待ち＋キャッシュバスター付き）
+        await setBackgroundImageForce(backgroundEl, url);
 
-    // 再編集中なら即Firestore保存
-    if (typeof db !== 'undefined' && typeof id !== 'undefined' && id) {
-      await setDoc(doc(db, "cards", id), { backgroundUrl: url }, { merge: true });
-      L('bg.theme.saved', { id, url });
-    }
-  } catch (e) {
-    E('bg.theme.fail', e);
-    alert('背景の適用に失敗しました。');
-  }
-};
+        // フォーム値/状態を更新（saveAndRedirect が拾う）
+        backgroundURL = url;
+        if (bgUrlInput) bgUrlInput.value = url;
+
+        // 再編集中なら即Firestore保存
+        if (typeof db !== 'undefined' && typeof id !== 'undefined' && id) {
+          await setDoc(doc(db, "cards", id), { backgroundUrl: url }, { merge: true });
+          L('bg.theme.saved', { id, url });
+        }
+      } catch (e) {
+        E('bg.theme.fail', e);
+        alert('背景の適用に失敗しました。');
+      }
+    };
 
     // ❌ プロフィールの programmatic click は削除（背景と同じ「onclick起動」前提）
     // profileImg?.addEventListener('click', () => {
@@ -3254,6 +3292,15 @@ window.setBackground = async function(url) {
           'extra-text': 'extraText',
         };
         Object.entries(fieldMap).forEach(([idKey, dataKey]) => setVal(idKey, data[dataKey]));
+
+        // ★ SNS復元（保存済みなら各入力欄に反映）
+        SNS_KEYS.forEach(key => {
+          if (data[key]) {
+            snsLinks[key] = data[key];
+            const el = document.getElementById(`input-${key}`);
+            if (el) el.value = data[key];
+          }
+        });
 
         if (data.imageUrl && profileImg) {
           try { await setImgSrc(profileImg, data.imageUrl); }
@@ -3409,6 +3456,8 @@ window.setBackground = async function(url) {
         extraText: getVal("extra-text"),      // ★ 追加：記入欄
         imageUrl: finalProfileURL,
         backgroundUrl: finalBackgroundURL,
+        // ★ SNSリンクをまとめて保存
+        ...snsLinks
       };
 
       try {
