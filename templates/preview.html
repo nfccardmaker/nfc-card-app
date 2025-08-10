@@ -759,43 +759,58 @@ function changeBarColor(e) {
   document.documentElement.style.setProperty('--bar-color', e.target.value);
 }
 
-const iconClickState = {};
+// SNSクリック状態保持
+const iconClickState = Object.fromEntries(['instagram','line','bereal','x','tiktok'].map(k => [k,false]));
+const defaultLinks = {
+  instagram: "https://www.instagram.com",
+  line: "https://line.me",
+  bereal: "https://bere.al",
+  x: "https://twitter.com",
+  tiktok: "https://www.tiktok.com"
+};
 
-function handleIconClick(service) {
+// 1回目は公式、2回目以降は入力欄
+window.handleIconClick = function(service) {
   const input = document.getElementById(`input-${service}`);
   if (!input) return;
 
-  const url = input.value.trim();
-  const defaultLinks = {
-    instagram: "https://www.instagram.com",
-    line: "https://line.me",
-    bereal: "https://bere.al",
-    x: "https://twitter.com",
-    tiktok: "https://www.tiktok.com"
-  };
-
-  // 初回なら公式へ、2回目以降は入力
   if (!iconClickState[service]) {
     iconClickState[service] = true;
-    window.open(defaultLinks[service], '_blank');
+    window.open(defaultLinks[service], '_blank', 'noopener');
   } else {
     input.style.display = "block";
     input.focus();
   }
-}
+};
 
-
-
-function handleBlur(service) {
+// 入力欄フォーカス外れ時に保存
+window.handleBlur = async function(service) {
   const input = document.getElementById(`input-${service}`);
-  const value = input.value.trim();
-  if (value) urls[service] = value;
-  input.style.display = 'none';
-}
+  if (!input) return;
+  const value = (input.value || "").trim();
 
-function downloadCard() {
+  // メモリに保存（snsLinksがあればそこに）
+  if (typeof snsLinks === 'object') {
+    snsLinks[service] = value;
+  }
+
+  // 再編集中ならFirestoreにも即保存
+  if (typeof __currentId === 'string' && __currentId) {
+    try {
+      await setDoc(doc(db, 'cards', __currentId), { [service]: value }, { merge: true });
+      L?.('sns.autosave', { service, value });
+    } catch (e) {
+      W?.('sns.autosave.fail', e);
+    }
+  }
+
+  input.style.display = 'none';
+};
+
+// デモ用のダウンロード関数（必要なら残す）
+window.downloadCard = function() {
   alert("この部分で画像化＆ZIP化などの処理を行います");
-}
+};
 
 window.onload = () => {
   // canvasが無ければスキップ（ここで死ぬと全部動かなくなる）
