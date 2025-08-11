@@ -3171,9 +3171,13 @@ window.handleBlur = async function(type){
   /***********************
    *  🎵 YouTube / Spotify  ←★ 追加ブロック（追記）
    ***********************/
-  const LINKS_DRAFT_KEY = "fureta_draft_links";
+  // ▼▼▼ ここを id スコープ付きに変更 ▼▼▼
+  const __URL_PARAMS = new URLSearchParams(window.location.search);
+  const __ID_FOR_DRAFT = __URL_PARAMS.get('id') || 'draft';
+  const LINKS_DRAFT_KEY = `fureta_draft_links_${__ID_FOR_DRAFT}`;
   const readLinksDraft  = () => JSON.parse(localStorage.getItem(LINKS_DRAFT_KEY) || "{}");
   const writeLinksDraft = (obj) => localStorage.setItem(LINKS_DRAFT_KEY, JSON.stringify(obj));
+  // ▲▲▲ ここまで変更 ▲▲▲
 
   async function saveLinks(partial){
     const merged = { ...readLinksDraft(), ...partial };
@@ -3393,7 +3397,8 @@ window.handleBlur = async function(type){
         });
 
         // ★ YouTube / Spotify 復元（Firestore > draft）
-        const links = data?.links || readLinksDraft();
+        // 変更前: const links = data?.links || readLinksDraft();
+        const links = id ? (data?.links || null) : readLinksDraft();
         if (links?.youtube?.embedUrl){
           const y = document.getElementById('youtube-url'); if (y) y.value = links.youtube.rawUrl || "";
           renderYouTube(links.youtube.embedUrl);
@@ -3571,6 +3576,10 @@ window.handleBlur = async function(type){
         L('save.firestore.start', { targetId, data });
         await setDoc(doc(db, "cards", targetId), data, { merge: true });
         L('save.firestore.OK');
+
+        // ★ 保存成功後、この作業のドラフトだけ掃除
+        localStorage.removeItem(LINKS_DRAFT_KEY);
+
         const next = `/preview?id=${targetId}`;
         L('save.redirect', next);
         window.location.href = next;
