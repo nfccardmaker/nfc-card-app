@@ -1211,7 +1211,6 @@ document.getElementById('finish-button').addEventListener('click', async () => {
   }
 
   */
-});
 
 function showTemplateButtons() {
   const btns = document.getElementById('template-buttons');
@@ -3581,8 +3580,49 @@ window.handleBlur = async function(type){
       }
     }
   });
-  
+
+  /* ====== ここから追加（完成/プレビューで編集UIを隠す） ====== */
+  window.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(location.search);
+    const hasId  = params.has('id');
+    const path   = location.pathname || '';
+    const isView = hasId && (path.startsWith('/preview') || path.startsWith('/user_cards'));
+
+    if (!isView) return; // 作成中は何もしない（表示のまま）
+
+    const HIDE_SELECTORS = [
+      '.toolbar',
+      '.text-style-toolbar',
+      '.sns-delete-btn',
+      '.deco-delete-btn',
+      '.text-stamp-delete-btn',
+      '.youtube-section button',
+      '#spotify-section button',
+      '#youtube-url',
+      '#spotify-url',
+      '.deletable-templates',
+      '.self-pr-template-section',
+      '#sns-explain',
+      '#extra-text-wrapper .sns-delete-btn',
+      '#diagnosis-wrapper .sns-delete-btn',
+      '#external-link-section .sns-delete-btn',
+      '#self-pr-section .sns-delete-btn',
+      '#spotify-section .sns-delete-btn'
+    ];
+
+    document.querySelectorAll(HIDE_SELECTORS.join(',')).forEach(el => {
+      try { el.style.display = 'none'; } catch {}
+    });
+
+    // 目アイコン/戻るも隠す（存在する場合のみ）
+    const editToggle = document.getElementById('edit-toggle');
+    if (editToggle) editToggle.style.display = 'none';
+    const returnToggle = document.getElementById('return-toggle');
+    if (returnToggle) returnToggle.style.display = 'none';
+  });
+  /* ====== 追加ここまで ====== */
 </script>
+
 
 
 
