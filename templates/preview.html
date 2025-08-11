@@ -3602,20 +3602,17 @@ window.handleBlur = async function(type){
    const HIDE_SELECTORS = [
   '.toolbar',
   '.text-style-toolbar',
-  '.sns-delete-btn',                          // 全般の×ボタン
+  '.sns-delete-btn',                      // 全てのSNS ×
   '.deco-delete-btn',
   '.text-stamp-delete-btn',
-  '.youtube-section button',
-  '#spotify-section button',
-  '#youtube-url',
-  '#spotify-url',
-  // '.deletable-templates',                  // ← 本体は残す
-  '.deletable-templates .sns-delete-btn',     // ×だけ消す
-  // '.self-pr-template-section',             // ← 本体は残す
-  '.self-pr-template-section .sns-delete-btn',// ×だけ消す
-  '#sns-explain',
+  '.youtube-section button',              // YouTube反映ボタン
+  '#spotify-section button',              // Spotify反映ボタン
+  '#youtube-url',                         // YouTube入力欄
+  '#spotify-url',                         // Spotify入力欄
+  '#sns-explain',                         // メッセージ
+  '.self-pr-template-section .sns-delete-btn', // 自己PRテンプレの×
+  '#diagnosis-wrapper .sns-delete-btn',   // 特徴ボタンの×
   '#extra-text-wrapper .sns-delete-btn',
-  '#diagnosis-wrapper .sns-delete-btn',       // 特徴ボタン本体は残す
   '#external-link-section .sns-delete-btn',
   '#self-pr-section .sns-delete-btn',
   '#spotify-section .sns-delete-btn'
