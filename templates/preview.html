@@ -2956,7 +2956,7 @@ text.addEventListener('click', enableEditing);
   const L = (tag, ...args) => console.log(`[${((performance.now()-T0)/1000).toFixed(3)}s][${tag}]`, ...args);
   const W = (tag, ...args) => console.warn(`[${((performance.now()-T0)/1000).toFixed(3)}s][${tag}]`, ...args);
   const E = (tag, ...args) => console.error(`[${(performance.now()-T0).toFixed(0)}ms][${tag}]`, ...args);
-  window.addEventListener('error', (ev) => E('window.error', ev.message, ev.filename+':'+ev.lineno+':'+ev.colno+':'+ev.error));
+  window.addEventListener('error', (ev) => E('window.error', ev.message, ev.filename+':'+ev.lineno+':'+ev.colno, ev.error));
   window.addEventListener('unhandledrejection', (ev) => E('unhandledrejection', ev.reason));
 
   /***********************
@@ -3090,66 +3090,66 @@ text.addEventListener('click', enableEditing);
   /***********************
  *  🌐 SNS Setups（このブロックを丸ごと置き換え）
  ***********************/
-  const SNS_KEYS = ['instagram','line','bereal','x','tiktok'];
-  const snsLinks = Object.fromEntries(SNS_KEYS.map(k => [k, '']));
-  const SNS_OFFICIAL = {
-    instagram: 'https://www.instagram.com/',
-    line:      'https://line.me/ja/',
-    bereal:    'https://bere.al/',
-    x:         'https://twitter.com/',
-    tiktok:    'https://www.tiktok.com/'
-  };
-  let __currentId = null;
+const SNS_KEYS = ['instagram','line','bereal','x','tiktok'];
+const snsLinks = Object.fromEntries(SNS_KEYS.map(k => [k, '']));
+const SNS_OFFICIAL = {
+  instagram: 'https://www.instagram.com/',
+  line:      'https://line.me/ja/',
+  bereal:    'https://bere.al/',
+  x:         'https://twitter.com/',
+  tiktok:    'https://www.tiktok.com/'
+};
+let __currentId = null;
 
-  // SNSアイコン初回クリック判定用フラグ（各サービスごとに1回目かどうか）
-  const __snsOpenedOnce = Object.fromEntries(SNS_KEYS.map(k => [k, false]));
+// SNSアイコン初回クリック判定用フラグ（各サービスごとに1回目かどうか）
+const __snsOpenedOnce = Object.fromEntries(SNS_KEYS.map(k => [k, false]));
 
-  // クリック挙動：1回目=公式 / 2回目=入力欄 / 入力済みなら以後はユーザーURLへ
-  window.handleIconClick = function(type){
-    const inp   = document.getElementById(`input-${type}`);
-    const saved = (snsLinks[type] || inp?.value || '').trim(); // Firestoreからの復元や手入力も拾う
-    const first = __snsOpenedOnce[type] !== true;
+// クリック挙動：1回目=公式 / 2回目=入力欄 / 入力済みなら以後はユーザーURLへ
+window.handleIconClick = function(type){
+  const inp   = document.getElementById(`input-${type}`);
+  const saved = (snsLinks[type] || inp?.value || '').trim(); // Firestoreからの復元や手入力も拾う
+  const first = __snsOpenedOnce[type] !== true;
 
-    // 1回目は公式へ
-    if (first) {
-      __snsOpenedOnce[type] = true;
-      const url = SNS_OFFICIAL[type];
-      if (url) window.open(url, '_blank', 'noopener');
-      return;
+  // 1回目は公式へ
+  if (first) {
+    __snsOpenedOnce[type] = true;
+    const url = SNS_OFFICIAL[type];
+    if (url) window.open(url, '_blank', 'noopener');
+    return;
+  }
+
+  // 2回目以降：入力済みURLがあればそちらへ、無ければ入力欄を表示
+  if (saved) {
+    window.open(saved, '_blank', 'noopener');
+    return;
+  }
+
+  if (inp) {
+    inp.style.display = 'block';
+    inp.scrollIntoView?.({ block: 'center', inline: 'nearest' });
+    inp.focus();
+  }
+};
+
+// 入力欄 onblur：保存＆非表示（値が空なら次回も入力欄、値があれば次回はURLへ）
+window.handleBlur = async function(type){
+  const inputEl = document.getElementById(`input-${type}`);
+  const v = inputEl?.value.trim() || '';
+  snsLinks[type] = v;
+
+  // 入力欄は閉じる
+  if (inputEl) inputEl.style.display = 'none';
+
+  // Firestore（再編集中のみ）
+  if (__currentId) {
+    try {
+      await setDoc(doc(db, 'cards', __currentId), { [type]: v }, { merge: true });
+      L('sns.autosave', { type, v });
+    } catch(e) {
+      W('sns.autosave.fail', e);
     }
-
-    // 2回目以降：入力済みURLがあればそちらへ、無ければ入力欄を表示
-    if (saved) {
-      window.open(saved, '_blank', 'noopener');
-      return;
-    }
-
-    if (inp) {
-      inp.style.display = 'block';
-      inp.scrollIntoView?.({ block: 'center', inline: 'nearest' });
-      inp.focus();
-    }
-  };
-
-  // 入力欄 onblur：保存＆非表示（値が空なら次回も入力欄、値があれば次回はURLへ）
-  window.handleBlur = async function(type){
-    const inputEl = document.getElementById(`input-${type}`);
-    const v = inputEl?.value.trim() || '';
-    snsLinks[type] = v;
-
-    // 入力欄は閉じる
-    if (inputEl) inputEl.style.display = 'none';
-
-    // Firestore（再編集中のみ）
-    if (__currentId) {
-      try {
-        await setDoc(doc(db, 'cards', __currentId), { [type]: v }, { merge: true });
-        L('sns.autosave', { type, v });
-      } catch(e) {
-        W('sns.autosave.fail', e);
-      }
-    }
-  };
+  }
+};
 
   /***********************
    *  🎵 YouTube / Spotify  ←★ 追加ブロック（追記）
@@ -3495,6 +3495,29 @@ text.addEventListener('click', enableEditing);
       });
     });
 
+    // ★ 編集UIを一括で隠す（作成押下直後／プレビュー／完成ページで使用）
+    function softHideEditingUI() {
+      const HIDE_TARGETS = [
+        '.toolbar',
+        '.text-style-toolbar',
+        '.sns-delete-btn',
+        '.deco-delete-btn',
+        '.text-stamp-delete-btn',
+        '.youtube-section button',
+        '#spotify-section button',
+        '#youtube-url',
+        '#spotify-url',
+        '.deletable-templates',
+        '.self-pr-template-section',
+        '#sns-explain'
+      ];
+      document.querySelectorAll(HIDE_TARGETS.join(',')).forEach(el => {
+        el.style.display = 'none';
+      });
+      document.getElementById('edit-toggle')?.style && (document.getElementById('edit-toggle').style.display = 'none');
+      document.getElementById('return-toggle')?.style && (document.getElementById('return-toggle').style.display = 'none');
+    }
+
     // ---- 保存
     document.getElementById('finish-button')?.addEventListener('click', () => {
       L('finish.click');
@@ -3517,6 +3540,9 @@ text.addEventListener('click', enableEditing);
     });
 
     async function saveAndRedirect() {
+      // ✅ 作成ボタン押下直後に編集UIを消す（作成時に消える）
+      softHideEditingUI();
+
       L('save.start');
       const finalProfileURL   = __pfCurrentURL || profileUrlInput?.value;
       const finalBackgroundURL= backgroundURL || bgUrlInput?.value;
@@ -3563,38 +3589,15 @@ text.addEventListener('click', enableEditing);
       }
     }
 
-    // ---- 完成ページ＆作成直後の編集UI非表示（★ ここから追記）
-    const isFinalPage = window.location.href.includes('/user_cards/');
-    const hasIdParam = new URLSearchParams(window.location.search).has('id');
-    const isCreatePage = !hasIdParam; // 新規作成直後
-
-    if (isFinalPage || isCreatePage) {
-      const HIDE_TARGETS = [
-        '.toolbar',
-        '.text-style-toolbar',
-        '.sns-delete-btn',
-        '.deco-delete-btn',
-        '.text-stamp-delete-btn',
-        '.youtube-section button',
-        '#spotify-section button',
-        '#youtube-url',
-        '#spotify-url',
-        '.deletable-templates',
-        '.self-pr-template-section',
-        '#sns-explain'
-      ];
-      document.querySelectorAll(HIDE_TARGETS.join(',')).forEach(el => {
-        el.style.display = 'none';
-      });
-
-      // 完成ページは目アイコンや戻るも消す
-      if (isFinalPage) {
-        document.getElementById('edit-toggle')?.style && (document.getElementById('edit-toggle').style.display = 'none');
-        document.getElementById('return-toggle')?.style && (document.getElementById('return-toggle').style.display = 'none');
-      }
+    // ✅ プレビュー／完成ページでは常に編集UIを隠す
+    const path = window.location.pathname || '';
+    const isFinalPage   = path.startsWith('/user_cards/');
+    const isPreviewPage = path.startsWith('/preview');
+    if (isFinalPage || isPreviewPage) {
+      softHideEditingUI();
     }
-    // ---- 追記ここまで
   });
+  
 </script>
 
 
