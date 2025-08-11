@@ -3602,20 +3602,20 @@ window.handleBlur = async function(type){
    const HIDE_SELECTORS = [
   '.toolbar',
   '.text-style-toolbar',
-  '.sns-delete-btn',                      // × は消す（共通）
+  '.sns-delete-btn',                          // 全般の×ボタン
   '.deco-delete-btn',
   '.text-stamp-delete-btn',
   '.youtube-section button',
   '#spotify-section button',
   '#youtube-url',
   '#spotify-url',
-  // '.deletable-templates',              // ← 丸ごとは隠さない
-  // '.self-pr-template-section',         // ← 丸ごとは隠さない
-  '.self-pr-template-section .sns-delete-btn', // 自己PRエリアの × だけ消す
-  '#pr-template-buttons',                // テンプレの項目ボタン群は隠す
+  // '.deletable-templates',                  // ← 本体は残す
+  '.deletable-templates .sns-delete-btn',     // ×だけ消す
+  // '.self-pr-template-section',             // ← 本体は残す
+  '.self-pr-template-section .sns-delete-btn',// ×だけ消す
   '#sns-explain',
   '#extra-text-wrapper .sns-delete-btn',
-  '#diagnosis-wrapper .sns-delete-btn',  // 特徴ボタンの × だけ消す（本体は残る）
+  '#diagnosis-wrapper .sns-delete-btn',       // 特徴ボタン本体は残す
   '#external-link-section .sns-delete-btn',
   '#self-pr-section .sns-delete-btn',
   '#spotify-section .sns-delete-btn'
