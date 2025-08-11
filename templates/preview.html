@@ -3596,43 +3596,60 @@ window.addEventListener('DOMContentLoaded', () => {
   const hasId  = params.has('id');
   const path   = location.pathname || '';
   const isView = hasId && (path.startsWith('/preview') || path.startsWith('/user_cards'));
-  if (!isView) return; // 作成中は何もしない
+  if (!isView) return;
 
-  // まず「消すもの」を一括で隠す
+  // 1) 隠すもの（テンプレ関連も含めて消す）
   const HIDE_SELECTORS = [
     '.toolbar',
     '.text-style-toolbar',
     '.sns-delete-btn',
     '.deco-delete-btn',
     '.text-stamp-delete-btn',
-    '.youtube-section button',   // YouTube 反映
-    '#spotify-section button',   // Spotify 反映
-    '#youtube-url',              // YouTube 入力
-    '#spotify-url',              // Spotify 入力
-    '#sns-explain',              // メッセージ
+    '.youtube-section button',
+    '#spotify-section button',
+    '#youtube-url',
+    '#spotify-url',
+    '#sns-explain',
     '#extra-text-wrapper .sns-delete-btn',
     '#diagnosis-wrapper .sns-delete-btn',
     '#external-link-section .sns-delete-btn',
     '#self-pr-section .sns-delete-btn',
     '#spotify-section .sns-delete-btn',
-    '#pr-template-buttons',      // 自己PRテンプレの項目群
-    '.self-pr-template-section .sns-delete-btn'
+    '#pr-template-buttons',          // 自己PRテンプレ項目群
+    '.deletable-templates',          // ← 記入欄テンプレートのボタンを消す
+    '.self-pr-template-section'      // ← 自己PRテンプレのボタンも消す
   ];
   document.querySelectorAll(HIDE_SELECTORS.join(',')).forEach(el => {
     try { el.style.display = 'none'; } catch {}
   });
 
-  // 🔒 ここから“残すもの”を強制表示（他の処理で消されても勝つ）
+  // 2) 残すもの（診断＆分析ボタン）を強制表示
   const FORCE_SHOW = [
-    '#diagnosis-wrapper',                     // ラッパーごと表示
-    '#diagnosis-wrapper #diagnosis-button',   // 〇〇さんの特徴！
-    '#self-pr-section',                       // 自己PRエリア本体
-    '#self-pr-section button[onclick="analyzeSelfPR()"]'  // 分析して表示
+    '#diagnosis-wrapper',
+    '#diagnosis-wrapper #diagnosis-button',
+    '#self-pr-section',
+    '#self-pr-section button[onclick="analyzeSelfPR()"]'
   ];
   FORCE_SHOW.forEach(sel => {
     const el = document.querySelector(sel);
     if (el) el.style.display = 'block';
   });
+
+  // 3) 〇〇さんの特徴！を中央寄せに固定
+  const diagWrap = document.getElementById('diagnosis-wrapper');
+  const diagBtn  = document.getElementById('diagnosis-button');
+  if (diagWrap) {
+    diagWrap.style.textAlign = 'center';
+  }
+  if (diagBtn) {
+    diagBtn.style.display = 'inline-block';
+    diagBtn.style.margin  = '12px auto';
+    // もしレイアウトを崩す指定が残っていた場合に備えて無効化
+    diagBtn.style.position = 'relative';
+    diagBtn.style.left = '';
+    diagBtn.style.right = '';
+    diagBtn.style.transform = 'none';
+  }
 
   // 目アイコン/戻るは完成ビューで非表示
   const editToggle = document.getElementById('edit-toggle');
@@ -3640,6 +3657,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const returnToggle = document.getElementById('return-toggle');
   if (returnToggle) returnToggle.style.display = 'none';
 });
+
 
 </script>
 
