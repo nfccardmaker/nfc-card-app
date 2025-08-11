@@ -984,8 +984,10 @@ function hideAddLink(event) {
   event.stopPropagation(); // 「showHiddenSNS()」が動かないように
   const addBtn = document.getElementById('add-link-button');
   if (addBtn) addBtn.style.display = 'none';
-}function restoreSNS() {
- ['instagram', 'line', 'bereal', 'x', 'tiktok'].forEach(service => {
+}
+
+function restoreSNS() {
+  ['instagram', 'line', 'bereal', 'x', 'tiktok'].forEach(service => {
     const wrapper = document.querySelector(`.sns-wrapper:has(#input-${service})`);
     if (wrapper) wrapper.style.display = 'flex';
   });
@@ -1003,10 +1005,12 @@ function hideAddLink(event) {
   const selfPR = document.getElementById('self-pr-section');
   if (selfPR) selfPR.style.display = 'block';
 }
+
 function hideExtraText() {
   const wrapper = document.getElementById('extra-text-wrapper');
   if (wrapper) wrapper.style.display = 'none';
 }
+
 function hideDiagnosisButton() {
   const diagnosisWrapper = document.getElementById("diagnosis-wrapper");
   if (diagnosisWrapper) diagnosisWrapper.style.display = "none";
@@ -1017,21 +1021,20 @@ function restoreDiagnosisButton() {
   if (diagnosisWrapper) diagnosisWrapper.style.display = "block";
 }
 
+/* ▼ バグ修正：隠す時は 'none' */
 function hideSpotifySection() {
   const section = document.getElementById('spotify-section');
-   if (section) {
-    section.style.display = 'block';
-  }
+  if (section) section.style.display = 'none';
 }
 function restoreSpotifySection() {
   const section = document.getElementById('spotify-section');
   if (section) section.style.display = 'block';
 }
+
 function hideSelfPRSection() {
   const section = document.getElementById('self-pr-section');
   if (section) section.style.display = 'none';
 }
-
 function restoreSelfPRSection() {
   const section = document.getElementById('self-pr-section');
   if (section) section.style.display = 'block';
@@ -1069,7 +1072,6 @@ document.getElementById('finish-button').addEventListener('click', async () => {
       input.textContent = escapeHTML(val);
     }
   });
-
   editableTexts.forEach((input) => {
     input.setAttribute('value', input.value.trim());
   });
@@ -1091,54 +1093,68 @@ document.getElementById('finish-button').addEventListener('click', async () => {
     extraInput.textContent = text;
   }
 
-  const toolbar = document.getElementById('toolbar');
-  if (toolbar) toolbar.style.display = 'none';
+  /* ========= ここから「隠す系」 =========
+     作成画面では非実行。id が付いている & /preview or /user_cards のときだけ隠す
+  */
+  const hasId = new URLSearchParams(location.search).has('id');
+  const path  = location.pathname || '';
+  const isViewPage = hasId && (path.startsWith('/preview') || path.startsWith('/user_cards/'));
 
-  const youtubeBatsu = document.querySelector('.youtube-section .sns-delete-btn');
-  if (youtubeBatsu) youtubeBatsu.style.display = 'none';
+  if (isViewPage) {
+    const toolbar = document.getElementById('toolbar');
+    if (toolbar) toolbar.style.display = 'none';
 
-  const youtubeInput = document.getElementById('youtube-url');
-  const youtubeButton = document.querySelector('.youtube-section button');
-  if (youtubeInput) youtubeInput.style.display = 'none';
-  if (youtubeButton) youtubeButton.style.display = 'none';
+    const youtubeBatsu = document.querySelector('.youtube-section .sns-delete-btn');
+    if (youtubeBatsu) youtubeBatsu.style.display = 'none';
 
-  const spotifyInput = document.getElementById('spotify-url');
-  const spotifyButton = document.querySelector('#spotify-section button');
-  if (spotifyInput) spotifyInput.style.display = 'none';
-  if (spotifyButton) spotifyButton.style.display = 'none';
+    const youtubeInput = document.getElementById('youtube-url');
+    const youtubeButton = document.querySelector('.youtube-section button');
+    if (youtubeInput) youtubeInput.style.display = 'none';
+    if (youtubeButton) youtubeButton.style.display = 'none';
 
-  const templateButton = document.querySelector('.deletable-templates');
-  if (templateButton) templateButton.style.display = 'none';
+    const spotifyInput = document.getElementById('spotify-url');
+    const spotifyButton = document.querySelector('#spotify-section button');
+    if (spotifyInput) spotifyInput.style.display = 'none';
+    if (spotifyButton) spotifyButton.style.display = 'none';
 
-  const selfPRTemplateButton = document.querySelector('.self-pr-template-section');
-  if (selfPRTemplateButton) selfPRTemplateButton.style.display = 'none';
+    const templateButton = document.querySelector('.deletable-templates');
+    if (templateButton) templateButton.style.display = 'none';
 
-  const extraBatsu = document.querySelector('#extra-text-wrapper .sns-delete-btn');
-  if (extraBatsu) extraBatsu.style.display = 'none';
-  const diagnosisBatsu = document.querySelector('#diagnosis-wrapper .sns-delete-btn');
-  if (diagnosisBatsu) diagnosisBatsu.style.display = 'none';
-  const externalBatsu = document.querySelector('#external-link-section .sns-delete-btn');
-  if (externalBatsu) externalBatsu.style.display = 'none';
-  const spotifyBatsu = document.querySelector('#spotify-section .sns-delete-btn');
-  if (spotifyBatsu) spotifyBatsu.style.display = 'none';
-  const selfPRBatsu = document.querySelector('#self-pr-section .sns-delete-btn');
-  if (selfPRBatsu) selfPRBatsu.style.display = 'none';
-  const snsExplain = document.getElementById('sns-explain');
-  if (snsExplain) snsExplain.style.display = 'none';
+    const selfPRTemplateButton = document.querySelector('.self-pr-template-section');
+    if (selfPRTemplateButton) selfPRTemplateButton.style.display = 'none';
 
-  ['instagram', 'line', 'bereal', 'x', 'tiktok'].forEach(service => {
-    const url = urls[service];
-    if (url) {
-      const icon = document.querySelector(`.sns-icon-bar img[onclick*="${service}"]`);
-      if (icon) {
-        const linkWrapper = document.createElement('a');
-        linkWrapper.href = url;
-        linkWrapper.target = '_blank';
-        linkWrapper.appendChild(icon.cloneNode(true));
-        icon.replaceWith(linkWrapper);
+    const extraBatsu = document.querySelector('#extra-text-wrapper .sns-delete-btn');
+    if (extraBatsu) extraBatsu.style.display = 'none';
+    const diagnosisBatsu = document.querySelector('#diagnosis-wrapper .sns-delete-btn');
+    if (diagnosisBatsu) diagnosisBatsu.style.display = 'none';
+    const externalBatsu = document.querySelector('#external-link-section .sns-delete-btn');
+    if (externalBatsu) externalBatsu.style.display = 'none';
+    const spotifyBatsu = document.querySelector('#spotify-section .sns-delete-btn');
+    if (spotifyBatsu) spotifyBatsu.style.display = 'none';
+    const selfPRBatsu = document.querySelector('#self-pr-section .sns-delete-btn');
+    if (selfPRBatsu) selfPRBatsu.style.display = 'none';
+    const snsExplain = document.getElementById('sns-explain');
+    if (snsExplain) snsExplain.style.display = 'none';
+  }
+  /* ========= ここまで ========= */
+
+  // アイコンの <a> 置換はプレビュー側でやるのが綺麗だが、
+  // もしここで必要なら同様に isViewPage 条件で実行
+  if (isViewPage) {
+    ['instagram', 'line', 'bereal', 'x', 'tiktok'].forEach(service => {
+      const url = (window.urls && window.urls[service]) || '';
+      if (url) {
+        const icon = document.querySelector(`.sns-icon-bar img[onclick*="${service}"]`);
+        if (icon) {
+          const linkWrapper = document.createElement('a');
+          linkWrapper.href = url;
+          linkWrapper.target = '_blank';
+          linkWrapper.appendChild(icon.cloneNode(true));
+          icon.replaceWith(linkWrapper);
+        }
       }
-    }
-  });
+    });
+  }
 
   const profileImg = document.getElementById("profile-img");
   if (profileImg && profileImg.src.startsWith("blob:")) {
@@ -1149,6 +1165,8 @@ document.getElementById('finish-button').addEventListener('click', async () => {
   }
 
   finishBtn.style.display = 'none';
+});
+
 
   /* 以下の処理はHTML生成の旧仕様としてコメントアウト中
 
@@ -3090,65 +3108,69 @@ text.addEventListener('click', enableEditing);
   /***********************
  *  🌐 SNS Setups（このブロックを丸ごと置き換え）
  ***********************/
-  const SNS_KEYS = ['instagram','line','bereal','x','tiktok'];
-  const snsLinks = Object.fromEntries(SNS_KEYS.map(k => [k, '']));
-  const SNS_OFFICIAL = {
-    instagram: 'https://www.instagram.com/',
-    line:      'https://line.me/ja/',
-    bereal:    'https://bere.al/',
-    x:         'https://twitter.com/',
-    tiktok:    'https://www.tiktok.com/'
-  };
-  let __currentId = null;
+const SNS_KEYS = ['instagram','line','bereal','x','tiktok'];
+const snsLinks = Object.fromEntries(SNS_KEYS.map(k => [k, '']));
+const SNS_OFFICIAL = {
+  instagram: 'https://www.instagram.com/',
+  line:      'https://line.me/ja/',
+  bereal:    'https://bere.al/',
+  x:         'https://twitter.com/',
+  tiktok:    'https://www.tiktok.com/'
+};
+let __currentId = null;
 
-  // SNSアイコン初回クリック判定用フラグ（各サービスごとに1回目かどうか）
-  const __snsOpenedOnce = Object.fromEntries(SNS_KEYS.map(k => [k, false]));
+// SNSアイコン初回クリック判定用フラグ（各サービスごとに1回目かどうか）
+const __snsOpenedOnce = Object.fromEntries(SNS_KEYS.map(k => [k, false]));
 
-  // クリック挙動：1回目=公式 / 2回目=入力欄 / 入力済みなら以後はユーザーURLへ
-  window.handleIconClick = function(type){
-    const inp   = document.getElementById(`input-${type}`);
-    const saved = (snsLinks[type] || inp?.value || '').trim();
-    const first = __snsOpenedOnce[type] !== true;
+// クリック挙動：1回目=公式 / 2回目=入力欄 / 入力済みなら以後はユーザーURLへ
+window.handleIconClick = function(type){
+  const inp   = document.getElementById(`input-${type}`);
+  const saved = (snsLinks[type] || inp?.value || '').trim(); // Firestoreからの復元や手入力も拾う
+  const first = __snsOpenedOnce[type] !== true;
 
-    if (first) {
-      __snsOpenedOnce[type] = true;
-      const url = SNS_OFFICIAL[type];
-      if (url) window.open(url, '_blank', 'noopener');
-      return;
+  // 1回目は公式へ
+  if (first) {
+    __snsOpenedOnce[type] = true;
+    const url = SNS_OFFICIAL[type];
+    if (url) window.open(url, '_blank', 'noopener');
+    return;
+  }
+
+  // 2回目以降：入力済みURLがあればそちらへ、無ければ入力欄を表示
+  if (saved) {
+    window.open(saved, '_blank', 'noopener');
+    return;
+  }
+
+  if (inp) {
+    inp.style.display = 'block';
+    inp.scrollIntoView?.({ block: 'center', inline: 'nearest' });
+    inp.focus();
+  }
+};
+
+// 入力欄 onblur：保存＆非表示（値が空なら次回も入力欄、値があれば次回はURLへ）
+window.handleBlur = async function(type){
+  const inputEl = document.getElementById(`input-${type}`);
+  const v = inputEl?.value.trim() || '';
+  snsLinks[type] = v;
+
+  // 入力欄は閉じる
+  if (inputEl) inputEl.style.display = 'none';
+
+  // Firestore（再編集中のみ）
+  if (__currentId) {
+    try {
+      await setDoc(doc(db, 'cards', __currentId), { [type]: v }, { merge: true });
+      L('sns.autosave', { type, v });
+    } catch(e) {
+      W('sns.autosave.fail', e);
     }
-
-    if (saved) {
-      window.open(saved, '_blank', 'noopener');
-      return;
-    }
-
-    if (inp) {
-      inp.style.display = 'block';
-      inp.scrollIntoView?.({ block: 'center', inline: 'nearest' });
-      inp.focus();
-    }
-  };
-
-  // 入力欄 onblur：保存＆非表示
-  window.handleBlur = async function(type){
-    const inputEl = document.getElementById(`input-${type}`);
-    const v = inputEl?.value.trim() || '';
-    snsLinks[type] = v;
-
-    if (inputEl) inputEl.style.display = 'none';
-
-    if (__currentId) {
-      try {
-        await setDoc(doc(db, 'cards', __currentId), { [type]: v }, { merge: true });
-        L('sns.autosave', { type, v });
-      } catch(e) {
-        W('sns.autosave.fail', e);
-      }
-    }
-  };
+  }
+};
 
   /***********************
-   *  🎵 YouTube / Spotify
+   *  🎵 YouTube / Spotify  ←★ 追加ブロック（追記）
    ***********************/
   const LINKS_DRAFT_KEY = "fureta_draft_links";
   const readLinksDraft  = () => JSON.parse(localStorage.getItem(LINKS_DRAFT_KEY) || "{}");
@@ -3206,6 +3228,7 @@ text.addEventListener('click', enableEditing);
         frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>` : "";
   }
 
+  // HTMLのonclickから呼ばれる
   window.embedYouTubeVideo = async function (){
     const raw = document.getElementById('youtube-url')?.value?.trim();
     if (!raw) return;
@@ -3222,6 +3245,7 @@ text.addEventListener('click', enableEditing);
     renderSpotify(norm.embedUrl);
     await saveLinks({ spotify: norm });
   };
+  // ✕ボタン
   window.hideYouTubeSection = async function (){
     const i = document.getElementById('youtube-url'); if (i) i.value = '';
     renderYouTube(''); await saveLinks({ youtube:null });
@@ -3283,12 +3307,12 @@ text.addEventListener('click', enableEditing);
     const params = new URLSearchParams(window.location.search);
     const id = params.get('id');
     L('params', { id });
-    __currentId = id;
+    __currentId = id; // ★ SNSオートセーブ用に共有
 
     const profileImg      = document.getElementById('profile-img');
     const profileInput    = document.getElementById('profile-input');
     const profileUrlInput = document.getElementById('profile-url');
-    const bgInputs        = Array.from(document.querySelectorAll('#background-input'));
+    const bgInputs        = Array.from(document.querySelectorAll('#background-input')); // 重複ID対応
     const bgUrlInput      = document.getElementById('background-url');
     const backgroundEl    = document.body;
 
@@ -3303,13 +3327,19 @@ text.addEventListener('click', enableEditing);
     let backgroundURL = '';
     let uploadingBg = false;
 
-    // テンプレ背景
+    // ★ テンプレ背景を適用＆Firestoreに保存（HTMLの onclick から呼ばれる）
     window.setBackground = async function(url) {
       try {
         L('bg.theme.click', { url });
+
+        // 画面に即反映（CDN待ち＋キャッシュバスター付き）
         await setBackgroundImageForce(backgroundEl, url);
+
+        // フォーム値/状態を更新（saveAndRedirect が拾う）
         backgroundURL = url;
         if (bgUrlInput) bgUrlInput.value = url;
+
+        // 再編集中なら即Firestore保存
         if (typeof db !== 'undefined' && typeof id !== 'undefined' && id) {
           await setDoc(doc(db, "cards", id), { backgroundUrl: url }, { merge: true });
           L('bg.theme.saved', { id, url });
@@ -3320,9 +3350,17 @@ text.addEventListener('click', enableEditing);
       }
     };
 
+    // ❌ プロフィールの programmatic click は削除（背景と同じ「onclick起動」前提）
+    // profileImg?.addEventListener('click', () => {
+    //   L('profileImg.click');
+    //   if (profileInput) profileInput.value = "";
+    //   profileInput?.click();
+    // });
+
+    // 同じファイルでも発火させるため、input 自身をタップした時は value を都度クリア
     profileInput?.addEventListener('click', () => { profileInput.value = ""; });
 
-    // 再編集ロード
+    // ---- 再編集ロード
     (async () => {
       if (!id) { L('edit.skip.noId'); return; }
       L('edit.load', { id });
@@ -3332,6 +3370,7 @@ text.addEventListener('click', enableEditing);
         const data = snap.data();
         L('edit.data', data);
 
+        // ★ ここを置換：ID → Firestoreキーのマッピングで復元
         const setVal = (i, v) => { const el = document.getElementById(i); if (el) el.value = v || ''; };
         const fieldMap = {
           name: 'name',
@@ -3345,6 +3384,7 @@ text.addEventListener('click', enableEditing);
         };
         Object.entries(fieldMap).forEach(([idKey, dataKey]) => setVal(idKey, data[dataKey]));
 
+        // ★ SNS復元（保存済みなら各入力欄に反映）
         SNS_KEYS.forEach(key => {
           if (data[key]) {
             snsLinks[key] = data[key];
@@ -3353,6 +3393,7 @@ text.addEventListener('click', enableEditing);
           }
         });
 
+        // ★ YouTube / Spotify 復元（Firestore > draft）
         const links = data?.links || readLinksDraft();
         if (links?.youtube?.embedUrl){
           const y = document.getElementById('youtube-url'); if (y) y.value = links.youtube.rawUrl || "";
@@ -3379,14 +3420,15 @@ text.addEventListener('click', enableEditing);
       } catch (e) { E('edit.load.fail', e); }
     })();
 
-    // プロフィール画像アップロード
+    // ---- プロフィール画像: 直接 change で処理（背景と同じに統一）
     profileInput?.addEventListener('change', async (e) => {
       const file = e.target.files?.[0];
       L('profile.change(DIRECT)', { hasFile: !!file, uploading: __pfUploading });
       await handleProfileFile(file, { id, profileImg, profileUrlInput });
-      e.target.value = '';
+      e.target.value = '';   // 同じファイルでも再選択できるように
     });
 
+    // ---- iOS保険: フォーカス戻り & ポーリングで files を検知
     (function installProfileFallback(){
       const input = profileInput;
       const img   = profileImg;
@@ -3408,13 +3450,14 @@ text.addEventListener('click', enableEditing);
       }, true);
       window.addEventListener('pageshow', () => tryPick('pageshow'), true);
 
+      // 画像クリック後に短時間ポーリング（選択直後の取りこぼし防止）
       img?.addEventListener('click', () => {
         let n = 0;
         const t = setInterval(() => { n++; tryPick('poll'); if (n >= 5) clearInterval(t); }, 500);
       });
     })();
 
-    // 背景画像アップロード
+    // ---- 背景画像アップロード（重複IDすべて）
     bgInputs.forEach((bgInput, idx) => {
       bgInput?.addEventListener('click', () => { bgInput.value = ""; });
       bgInput?.addEventListener('change', async (e) => {
@@ -3470,7 +3513,7 @@ text.addEventListener('click', enableEditing);
       });
     });
 
-    // ---- 保存（同意→保存→/preview?id=...へ遷移）
+    // ---- 保存
     document.getElementById('finish-button')?.addEventListener('click', () => {
       L('finish.click');
       const checkbox = document.getElementById('agree-checkbox');
@@ -3506,6 +3549,7 @@ text.addEventListener('click', enableEditing);
       const targetId = id || (globalThis.crypto?.randomUUID?.() ?? makeId());
       const getVal = (i) => document.getElementById(i)?.value || "";
 
+      // ▼ 追加：YouTube/Spotifyのドラフトも保存に含める
       const linksDraft = readLinksDraft();
 
       const data = {
@@ -3515,12 +3559,13 @@ text.addEventListener('click', enableEditing);
         department: getVal("department"),
         birthplace: getVal("birthplace"),
         hobby: getVal("hobby"),
-        selfPr: getVal("self-pr-textarea"),
-        extraText: getVal("extra-text"),
+        selfPr: getVal("self-pr-textarea"),   // ★ 追加：自己PR
+        extraText: getVal("extra-text"),      // ★ 追加：記入欄
         imageUrl: finalProfileURL,
         backgroundUrl: finalBackgroundURL,
+        // ★ SNSリンクをまとめて保存
         ...snsLinks,
-        ...(linksDraft ? { links: linksDraft } : {})
+        ...(linksDraft ? { links: linksDraft } : {}) // ★ 追加：YouTube/Spotify
       };
 
       try {
@@ -3535,40 +3580,8 @@ text.addEventListener('click', enableEditing);
         alert("保存に失敗しました: " + e.message);
       }
     }
-
-    /*** ここから：id付きの /preview /user_cards でだけ編集UIを隠す ***/
-    function softHideEditingUI() {
-      const HIDE_TARGETS = [
-        '.toolbar',
-        '.text-style-toolbar',
-        '.sns-delete-btn',
-        '.deco-delete-btn',
-        '.text-stamp-delete-btn',
-        '.youtube-section button',
-        '#spotify-section button',
-        '#youtube-url',
-        '#spotify-url',
-        '.deletable-templates',
-        '.self-pr-template-section',
-        '#sns-explain'
-      ];
-      document.querySelectorAll(HIDE_TARGETS.join(',')).forEach(el => {
-        el.style.display = 'none';
-      });
-      document.getElementById('edit-toggle')?.style && (document.getElementById('edit-toggle').style.display = 'none');
-      document.getElementById('return-toggle')?.style && (document.getElementById('return-toggle').style.display = 'none');
-    }
-
-    const hasId = new URLSearchParams(window.location.search).has('id');
-    const path  = window.location.pathname || '';
-    const isPreviewOrFinal =
-      (path.startsWith('/preview') || path.startsWith('/user_cards/'));
-
-    if (hasId && isPreviewOrFinal) {
-      softHideEditingUI();
-    }
-    /*** ここまで ***/
   });
+  
 </script>
 
 
