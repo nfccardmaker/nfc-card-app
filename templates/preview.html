@@ -3590,45 +3590,57 @@ window.handleBlur = async function(type){
     }
   });
 
-  /* ====== ここから追加（完成/プレビューで編集UIを隠す） ====== */
-  window.addEventListener('DOMContentLoaded', () => {
-    const params = new URLSearchParams(location.search);
-    const hasId  = params.has('id');
-    const path   = location.pathname || '';
-    const isView = hasId && (path.startsWith('/preview') || path.startsWith('/user_cards'));
+/* ====== 完成/プレビューで編集UIを隠す（ホワイトリストで残す） ====== */
+window.addEventListener('DOMContentLoaded', () => {
+  const params = new URLSearchParams(location.search);
+  const hasId  = params.has('id');
+  const path   = location.pathname || '';
+  const isView = hasId && (path.startsWith('/preview') || path.startsWith('/user_cards'));
+  if (!isView) return; // 作成中は何もしない
 
-    if (!isView) return; // 作成中は何もしない（表示のまま）
-
-   const HIDE_SELECTORS = [
-  '.toolbar',
-  '.text-style-toolbar',
-  '.sns-delete-btn',                      // 全てのSNS ×
-  '.deco-delete-btn',
-  '.text-stamp-delete-btn',
-  '.youtube-section button',              // YouTube反映ボタン
-  '#spotify-section button',              // Spotify反映ボタン
-  '#youtube-url',                         // YouTube入力欄
-  '#spotify-url',                         // Spotify入力欄
-  '#sns-explain',                         // メッセージ
-  '.self-pr-template-section .sns-delete-btn', // 自己PRテンプレの×
-  '#diagnosis-wrapper .sns-delete-btn',   // 特徴ボタンの×
-  '#extra-text-wrapper .sns-delete-btn',
-  '#external-link-section .sns-delete-btn',
-  '#self-pr-section .sns-delete-btn',
-  '#spotify-section .sns-delete-btn'
-];
-
-    document.querySelectorAll(HIDE_SELECTORS.join(',')).forEach(el => {
-      try { el.style.display = 'none'; } catch {}
-    });
-
-    // 目アイコン/戻るも隠す（存在する場合のみ）
-    const editToggle = document.getElementById('edit-toggle');
-    if (editToggle) editToggle.style.display = 'none';
-    const returnToggle = document.getElementById('return-toggle');
-    if (returnToggle) returnToggle.style.display = 'none';
+  // まず「消すもの」を一括で隠す
+  const HIDE_SELECTORS = [
+    '.toolbar',
+    '.text-style-toolbar',
+    '.sns-delete-btn',
+    '.deco-delete-btn',
+    '.text-stamp-delete-btn',
+    '.youtube-section button',   // YouTube 反映
+    '#spotify-section button',   // Spotify 反映
+    '#youtube-url',              // YouTube 入力
+    '#spotify-url',              // Spotify 入力
+    '#sns-explain',              // メッセージ
+    '#extra-text-wrapper .sns-delete-btn',
+    '#diagnosis-wrapper .sns-delete-btn',
+    '#external-link-section .sns-delete-btn',
+    '#self-pr-section .sns-delete-btn',
+    '#spotify-section .sns-delete-btn',
+    '#pr-template-buttons',      // 自己PRテンプレの項目群
+    '.self-pr-template-section .sns-delete-btn'
+  ];
+  document.querySelectorAll(HIDE_SELECTORS.join(',')).forEach(el => {
+    try { el.style.display = 'none'; } catch {}
   });
-  /* ====== 追加ここまで ====== */
+
+  // 🔒 ここから“残すもの”を強制表示（他の処理で消されても勝つ）
+  const FORCE_SHOW = [
+    '#diagnosis-wrapper',                     // ラッパーごと表示
+    '#diagnosis-wrapper #diagnosis-button',   // 〇〇さんの特徴！
+    '#self-pr-section',                       // 自己PRエリア本体
+    '#self-pr-section button[onclick="analyzeSelfPR()"]'  // 分析して表示
+  ];
+  FORCE_SHOW.forEach(sel => {
+    const el = document.querySelector(sel);
+    if (el) el.style.display = 'block';
+  });
+
+  // 目アイコン/戻るは完成ビューで非表示
+  const editToggle = document.getElementById('edit-toggle');
+  if (editToggle) editToggle.style.display = 'none';
+  const returnToggle = document.getElementById('return-toggle');
+  if (returnToggle) returnToggle.style.display = 'none';
+});
+
 </script>
 
 
