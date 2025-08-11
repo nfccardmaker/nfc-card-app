@@ -3599,25 +3599,27 @@ window.handleBlur = async function(type){
 
     if (!isView) return; // 作成中は何もしない（表示のまま）
 
-    const HIDE_SELECTORS = [
-      '.toolbar',
-      '.text-style-toolbar',
-      '.sns-delete-btn',
-      '.deco-delete-btn',
-      '.text-stamp-delete-btn',
-      '.youtube-section button',
-      '#spotify-section button',
-      '#youtube-url',
-      '#spotify-url',
-      '.deletable-templates',
-      '.self-pr-template-section',
-      '#sns-explain',
-      '#extra-text-wrapper .sns-delete-btn',
-      '#diagnosis-wrapper .sns-delete-btn',
-      '#external-link-section .sns-delete-btn',
-      '#self-pr-section .sns-delete-btn',
-      '#spotify-section .sns-delete-btn'
-    ];
+   const HIDE_SELECTORS = [
+  '.toolbar',
+  '.text-style-toolbar',
+  '.sns-delete-btn',                      // × は消す（共通）
+  '.deco-delete-btn',
+  '.text-stamp-delete-btn',
+  '.youtube-section button',
+  '#spotify-section button',
+  '#youtube-url',
+  '#spotify-url',
+  // '.deletable-templates',              // ← 丸ごとは隠さない
+  // '.self-pr-template-section',         // ← 丸ごとは隠さない
+  '.self-pr-template-section .sns-delete-btn', // 自己PRエリアの × だけ消す
+  '#pr-template-buttons',                // テンプレの項目ボタン群は隠す
+  '#sns-explain',
+  '#extra-text-wrapper .sns-delete-btn',
+  '#diagnosis-wrapper .sns-delete-btn',  // 特徴ボタンの × だけ消す（本体は残る）
+  '#external-link-section .sns-delete-btn',
+  '#self-pr-section .sns-delete-btn',
+  '#spotify-section .sns-delete-btn'
+];
 
     document.querySelectorAll(HIDE_SELECTORS.join(',')).forEach(el => {
       try { el.style.display = 'none'; } catch {}
