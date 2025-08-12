@@ -1617,6 +1617,12 @@ function startDiagnosis() {
   } else {
     type += 'P';
   }
+// ★ MBTI保存（DONEフラグ解除→保存実行）
+try {
+  const curId = new URLSearchParams(location.search).get('id') || 'draft';
+  localStorage.removeItem(`mbti_saved_done_${curId}`);
+} catch(_) {}
+window.setMbtiResult && window.setMbtiResult(type); // ← ローカル保存 + ?id=ありならFirestore保存
 
 
 
