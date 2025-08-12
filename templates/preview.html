@@ -2982,6 +2982,8 @@ text.addEventListener('click', enableEditing);
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
   import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
   import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
+  /* ★ 追加：timestamp 用 */
+  import { serverTimestamp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBCnMBQjzoxViJPv3YqpZDD_PXQEe2QTsA",
@@ -2995,6 +2997,33 @@ text.addEventListener('click', enableEditing);
   const db  = getFirestore(app);
   const storage = getStorage(app, "gs://nfc-card-app-79464");
   L('BOOT', 'Firebase initialized');
+
+  /* ★ 追加：MBTI 保存の橋渡し関数（他の<script>からも使える） */
+  function __getCurrentId() {
+    // __currentId が設定済みならそちらを優先
+    return (typeof __currentId !== 'undefined' && __currentId)
+        || new URLSearchParams(location.search).get('id')
+        || null;
+  }
+  window.saveMbtiDraftLocal = function(type){
+    const id = __getCurrentId() || 'draft';
+    localStorage.setItem(`mbti_${id}`, type);
+    L('MBTI.draft.save', { id, type });
+  };
+  window.saveMbtiToCloud = async function(type, opts = {}) {
+    const id = __getCurrentId();
+    if (!id) { W('MBTI.cloud.skip.noId', { type }); return; }
+    const payload = { mbti: { type, updatedAt: serverTimestamp() } };
+    if (Array.isArray(opts.labels) && Array.isArray(opts.values)) {
+      payload.chart = { labels: opts.labels, values: opts.values };
+    }
+    try {
+      await setDoc(doc(db, "cards", id), payload, { merge: true });
+      L('MBTI.cloud.saved', { id, type, hasChart: !!payload.chart });
+    } catch (e) {
+      W('MBTI.cloud.fail', e);
+    }
+  };
 
   /***********************
    *  🧰 Utils
@@ -3197,7 +3226,8 @@ window.handleBlur = async function(type){
       if (u.hostname.includes("youtu.be")) videoId = u.pathname.slice(1);
       else if (u.pathname.startsWith("/shorts/")) videoId = u.pathname.split("/")[2] || "";
       else if (u.pathname.startsWith("/embed/"))  videoId = u.pathname.split("/")[2] || "";
-      else videoId = u.searchParams.get("v") || "";
+      else videoId = u.searchParams.get("v") || ""
+      ;
       if (!videoId) return null;
       return { rawUrl: url, videoId, embedUrl: `https://www.youtube.com/embed/${videoId}` };
     } catch { return null; }
@@ -3657,8 +3687,6 @@ window.addEventListener('DOMContentLoaded', () => {
   const returnToggle = document.getElementById('return-toggle');
   if (returnToggle) returnToggle.style.display = 'none';
 });
-
-
 </script>
 
 
