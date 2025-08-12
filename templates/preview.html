@@ -2993,6 +2993,7 @@ text.addEventListener('click', enableEditing);
   };
   const app = initializeApp(firebaseConfig);
   const db  = getFirestore(app);
+  window.__mbtiWrite = (id, payload) => setDoc(doc(db, "cards", id), payload, { merge: true });
   const storage = getStorage(app, "gs://nfc-card-app-79464");
   L('BOOT', 'Firebase initialized');
 
@@ -3659,6 +3660,124 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 
+</script>
+<script>
+/* ======================================================
+ *  🔷 MBTI 自動保存スニペット（このファイル用の直書き版）
+ *     - 「〇〇さんの特徴」でMBTI(ENFP/ISTJ等)が表示されたら即保存
+ *     - Firestore: cards/<id>.mbti.type と updatedAt(Date)
+ *     - localStorage: mbti_<id> と my_mbti
+ * ====================================================== */
+(function installMbtiAutoSave(){
+  // ページの id（なければ draft）
+  const params = new URLSearchParams(location.search);
+  const curId  = params.get('id') || 'draft';
+  const MBTI_RE = /\b(INFJ|INFP|INTJ|INTP|ISFJ|ISFP|ISTJ|ISTP|ENFJ|ENFP|ENTJ|ENTP|ESFJ|ESFP|ESTJ|ESTP)\b/i;
+  const DONE_KEY = `mbti_saved_done_${curId}`;
+
+  function alreadyDone(){ return localStorage.getItem(DONE_KEY) === '1'; }
+  function markDone(){ try { localStorage.setItem(DONE_KEY, '1'); } catch {} }
+
+  async function persistMBTI(type){
+    if (!type) return;
+    const upper = String(type).toUpperCase();
+
+    try {
+      // localStorage 保存（カード別・共通）
+      localStorage.setItem(`mbti_${curId}`, upper);
+      localStorage.setItem('my_mbti', upper);
+
+      // Firestore 保存（?id があるときだけ）
+      if (params.has('id') && typeof window.setDoc === 'undefined') {
+        // 何もしない（ESM内の setDoc/doc/db はモジュールスコープだから直接は触れない）
+      }
+      if (params.has('id')) {
+        // 上の制約を回避：モジュール側で作った db / setDoc / doc に window 経由でアクセスできないため、
+        // ここは try-catch で呼んでみて、失敗したら静かにスキップ
+        try {
+          // モジュール内の db/doc/setDoc に触れないので、素直に再インポートは不可（type="module"外）
+          // -> 代替として、モジュールで作られたグローバル関数が無い前提なので、
+          //    ここでは Firestore 書き込みは「存在すれば実行」パターンにしておく
+          //    具体的には、モジュール内に次の関数を追加できるならベスト：
+          //    window.__mbtiWrite = (id, payload) => setDoc(doc(db,"cards",id), payload, {merge:true})
+          if (typeof window.__mbtiWrite === 'function') {
+            await window.__mbtiWrite(params.get('id'), { mbti: { type: upper, updatedAt: new Date() } });
+          }
+        } catch(e){
+          (window.W||console.warn)('MBTI.firestore.write.fail', e);
+        }
+      }
+
+      (window.L||console.log)('MBTI.persist.done', { type: upper });
+      markDone();
+    } catch(e){
+      (window.W||console.warn)('MBTI.persist.fail', e);
+    }
+  }
+
+  // 明示呼び出しフック（分析コードから直接呼べる）
+  window.setMbtiResult = function(type){
+    if (!type || alreadyDone()) return;
+    persistMBTI(type);
+  };
+
+  // DOM監視（自動検出）
+  const CANDIDATE_SELECTORS = [
+    '#diagnosis-result',
+    '#analysis-result',
+    '#mbti-result',
+    '#result',
+    '.diagnosis-result',
+    '.analysis-result'
+  ];
+  function extractTypeFrom(el){
+    if (!el) return null;
+    const text = (el.innerText || el.textContent || '').toUpperCase();
+    const m = text.match(MBTI_RE);
+    return m ? m[1].toUpperCase() : null;
+  }
+  function startObserver(target){
+    if (!target || alreadyDone()) return;
+    const obs = new MutationObserver(() => {
+      if (alreadyDone()) { try { obs.disconnect(); } catch{} return; }
+      const t = extractTypeFrom(target);
+      if (t) { persistMBTI(t); try { obs.disconnect(); } catch{} }
+    });
+    obs.observe(target, { childList:true, subtree:true, characterData:true });
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    if (alreadyDone()) return;
+
+    let hooked = false;
+    for (const sel of CANDIDATE_SELECTORS) {
+      const el = document.querySelector(sel);
+      if (el) { startObserver(el); hooked = true; }
+    }
+    if (!hooked) {
+      const obsAll = new MutationObserver(() => {
+        if (alreadyDone()) { try { obsAll.disconnect(); } catch{} return; }
+        const t = extractTypeFrom(document.body);
+        if (t) { persistMBTI(t); try { obsAll.disconnect(); } catch{} }
+      });
+      obsAll.observe(document.body, { childList:true, subtree:true, characterData:true });
+    }
+
+    // 〇〇さんの特徴ボタンがあれば、クリック後に短期ポーリング
+    const btn = document.getElementById('diagnosis-button');
+    if (btn) {
+      btn.addEventListener('click', () => {
+        let n = 0;
+        const t = setInterval(() => {
+          if (alreadyDone()) { clearInterval(t); return; }
+          const tt = extractTypeFrom(document.body);
+          if (tt) { persistMBTI(tt); clearInterval(t); }
+          if (++n > 20) clearInterval(t); // 最大10秒
+        }, 500);
+      });
+    }
+  });
+})();
 </script>
 
 
