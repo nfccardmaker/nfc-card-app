@@ -2980,7 +2980,7 @@ text.addEventListener('click', enableEditing);
    *  🔥 Firebase
    ***********************/
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+  import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
   import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
 
   const firebaseConfig = {
@@ -2993,7 +2993,39 @@ text.addEventListener('click', enableEditing);
   };
   const app = initializeApp(firebaseConfig);
   const db  = getFirestore(app);
+
+  /* ▼▼▼ 追加：MBTI 保存ブリッジ（最小追加） ▼▼▼ */
+  function __getCurrentId() {
+    return (typeof __currentId !== 'undefined' && __currentId)
+        || new URLSearchParams(location.search).get('id')
+        || null;
+  }
+  window.saveMbtiDraftLocal = function(type){
+    const id = __getCurrentId() || 'draft';
+    try {
+      localStorage.setItem(`mbti_${id}`, String(type).toUpperCase());
+      localStorage.setItem('my_mbti', String(type).toUpperCase());
+    } catch(_) {}
+    L('MBTI.draft.save', { id, type });
+  };
+  window.saveMbtiToCloud = async function(type, opts = {}) {
+    const id = __getCurrentId();
+    if (!id) { W('MBTI.cloud.skip.noId', { type }); return; }
+    const payload = { mbti: { type: String(type).toUpperCase(), updatedAt: serverTimestamp() } };
+    if (Array.isArray(opts.labels) && Array.isArray(opts.values)) {
+      payload.chart = { labels: opts.labels, values: opts.values };
+    }
+    try {
+      await setDoc(doc(db, "cards", id), payload, { merge: true });
+      L('MBTI.cloud.saved', { id, type, hasChart: !!payload.chart });
+    } catch (e) {
+      W('MBTI.cloud.fail', e);
+    }
+  };
+  // 非module側から安全に呼べるように薄いラッパーも用意
   window.__mbtiWrite = (id, payload) => setDoc(doc(db, "cards", id), payload, { merge: true });
+  /* ▲▲▲ 追加ここまで ▲▲▲ */
+
   const storage = getStorage(app, "gs://nfc-card-app-79464");
   L('BOOT', 'Firebase initialized');
 
@@ -3476,11 +3508,7 @@ window.handleBlur = async function(type){
           L('bg.file', { name: file.name, type: file.type, size: file.size });
           const newPath = `backgrounds/${makeId()}`;
           const fileRef = ref(storage, newPath);
-          L('bg.path', fileRef.fullPath);
-
           const jpegBlob = await forceJpegBlob(file);
-          L('bg.jpegBlob', { size: jpegBlob.size });
-
           await uploadBytes(fileRef, jpegBlob, {
             contentType: 'image/jpeg',
             cacheControl: 'no-store, no-cache, must-revalidate, max-age=0'
@@ -3658,56 +3686,37 @@ window.addEventListener('DOMContentLoaded', () => {
   const returnToggle = document.getElementById('return-toggle');
   if (returnToggle) returnToggle.style.display = 'none';
 });
-
-
 </script>
+
+<!-- ▼ MBTI自動保存（診断結果を検出して保存）：module外に追加 -->
 <script>
 /* ======================================================
- *  🔷 MBTI 自動保存スニペット（このファイル用の直書き版）
- *     - 「〇〇さんの特徴」でMBTI(ENFP/ISTJ等)が表示されたら即保存
- *     - Firestore: cards/<id>.mbti.type と updatedAt(Date)
- *     - localStorage: mbti_<id> と my_mbti
+ *  🔷 MBTI 自動保存スニペット
+ *     - 「〇〇さんの特徴」でENFP/ISTJ等が出たら即保存
+ *     - Firestore: cards/<id>.mbti.{type, updatedAt}
+ *     - localStorage: mbti_<id>, my_mbti
  * ====================================================== */
 (function installMbtiAutoSave(){
-  // ページの id（なければ draft）
   const params = new URLSearchParams(location.search);
   const curId  = params.get('id') || 'draft';
   const MBTI_RE = /\b(INFJ|INFP|INTJ|INTP|ISFJ|ISFP|ISTJ|ISTP|ENFJ|ENFP|ENTJ|ENTP|ESFJ|ESFP|ESTJ|ESTP)\b/i;
   const DONE_KEY = `mbti_saved_done_${curId}`;
 
   function alreadyDone(){ return localStorage.getItem(DONE_KEY) === '1'; }
-  function markDone(){ try { localStorage.setItem(DONE_KEY, '1'); } catch {} }
+  function markDone(){ try { localStorage.setItem(DONE_KEY, '1'); } catch(_){} }
 
   async function persistMBTI(type){
     if (!type) return;
     const upper = String(type).toUpperCase();
-
     try {
-      // localStorage 保存（カード別・共通）
       localStorage.setItem(`mbti_${curId}`, upper);
       localStorage.setItem('my_mbti', upper);
 
-      // Firestore 保存（?id があるときだけ）
-      if (params.has('id') && typeof window.setDoc === 'undefined') {
-        // 何もしない（ESM内の setDoc/doc/db はモジュールスコープだから直接は触れない）
-      }
-      if (params.has('id')) {
-        // 上の制約を回避：モジュール側で作った db / setDoc / doc に window 経由でアクセスできないため、
-        // ここは try-catch で呼んでみて、失敗したら静かにスキップ
+      if (params.has('id') && typeof window.__mbtiWrite === 'function') {
         try {
-          // モジュール内の db/doc/setDoc に触れないので、素直に再インポートは不可（type="module"外）
-          // -> 代替として、モジュールで作られたグローバル関数が無い前提なので、
-          //    ここでは Firestore 書き込みは「存在すれば実行」パターンにしておく
-          //    具体的には、モジュール内に次の関数を追加できるならベスト：
-          //    window.__mbtiWrite = (id, payload) => setDoc(doc(db,"cards",id), payload, {merge:true})
-          if (typeof window.__mbtiWrite === 'function') {
-            await window.__mbtiWrite(params.get('id'), { mbti: { type: upper, updatedAt: new Date() } });
-          }
-        } catch(e){
-          (window.W||console.warn)('MBTI.firestore.write.fail', e);
-        }
+          await window.__mbtiWrite(params.get('id'), { mbti: { type: upper, updatedAt: new Date() } });
+        } catch(e){ (window.W||console.warn)('MBTI.firestore.write.fail', e); }
       }
-
       (window.L||console.log)('MBTI.persist.done', { type: upper });
       markDone();
     } catch(e){
@@ -3715,13 +3724,13 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // 明示呼び出しフック（分析コードから直接呼べる）
+  // 明示呼び出しAPI（診断処理から直接叩ける）
   window.setMbtiResult = function(type){
     if (!type || alreadyDone()) return;
     persistMBTI(type);
   };
 
-  // DOM監視（自動検出）
+  // DOM監視（候補要素／なければbody全体）
   const CANDIDATE_SELECTORS = [
     '#diagnosis-result',
     '#analysis-result',
@@ -3763,7 +3772,7 @@ window.addEventListener('DOMContentLoaded', () => {
       obsAll.observe(document.body, { childList:true, subtree:true, characterData:true });
     }
 
-    // 〇〇さんの特徴ボタンがあれば、クリック後に短期ポーリング
+    // 〇〇さんの特徴ボタン：クリック後に短期ポーリングで検出
     const btn = document.getElementById('diagnosis-button');
     if (btn) {
       btn.addEventListener('click', () => {
@@ -3779,7 +3788,6 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 })();
 </script>
-
 
 
 
