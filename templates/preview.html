@@ -3000,8 +3000,33 @@ text.addEventListener('click', enableEditing);
   const app = initializeApp(firebaseConfig);
   const db  = getFirestore(app);
 
-  /* ▼▼▼ 追加：MBTI 保存ブリッジ（最小追加） ▼▼▼ */
+  /* ▼▼▼ 追加：匿名ID生成＆URL反映（idが無くても書けるように） ▼▼▼ */
+  const ANON_KEY = 'anon_card_id_v1';
+  window.__getOrCreateId = function(){
+    const qs = new URLSearchParams(location.search);
+    const qsId = qs.get('id');
+    if (qsId) return qsId;
+
+    let anon = localStorage.getItem(ANON_KEY);
+    if (!anon) {
+      anon = (globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2));
+      try { localStorage.setItem(ANON_KEY, anon); } catch {}
+      // Firestoreに殻を作成（以後の merge が安定）
+      try { setDoc(doc(db, "cards", anon), { createdAt: serverTimestamp() }, { merge: true }); } catch {}
+    }
+    // URL に ?id= を付与（リロードなし）
+    try {
+      const url = new URL(location.href);
+      url.searchParams.set('id', anon);
+      history.replaceState(null, '', url.toString());
+    } catch {}
+    return anon;
+  };
+  /* ▲▲▲ 追加ここまで ▲▲▲ */
+
+  /* ▼▼ 既存のID取得ヘルパーを強化（まず匿名IDを確保） ▼▼ */
   function __getCurrentId() {
+    if (typeof window.__getOrCreateId === 'function') return window.__getOrCreateId();
     return (typeof __currentId !== 'undefined' && __currentId)
         || new URLSearchParams(location.search).get('id')
         || null;
@@ -3028,10 +3053,14 @@ text.addEventListener('click', enableEditing);
       W('MBTI.cloud.fail', e);
     }
   };
-  // 非module側から安全に呼べるように薄いラッパーも用意
-  window.__mbtiWrite = (id, payload) => setDoc(doc(db, "cards", id), payload, { merge: true });
+  // 非module側からも呼べるラッパー：id未指定なら匿名IDを補完
+  window.__mbtiWrite = async (id, payload) => {
+    const theId = id || (typeof window.__getOrCreateId === 'function' ? window.__getOrCreateId() : null);
+    if (!theId) throw new Error('No id available');
+    return setDoc(doc(db, "cards", theId), payload, { merge: true });
+  };
 
-  // ★★★ 追加: 診断側からワンライナーで保存できる明示API
+  // 診断側からワンライナーで保存できるAPI（既存）
   window.reportMbtiResult = function(type, opts = {}){
     try {
       const curId = new URLSearchParams(location.search).get('id') || 'draft';
@@ -3040,7 +3069,6 @@ text.addEventListener('click', enableEditing);
     try { window.saveMbtiDraftLocal?.(type); } catch(_) {}
     try { window.saveMbtiToCloud?.(type, opts); } catch(_) {}
   };
-  /* ▲▲▲ 追加ここまで ▲▲▲ */
 
   const storage = getStorage(app, "gs://nfc-card-app-79464");
   L('BOOT', 'Firebase initialized');
@@ -3357,7 +3385,9 @@ window.handleBlur = async function(type){
     L('DOM ready');
 
     const params = new URLSearchParams(window.location.search);
-    const id = params.get('id');
+    // ▼ ここで“確実に”idを用意（無ければ匿名IDを発行してURLに付与）
+    let id = params.get('id');
+    id = (typeof window.__getOrCreateId === 'function' ? window.__getOrCreateId() : id);
     L('params', { id });
     __currentId = id; // ★ SNSオートセーブ用に共有
 
@@ -3670,9 +3700,9 @@ window.addEventListener('DOMContentLoaded', () => {
     '#external-link-section .sns-delete-btn',
     '#self-pr-section .sns-delete-btn',
     '#spotify-section .sns-delete-btn',
-    '#pr-template-buttons',          // 自己PRテンプレ項目群
-    '.deletable-templates',          // ← 記入欄テンプレートのボタンを消す
-    '.self-pr-template-section'      // ← 自己PRテンプレのボタンも消す
+    '#pr-template-buttons',
+    '.deletable-templates',
+    '.self-pr-template-section'
   ];
   document.querySelectorAll(HIDE_SELECTORS.join(',')).forEach(el => {
     try { el.style.display = 'none'; } catch {}
@@ -3699,7 +3729,6 @@ window.addEventListener('DOMContentLoaded', () => {
   if (diagBtn) {
     diagBtn.style.display = 'inline-block';
     diagBtn.style.margin  = '12px auto';
-    // もしレイアウトを崩す指定が残っていた場合に備えて無効化
     diagBtn.style.position = 'relative';
     diagBtn.style.left = '';
     diagBtn.style.right = '';
@@ -3723,9 +3752,13 @@ window.addEventListener('DOMContentLoaded', () => {
  *     - localStorage: mbti_<id>, my_mbti
  * ====================================================== */
 (function installMbtiAutoSave(){
+  // ★ 1) 保存に使うIDを module側ヘルパー優先で取得（なければ従来のfallback）
   const params = new URLSearchParams(location.search);
-  const curId  = params.get('id') || 'draft';
-  const MBTI_RE = /\b(INFJ|INFP|INTJ|INTP|ISFJ|ISFP|ISTJ|ISTP|ENFJ|ENFP|ENTJ|ENTP|ESFJ|ESFP|ESTJ|ESTP)\b/i;
+  const curId  = (typeof window.__getOrCreateId === 'function'
+                  ? window.__getOrCreateId()
+                  : (params.get('id') || 'draft'));
+
+  const MBTI_RE  = /\b(INFJ|INFP|INTJ|INTP|ISFJ|ISFP|ISTJ|ISTP|ENFJ|ENFP|ENTJ|ENTP|ESFJ|ESFP|ESTJ|ESTP)\b/i;
   const DONE_KEY = `mbti_saved_done_${curId}`;
 
   function alreadyDone(){ return localStorage.getItem(DONE_KEY) === '1'; }
@@ -3735,14 +3768,17 @@ window.addEventListener('DOMContentLoaded', () => {
     if (!type) return;
     const upper = String(type).toUpperCase();
     try {
+      // ローカル保存
       localStorage.setItem(`mbti_${curId}`, upper);
       localStorage.setItem('my_mbti', upper);
 
-      if (params.has('id') && typeof window.__mbtiWrite === 'function') {
+      // ★ 2) 常にクラウド保存（__mbtiWrite 側が id 未指定なら匿名IDを補完）
+      if (typeof window.__mbtiWrite === 'function') {
         try {
-          await window.__mbtiWrite(params.get('id'), { mbti: { type: upper, updatedAt: new Date() } });
+          await window.__mbtiWrite(null, { mbti: { type: upper, updatedAt: new Date() } });
         } catch(e){ (window.W||console.warn)('MBTI.firestore.write.fail', e); }
       }
+
       (window.L||console.log)('MBTI.persist.done', { type: upper });
       markDone();
     } catch(e){
@@ -3763,10 +3799,9 @@ window.addEventListener('DOMContentLoaded', () => {
     '#mbti-result',
     '#result',
     '.diagnosis-result',
-    '.analysis-result'
+    '.analysis-result',
+    '#mbti-type'
   ];
-  // ★★★ 追加: 実際のUIで使っている可能性の高い要素を監視に追加
-  try { CANDIDATE_SELECTORS.push('#mbti-type'); } catch(_) {}
 
   function extractTypeFrom(el){
     if (!el) return null;
@@ -3816,12 +3851,11 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // ★★★ 追加: 診断側が `window.dispatchEvent(new CustomEvent('mbti:result',{detail:{type}}))` で通知できる口
+  // イベント経由でも保存できる口（任意）
   window.addEventListener('mbti:result', (ev) => {
     const t = ev?.detail?.type;
     if (!t) return;
-    // DONE解除してから保存（連続診断OK）
-    try { localStorage.removeItem(DONE_KEY); } catch(_){}
+    try { localStorage.removeItem(DONE_KEY); } catch(_){} // DONE解除（再診断可）
     if (typeof window.setMbtiResult === 'function') window.setMbtiResult(t);
   });
 })();
