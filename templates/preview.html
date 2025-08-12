@@ -3024,6 +3024,16 @@ text.addEventListener('click', enableEditing);
   };
   // 非module側から安全に呼べるように薄いラッパーも用意
   window.__mbtiWrite = (id, payload) => setDoc(doc(db, "cards", id), payload, { merge: true });
+
+  // ★★★ 追加: 診断側からワンライナーで保存できる明示API
+  window.reportMbtiResult = function(type, opts = {}){
+    try {
+      const curId = new URLSearchParams(location.search).get('id') || 'draft';
+      localStorage.removeItem(`mbti_saved_done_${curId}`); // DONE解除
+    } catch(_) {}
+    try { window.saveMbtiDraftLocal?.(type); } catch(_) {}
+    try { window.saveMbtiToCloud?.(type, opts); } catch(_) {}
+  };
   /* ▲▲▲ 追加ここまで ▲▲▲ */
 
   const storage = getStorage(app, "gs://nfc-card-app-79464");
@@ -3617,6 +3627,16 @@ window.handleBlur = async function(type){
         alert("保存に失敗しました: " + e.message);
       }
     }
+
+    // ★★★ 追加: 「〇〇さんの特徴！」押下で DONE を毎回解除（確実に再保存させる）
+    {
+      const curId = new URLSearchParams(location.search).get('id') || 'draft';
+      const btn = document.getElementById('diagnosis-button');
+      btn?.addEventListener('click', () => {
+        try { localStorage.removeItem(`mbti_saved_done_${curId}`); } catch {}
+        L('MBTI.done.reset', { curId });
+      }, { capture: true });
+    }
   });
 
 /* ====== 完成/プレビューで編集UIを隠す（ホワイトリストで残す） ====== */
@@ -3739,6 +3759,9 @@ window.addEventListener('DOMContentLoaded', () => {
     '.diagnosis-result',
     '.analysis-result'
   ];
+  // ★★★ 追加: 実際のUIで使っている可能性の高い要素を監視に追加
+  try { CANDIDATE_SELECTORS.push('#mbti-type'); } catch(_) {}
+
   function extractTypeFrom(el){
     if (!el) return null;
     const text = (el.innerText || el.textContent || '').toUpperCase();
@@ -3785,6 +3808,15 @@ window.addEventListener('DOMContentLoaded', () => {
         }, 500);
       });
     }
+  });
+
+  // ★★★ 追加: 診断側が `window.dispatchEvent(new CustomEvent('mbti:result',{detail:{type}}))` で通知できる口
+  window.addEventListener('mbti:result', (ev) => {
+    const t = ev?.detail?.type;
+    if (!t) return;
+    // DONE解除してから保存（連続診断OK）
+    try { localStorage.removeItem(DONE_KEY); } catch(_){}
+    if (typeof window.setMbtiResult === 'function') window.setMbtiResult(t);
   });
 })();
 </script>
