@@ -3689,10 +3689,145 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
+<!-- ＝＝＝＝＝＝＝＝＝＝＝ ここから追記（既存は未変更） ＝＝＝＝＝＝＝＝＝＝＝ -->
 
+<!-- Chart.js（相性レーダーで使用） -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+<!-- 相性の詳細モーダル -->
+<div id="compat-detail-modal" style="
+  display:none; position:fixed; top:0; left:0; width:100vw; height:100vh;
+  background:rgba(0,0,0,0.7); z-index:10000; overflow-y:auto; padding:40px 16px;
+  box-sizing:border-box; align-items:center; justify-content:flex-start; flex-direction:column;
+">
+  <div style="background:#ffe6f0; border-radius:20px; padding:32px 20px; margin-bottom:24px;
+              box-shadow:0 6px 16px rgba(0,0,0,0.2); display:flex; flex-direction:column;
+              justify-content:flex-start; align-items:flex-start; max-width:90vw; width:100%; min-height:170px;">
+    <canvas id="compat-radar" width="220" height="220" style="display:block; transform: translate(80px,10px);"></canvas>
+  </div>
+  <div style="background:linear-gradient(to right,#d3f2f9,#fcd8ee); border-radius:24px; padding:12px 20px;
+              margin-top:-12px; max-width:360px; width:100%; box-shadow:0 6px 18px rgba(0,0,0,0.25); color:#333; position:relative; text-align:left;">
+    <div onclick="document.getElementById('compat-detail-modal').style.display='none'"
+         style="position:absolute; top:12px; right:12px; background:#fff; border-radius:50%; width:30px; height:30px;
+                display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,0.2); cursor:pointer;
+                font-weight:bold; font-size:16px; color:#e91e63;">×</div>
+    <div id="compat-detail-text" style="font-size:15px;"></div>
+  </div>
+</div>
 
+<script>
+/* ===== 相性用ユーティリティ（グローバル） ===== */
+function getCompatibilityComment(my, other) {
+  return `${my} と ${other} は、バランスの良い関係を築けそう！`;
+}
+function getCompatibility(my, other) {
+  const pair = [my, other].sort().join('-');
+  switch (pair) {
+    case 'INFP-ENFJ': return '価値観が近く、自然体でいられるベストマッチ！';
+    case 'ENFP-INFJ': return '直感同士で会話が尽きない理想ペア！';
+    default: return 'お互いの違いを楽しめる、成長系コンビ！';
+  }
+}
+function getCompatibilityScore(my, other) {
+  const base = (my[0] === other[0]) ? 78 : 82;
+  return Math.min(99, base + (my === other ? 5 : 0));
+}
+function showCompatibilityModal(my, other, message, score) {
+  const comment = getCompatibilityComment(my, other);
+  const modal = document.createElement('div');
+  modal.id = 'compat-modal';
+  modal.style.cssText = `
+    position:fixed; inset:0; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center;
+    z-index:9999; opacity:0; transition:opacity .8s ease;
+  `;
+  modal.innerHTML = `
+    <div style="background:#fff; padding:24px; border-radius:16px; text-align:center; box-shadow:0 8px 16px rgba(0,0,0,.25); max-width:90vw;">
+      <div style="font-size:20px; font-weight:bold; color:#e91e63; margin-bottom:6px;">2人の相性度</div>
+      <div style="font-size:36px; font-weight:bold; color:#ff3366; margin-bottom:12px;">${score}%</div>
+      <div style="font-size:16px; margin-bottom:6px;">あなた（${my}）とこの人（${other}）の相性は…</div>
+      <div style="font-size:20px; color:#e91e63; font-weight:bold; margin-bottom:8px;">${message}</div>
+      <div style="font-size:16px; color:#555; font-style:italic;">${comment}</div>
+      <div style="margin-top:24px;">
+        <button onclick="document.getElementById('compat-modal').remove()" style="padding:8px 16px; background:#ccc; color:#333; border:none; border-radius:8px; cursor:pointer;">閉じる</button>
+        <button onclick="showDetailModal('${my}','${other}')" style="margin-left:12px; padding:8px 16px; background:#2196f3; color:#fff; border:none; border-radius:8px; cursor:pointer;">詳細を見る</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  setTimeout(()=>{ modal.style.opacity = '1'; }, 50);
+}
+function getDetailData(my, other) {
+  const key = [my, other].sort().join('-');
+  const map = {
+    'INFP-ENFJ': { scores:[90,85,80,95,70], texts:['自然体で話せる友達感覚が◎','一緒にいるだけでドキドキできる相性！','共に成長し合える最高の相棒！','価値観が似ていて居心地がとても良い','盛り上がりすぎず、心地よいテンション感'] },
+    'ENFP-INFJ': { scores:[88,84,79,92,75], texts:['直感同士で共鳴しやすく会話が尽きない！','ちょっとした表情でも心を読み取れる仲に','一緒に夢を語れる理想的なコンビ','相手の感情を自然と察し合える関係性','気分の盛り上がり方も波長ピッタリ！'] },
+  };
+  return map[key] || { scores:[72,72,72,72,72], texts:['徐々に打ち解ける関係！','違いを楽しめる相性！','一緒に新しい発見ができそう！','安心感はこれから！','安定寄りの雰囲気！'] };
+}
+function showDetailModal(myMbti, otherMbti){
+  const modal = document.getElementById('compat-detail-modal');
+  if (!modal) return;
+  modal.style.display = 'flex';
+
+  const ctx = document.getElementById('compat-radar').getContext('2d');
+  const data = getDetailData(myMbti, otherMbti);
+  const labels = ['仲良し','ときめき','相棒力','落ち着き','盛り上がり'];
+
+  if (window.currentRadarChart) window.currentRadarChart.destroy();
+  window.currentRadarChart = new Chart(ctx, {
+    type: 'radar',
+    data: { labels, datasets: [{ label:'相性スコア', data:data.scores, backgroundColor:'rgba(255,99,132,.2)', borderColor:'#e91e63', pointBackgroundColor:'#e91e63' }] },
+    options: {
+      responsive:false, maintainAspectRatio:false, plugins:{ legend:{ display:false } },
+      scales:{ r:{ suggestedMin:0, suggestedMax:100, ticks:{ display:false }, pointLabels:{ font:{ size:10 }, color:'#e91e63', padding:5 }, grid:{ color:'rgba(0,0,0,.1)' } } }
+    }
+  });
+
+  const lines = data.texts || [];
+  const detailHTML = labels.map((lb,i)=>`
+    <div style="margin-bottom:16px;">
+      <div style="font-weight:bold; color:#e91e63; font-size:16px;">${lb}：${data.scores[i]}%</div>
+      <div style="color:#555; font-size:14px;">${lines[i] || ''}</div>
+    </div>`).join('');
+  const box = document.getElementById('compat-detail-text');
+  if (box) box.innerHTML = detailHTML;
+}
+</script>
+
+<!-- 既存コードを変更せず、別モジュールとして MBTI を取得→相性表示 -->
+<script type="module">
+  import { getApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    try {
+      const app = getApp();                 // 既存の initializeApp を再利用
+      const db  = getFirestore(app);
+      const id  = new URLSearchParams(location.search).get('id');
+      if (!id) return;
+
+      const snap = await getDoc(doc(db, 'cards', id));
+      if (!snap.exists()) return;
+      const data = snap.data();
+
+      // other 側 MBTI を UI に反映（要素がある場合のみ）
+      const otherMbti =
+        (typeof data.mbti === 'string' ? data.mbti : (data.mbti && data.mbti.type)) || '';
+      const mbtiEl = document.getElementById('mbti-type');
+      if (mbtiEl && otherMbti) mbtiEl.textContent = String(otherMbti).toUpperCase();
+
+      // 自分のMBTI（localStorage）と相性を自動表示
+      const myMbti = (localStorage.getItem('my_mbti') || '').toUpperCase();
+      if (myMbti && otherMbti) {
+        const msg = getCompatibility(myMbti, String(otherMbti).toUpperCase());
+        const score = getCompatibilityScore(myMbti, String(otherMbti).toUpperCase());
+        showCompatibilityModal(myMbti, String(otherMbti).toUpperCase(), msg, score);
+      }
+    } catch (e) {
+      console.warn('[MBTICompat] init fail', e);
+    }
+  });
+</script>
+<!-- ＝＝＝＝＝＝＝＝＝＝＝ 追記ここまで ＝＝＝＝＝＝＝＝＝＝＝ -->
 
 </body>
 </html>
-
