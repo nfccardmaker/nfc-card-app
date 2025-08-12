@@ -3353,13 +3353,6 @@ window.handleBlur = async function(type){
       }
     };
 
-    // ❌ プロフィールの programmatic click は削除（背景と同じ「onclick起動」前提）
-    // profileImg?.addEventListener('click', () => {
-    //   L('profileImg.click');
-    //   if (profileInput) profileInput.value = "";
-    //   profileInput?.click();
-    // });
-
     // 同じファイルでも発火させるため、input 自身をタップした時は value を都度クリア
     profileInput?.addEventListener('click', () => { profileInput.value = ""; });
 
@@ -3397,7 +3390,6 @@ window.handleBlur = async function(type){
         });
 
         // ★ YouTube / Spotify 復元（Firestore > draft）
-        // 変更前: const links = data?.links || readLinksDraft();
         const links = id ? (data?.links || null) : readLinksDraft();
         if (links?.youtube?.embedUrl){
           const y = document.getElementById('youtube-url'); if (y) y.value = links.youtube.rawUrl || "";
@@ -3408,6 +3400,16 @@ window.handleBlur = async function(type){
           renderSpotify(links.spotify.embedUrl);
         }
         if (links) localStorage.setItem(LINKS_DRAFT_KEY, JSON.stringify(links));
+
+        // ★ MBTI 復元（あれば localStorage と #mbti-type にも反映）
+        if (data.mbti) {
+          try {
+            localStorage.setItem('my_mbti', data.mbti);
+            const mbtiEl = document.getElementById('mbti-type');
+            if (mbtiEl) mbtiEl.textContent = data.mbti;
+            L('mbti.restore', data.mbti);
+          } catch(e) { W('mbti.restore.fail', e); }
+        }
 
         if (data.imageUrl && profileImg) {
           try { await setImgSrc(profileImg, data.imageUrl); }
@@ -3496,7 +3498,7 @@ window.handleBlur = async function(type){
           bgUrlInput && (bgUrlInput.value = url);
 
           if (id) {
-            await setDoc(doc(db, 'cards', id), { backgroundUrl: url }, { merge: true });
+            await setDoc(doc(db, "cards", id), { backgroundUrl: url }, { merge: true });
             L('bg.firestore.merge.OK');
           }
 
@@ -3658,7 +3660,53 @@ window.addEventListener('DOMContentLoaded', () => {
   if (returnToggle) returnToggle.style.display = 'none';
 });
 
+/* =========================
+ *  ⭐ MBTI 診断の保存API
+ *  （ボタン onclick="startDiagnosis()" で呼ばれる）
+ * ========================= */
+const VALID_MBTI = new Set([
+  'INTJ','INTP','ENTJ','ENTP',
+  'INFJ','INFP','ENFJ','ENFP',
+  'ISTJ','ISFJ','ESTJ','ESFJ',
+  'ISTP','ISFP','ESTP','ESFP'
+]);
 
+/**
+ * ユーザーにMBTIタイプ（16種類のいずれか）を入力してもらい、
+ * localStorage と Firestore(cards/{__currentId}) に保存します。
+ * 既存UIを変えたくないので簡易に prompt を使っています。
+ */
+window.startDiagnosis = async function startDiagnosis(){
+  try {
+    // 1) 入力（簡易）
+    let type = (prompt('あなたのMBTIタイプを入力してください（例: INFP）') || '').toUpperCase().trim();
+    if (!VALID_MBTI.has(type)) {
+      alert('16タイプのいずれかを正しく入力してください。\n例: INFP / ENTP / ISFJ など');
+      return;
+    }
+
+    // 2) localStorage にも保存（相性ロジックが読むため）
+    localStorage.setItem('my_mbti', type);
+
+    // 3) 画面上の #mbti-type にも反映（互換のため）
+    const mbtiEl = document.getElementById('mbti-type');
+    if (mbtiEl) mbtiEl.textContent = type;
+
+    // 4) Firestore に保存（カードIDがある時のみ）
+    if (typeof __currentId === 'string' && __currentId) {
+      await setDoc(doc(db, 'cards', __currentId), { mbti: type }, { merge: true });
+      L('mbti.save.firestore', { id: __currentId, type });
+      alert(`MBTI(${type}) を保存しました！`);
+    } else {
+      // 新規作成中など、IDがまだ無い場合
+      L('mbti.save.skip.noId', type);
+      alert(`MBTI(${type}) を保存しました！（カード保存時に一緒に保存されます）`);
+    }
+  } catch (err) {
+    E('mbti.save.fail', err);
+    alert('MBTIの保存に失敗しました。通信状況を確認してください。');
+  }
+};
 </script>
 
 
