@@ -3057,17 +3057,20 @@ window.addEventListener('DOMContentLoaded', () => {
 
 
 </script>
-<!-- ここまでが元のコード -->
-
-<!-- ▼▼ 追記部分 ▼▼ -->
+<!-- ▼▼ 追記部分（置き換え） ▼▼ -->
 <script type="module">
 window.addEventListener('DOMContentLoaded', () => {
   const params = new URLSearchParams(location.search);
   const hasId  = params.has('id');
   const path   = location.pathname || '';
-  const isView = hasId && (path.startsWith('/preview') || path.startsWith('/user_cards'));
+  // /preview と /user_cards を厳密判定（末尾の / もOK）
+  const isView = hasId && (/^(\/preview|\/user_cards)(\/|$)/.test(path));
 
+  // 作成時（idなし or /create等）はボタンを出さない
   if (!isView) return;
+
+  // 既にあれば重複生成しない
+  if (document.getElementById('reedit-button')) return;
 
   // 再編集ボタンを追加
   const reeditBtn = document.createElement('button');
@@ -3079,13 +3082,18 @@ window.addEventListener('DOMContentLoaded', () => {
     right: '20px',
     padding: '10px 20px',
     fontSize: '16px',
+    borderRadius: '999px',
+    border: 'none',
+    background: '#ffd966',
+    boxShadow: '0 4px 12px rgba(0,0,0,.25)',
+    cursor: 'pointer',
     zIndex: 9999
   });
   document.body.appendChild(reeditBtn);
 
   reeditBtn.addEventListener('click', () => {
     // 隠されている編集UIを復活
-    const HIDE_SELECTORS = [
+    const SHOW_SELECTORS = [
       '.toolbar',
       '.text-style-toolbar',
       '.sns-delete-btn',
@@ -3103,9 +3111,10 @@ window.addEventListener('DOMContentLoaded', () => {
       '#spotify-section .sns-delete-btn',
       '#pr-template-buttons',
       '.deletable-templates',
-      '.self-pr-template-section'
+      '.self-pr-template-section',
+      '#finish-button'            // ★ 作成（保存）ボタンも表示に
     ];
-    document.querySelectorAll(HIDE_SELECTORS.join(',')).forEach(el => {
+    document.querySelectorAll(SHOW_SELECTORS.join(',')).forEach(el => {
       try { el.style.display = ''; } catch {}
     });
 
@@ -3114,6 +3123,10 @@ window.addEventListener('DOMContentLoaded', () => {
     if (editToggle) editToggle.style.display = '';
     const returnToggle = document.getElementById('return-toggle');
     if (returnToggle) returnToggle.style.display = '';
+
+    // ツールバーへスクロール（任意）
+    const toolbar = document.getElementById('toolbar');
+    if (toolbar) toolbar.scrollIntoView({ behavior: 'smooth', block: 'end' });
 
     // 再編集ボタンを消す
     reeditBtn.remove();
