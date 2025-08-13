@@ -3057,6 +3057,144 @@ window.addEventListener('DOMContentLoaded', () => {
 
 
 </script>
+<script type="module">
+/* === Re-Edit Button（プレビュー専用で表示） === */
+(function installReeditButton(){
+  const EDIT_PAGE_PATH = '/edit'; // ← 編集ページのパスに合わせて必要なら変更
+
+  function isPreviewView(){
+    const p = new URLSearchParams(location.search);
+    const id = (p.get('id') || '').trim();
+    const path = (location.pathname || '').replace(/\/+$/,'');
+    return !!id && /^\/?(preview|user_cards)(\/|$)/.test(path);
+  }
+  function currentId(){
+    return (new URLSearchParams(location.search).get('id') || '').trim();
+  }
+  function ensureStyles(){
+    if (document.getElementById('reedit-style')) return;
+    const s = document.createElement('style');
+    s.id = 'reedit-style';
+    s.textContent = `
+      .is-view #reedit-button{
+        position: fixed; right:16px; bottom:16px; z-index: 99999;
+        padding:12px 16px; border:none; border-radius:999px;
+        box-shadow:0 6px 18px rgba(0,0,0,.18);
+        background:#111; color:#fff; font-weight:600; letter-spacing:.02em;
+      }
+      .is-view #reedit-button:active{ transform: scale(.98); }
+    `;
+    document.head.appendChild(s);
+  }
+  function cleanup(){
+    const btn = document.getElementById('reedit-button');
+    if (btn) btn.remove();
+    document.body.classList.remove('is-view');
+  }
+  function render(){
+    if (!isPreviewView()){ cleanup(); return; }
+    ensureStyles();
+    document.body.classList.add('is-view');
+    if (document.getElementById('reedit-button')) return;
+    const btn = document.createElement('button');
+    btn.id = 'reedit-button';
+    btn.type = 'button';
+    btn.textContent = '再編集する';
+    btn.addEventListener('click', () => {
+      const id = currentId();
+      if (!id) return;
+      location.href = `${EDIT_PAGE_PATH}?id=${encodeURIComponent(id)}`;
+    });
+    document.body.appendChild(btn);
+  }
+  window.addEventListener('DOMContentLoaded', render);
+  window.addEventListener('pageshow', render);          // BFCache対策
+  window.addEventListener('fureta:navigation', render); // SPA保険
+})();
+</script>
+<script type="module">
+/* === Edit UI Restore（プレビュー以外では強制表示） === */
+(function enforceEditUI(){
+  function isPreviewView(){
+    const p = new URLSearchParams(location.search);
+    const id = (p.get('id') || '').trim();
+    const path = (location.pathname || '').replace(/\/+$/,'');
+    return !!id && /^\/?(preview|user_cards)(\/|$)/.test(path);
+  }
+
+  // 既存の「プレビューで隠す対象」と同じセレクタ群
+  const HIDE_SELECTORS = [
+    '.toolbar',
+    '.text-style-toolbar',
+    '.sns-delete-btn',
+    '.deco-delete-btn',
+    '.text-stamp-delete-btn',
+    '.youtube-section button',
+    '#spotify-section button',
+    '#youtube-url',
+    '#spotify-url',
+    '#sns-explain',
+    '#extra-text-wrapper .sns-delete-btn',
+    '#diagnosis-wrapper .sns-delete-btn',
+    '#external-link-section .sns-delete-btn',
+    '#self-pr-section .sns-delete-btn',
+    '#spotify-section .sns-delete-btn',
+    '#pr-template-buttons',
+    '.deletable-templates',
+    '.self-pr-template-section'
+  ];
+
+  // CSSで !important 強制表示（外部CSSで非表示でも勝つ）
+  function injectForceCss(){
+    if (document.getElementById('force-edit-style')) return;
+    const s = document.createElement('style');
+    s.id = 'force-edit-style';
+    s.textContent = `body.is-edit ${HIDE_SELECTORS.join(',\nbody.is-edit ')}{
+      display: initial !important; visibility: visible !important; opacity: 1 !important;
+    }`;
+    document.head.appendChild(s);
+  }
+
+  // inline の display/visibility/opacity をクリア
+  function clearInlineHides(){
+    document.querySelectorAll(HIDE_SELECTORS.join(',')).forEach(el => {
+      el?.style?.removeProperty?.('display');
+      el?.style?.removeProperty?.('visibility');
+      el?.style?.removeProperty?.('opacity');
+    });
+  }
+
+  function cleanupViewArtifacts(){
+    document.body.classList.remove('is-view');
+    const btn = document.getElementById('reedit-button');
+    if (btn) btn.remove();
+  }
+
+  function run(){
+    if (isPreviewView()) return;            // プレビューは既存の隠す処理に任せる
+    document.body.classList.add('is-edit'); // 作成/再編集は強制表示モード
+    injectForceCss();
+    cleanupViewArtifacts();
+    clearInlineHides();
+
+    // 後から追加されるDOMにも効くように少しだけリトライ
+    let n = 0;
+    const t = setInterval(() => {
+      clearInlineHides();
+      if (++n >= 8) clearInterval(t); // 約4秒
+    }, 500);
+
+    // DOM変化監視（10秒）
+    const mo = new MutationObserver(clearInlineHides);
+    mo.observe(document.documentElement, { subtree:true, attributes:true, attributeFilter:['style','class'] });
+    setTimeout(() => mo.disconnect(), 10000);
+  }
+
+  window.addEventListener('DOMContentLoaded', run);
+  window.addEventListener('pageshow', run);
+  window.addEventListener('fureta:navigation', run);
+})();
+</script>
 
 
 
