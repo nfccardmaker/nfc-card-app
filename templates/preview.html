@@ -3057,6 +3057,71 @@ window.addEventListener('DOMContentLoaded', () => {
 
 
 </script>
+<!-- ここまでが元のコード -->
+
+<!-- ▼▼ 追記部分 ▼▼ -->
+<script type="module">
+window.addEventListener('DOMContentLoaded', () => {
+  const params = new URLSearchParams(location.search);
+  const hasId  = params.has('id');
+  const path   = location.pathname || '';
+  const isView = hasId && (path.startsWith('/preview') || path.startsWith('/user_cards'));
+
+  if (!isView) return;
+
+  // 再編集ボタンを追加
+  const reeditBtn = document.createElement('button');
+  reeditBtn.textContent = '再編集';
+  reeditBtn.id = 'reedit-button';
+  Object.assign(reeditBtn.style, {
+    position: 'fixed',
+    bottom: '20px',
+    right: '20px',
+    padding: '10px 20px',
+    fontSize: '16px',
+    zIndex: 9999
+  });
+  document.body.appendChild(reeditBtn);
+
+  reeditBtn.addEventListener('click', () => {
+    // 隠されている編集UIを復活
+    const HIDE_SELECTORS = [
+      '.toolbar',
+      '.text-style-toolbar',
+      '.sns-delete-btn',
+      '.deco-delete-btn',
+      '.text-stamp-delete-btn',
+      '.youtube-section button',
+      '#spotify-section button',
+      '#youtube-url',
+      '#spotify-url',
+      '#sns-explain',
+      '#extra-text-wrapper .sns-delete-btn',
+      '#diagnosis-wrapper .sns-delete-btn',
+      '#external-link-section .sns-delete-btn',
+      '#self-pr-section .sns-delete-btn',
+      '#spotify-section .sns-delete-btn',
+      '#pr-template-buttons',
+      '.deletable-templates',
+      '.self-pr-template-section',
+      '#finish-button'
+    ];
+    document.querySelectorAll(HIDE_SELECTORS.join(',')).forEach(el => {
+      try { el.style.display = ''; } catch {}
+    });
+
+    // 目アイコン/戻るボタンを表示
+    const editToggle = document.getElementById('edit-toggle');
+    if (editToggle) editToggle.style.display = '';
+    const returnToggle = document.getElementById('return-toggle');
+    if (returnToggle) returnToggle.style.display = '';
+
+    // 再編集ボタンを消す
+    reeditBtn.remove();
+  });
+});
+</script>
+<!-- ▲▲ 追記部分 ▲▲ -->
 
 
 
