@@ -3056,93 +3056,60 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 
-/* === Re-Edit Button & View Mode Helpers ===
- * プレビュー/公開ページでは再編集ボタンを出す。
- * それ以外ではボタンを確実に除去＆view用クラスを外す。
- */
-(function installReeditControls(){
+</script>
+<script type="module">
+/* ==== 🩹 編集画面でツールバー等を必ず復活させる ==== */
+(function fixToolbarRestore(){
   function isPreviewView(){
     const p = new URLSearchParams(location.search);
     const id = (p.get('id') || '').trim();
     const path = location.pathname || '';
-    return !!id && (/^(\/preview|\/user_cards)(\/|$)/.test(path));
+    return !!id && (path.startsWith('/preview') || path.startsWith('/user_cards'));
   }
-  function getCurrentId(){
-    const p = new URLSearchParams(location.search);
-    return (p.get('id') || '').trim();
-  }
-  function ensureStyles(){
-    if (document.getElementById('reedit-style')) return;
-    const css = `
-      .is-view #reedit-button{
-        position: fixed;
-        right: 16px;
-        bottom: 16px;
-        z-index: 99999;
-        padding: 12px 16px;
-        border: none;
-        border-radius: 999px;
-        box-shadow: 0 6px 18px rgba(0,0,0,0.18);
-        background: #111;
-        color: #fff;
-        font-size: 14px;
-        font-weight: 600;
-        letter-spacing: .03em;
-        cursor: pointer;
-        transform: translateZ(0);
-        -webkit-tap-highlight-color: transparent;
-      }
-      .is-view #reedit-button:active{ transform: scale(.98); }
-    `;
-    const s = document.createElement('style');
-    s.id = 'reedit-style';
-    s.textContent = css;
-    document.head.appendChild(s);
-  }
-  function cleanupIfNotView(){
-    if (isPreviewView()) return;
+
+  const HIDE_SELECTORS = [
+    '.toolbar',
+    '.text-style-toolbar',
+    '.sns-delete-btn',
+    '.deco-delete-btn',
+    '.text-stamp-delete-btn',
+    '.youtube-section button',
+    '#spotify-section button',
+    '#youtube-url',
+    '#spotify-url',
+    '#sns-explain',
+    '#extra-text-wrapper .sns-delete-btn',
+    '#diagnosis-wrapper .sns-delete-btn',
+    '#external-link-section .sns-delete-btn',
+    '#self-pr-section .sns-delete-btn',
+    '#spotify-section .sns-delete-btn',
+    '#pr-template-buttons',
+    '.deletable-templates',
+    '.self-pr-template-section'
+  ];
+
+  function restoreEditUI(){
+    document.querySelectorAll(HIDE_SELECTORS.join(',')).forEach(el => {
+      el?.style?.removeProperty?.('display');
+      el?.style?.removeProperty?.('visibility');
+      el?.style?.removeProperty?.('opacity');
+    });
+    document.body.classList.remove('is-view');
     const btn = document.getElementById('reedit-button');
     if (btn) btn.remove();
-    document.body.classList.remove('is-view');
-  }
-  function ensureReeditButton(){
-    if (!isPreviewView()) return;
-    ensureStyles();
-    document.body.classList.add('is-view');
-    if (document.getElementById('reedit-button')) return;
-
-    const btn = document.createElement('button');
-    btn.id = 'reedit-button';
-    btn.type = 'button';
-    btn.textContent = '再編集する';
-    btn.addEventListener('click', () => {
-      const id = getCurrentId();
-      if (!id) return;
-      // 既定の編集URL。プロジェクトで edit.html を使っている想定
-      const next = `/edit?id=${encodeURIComponent(id)}`;
-      L('reedit.click', { next });
-      location.href = next;
-    });
-    document.body.appendChild(btn);
   }
 
-  // 初期化
-  window.addEventListener('DOMContentLoaded', () => {
-    if (isPreviewView()) ensureReeditButton();
-    else cleanupIfNotView();
-  });
+  function rerenderByMode(){
+    if (isPreviewView()){
+      // 隠すのは既存ブロックが担当
+    } else {
+      restoreEditUI(); // ← ここで“必ず”復活
+    }
+  }
 
-  // 画面復帰（BFCache含む）
-  window.addEventListener('pageshow', () => {
-    if (isPreviewView()) ensureReeditButton();
-    else cleanupIfNotView();
-  });
-
-  // パスが変わる SPA 対応の保険（必要なら手動で dispatch してもOK）
-  window.addEventListener('fureta:navigation', () => {
-    if (isPreviewView()) ensureReeditButton();
-    else cleanupIfNotView();
-  });
+  window.addEventListener('DOMContentLoaded', rerenderByMode);
+  window.addEventListener('pageshow', rerenderByMode);           // BFCache復帰対策
+  window.addEventListener('fureta:navigation', rerenderByMode);  // SPA保険
 })();
 </script>
 
