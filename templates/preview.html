@@ -3063,107 +3063,69 @@ window.addEventListener('DOMContentLoaded', () => {
   #reedit-button { display:none !important; }
 </style>
 
+<!-- ▼▼ さらに追加：作成モード（idなし）では編集UIを必ず表示 ▼▼ -->
 <script type="module">
 (function(){
-  function isPreviewView(){
+  // 既存の関数に依存せず単独で動くよう同名ロジックを再定義
+  const isPreviewView = () => {
     const p = new URLSearchParams(location.search);
-    const id = (p.get('id') || '').trim();
-    const path = location.pathname || '';
-    return !!id && /^(\/preview|\/user_cards)(\/|$)/.test(path);
-  }
+    const hasId = !!(p.get('id') || '').trim();
+    const path  = location.pathname || '';
+    return hasId && /^(\/preview|\/user_cards)(\/|$)/.test(path);
+  };
 
-  // idなしの時は、BFCacheから戻っても確実に消す
-  function cleanupIfNotView(){
-    if (!isPreviewView()) {
-      const btn = document.getElementById('reedit-button');
-      if (btn) btn.remove();
-      // 念のため class も落とす
-      document.body.classList.remove('is-view');
-    }
-  }
-
-  // ボタン生成（isView のときだけ）
-  function ensureReeditButton(){
-    if (!isPreviewView()) return;
-
-    document.body.classList.add('is-view');
-
-    if (document.getElementById('reedit-button')) return;
-
-    const btn = document.createElement('button');
-    btn.id = 'reedit-button';
-    btn.type = 'button';
-    btn.textContent = '再編集';
-    Object.assign(btn.style, {
-      position: 'fixed',
-      bottom: 'calc(20px + env(safe-area-inset-bottom))',
-      right: '20px',
-      padding: '10px 20px',
-      fontSize: '16px',
-      borderRadius: '999px',
-      border: 'none',
-      background: '#ffd966',
-      boxShadow: '0 4px 12px rgba(0,0,0,.25)',
-      cursor: 'pointer',
-      zIndex: 2147483647,
-      pointerEvents: 'auto',
-      WebkitTapHighlightColor: 'transparent',
-      display: 'inline-block'   // ← is-view でだけ表示される
-    });
-    document.body.appendChild(btn);
-
-    // クリックで編集UIを復活
-    function showAs(sel, disp){ document.querySelectorAll(sel).forEach(el=>{
-      try { el.style.setProperty('display', disp, 'important'); } catch{}
-    });}
-    btn.addEventListener('click', () => {
-      // ツール群
-      showAs('.toolbar', 'flex');
-      showAs('.text-style-toolbar', 'block');
-      showAs('.sns-delete-btn', 'block');
-      showAs('.deco-delete-btn', 'block');
-      showAs('.text-stamp-delete-btn', 'block');
-      showAs('.youtube-section button', 'inline-block');
-      showAs('#spotify-section button', 'inline-block');
-      showAs('#youtube-url', 'block');
-      showAs('#spotify-url', 'block');
-      showAs('#sns-explain', 'block');
-      showAs('#extra-text-wrapper .sns-delete-btn', 'block');
-      showAs('#diagnosis-wrapper .sns-delete-btn', 'block');
-      showAs('#external-link-section .sns-delete-btn', 'block');
-      showAs('#self-pr-section .sns-delete-btn', 'block');
-      showAs('#spotify-section .sns-delete-btn', 'block');
-      showAs('#pr-template-buttons', 'flex');
-      showAs('.deletable-templates', 'block');
-      showAs('.self-pr-template-section', 'block');
-      showAs('#finish-button', 'block');
-
-      const editToggle = document.getElementById('edit-toggle');
-      if (editToggle) editToggle.style.setProperty('display','', 'important');
-      const returnToggle = document.getElementById('return-toggle');
-      if (returnToggle) returnToggle.style.setProperty('display','', 'important');
-
-      const toolbar = document.getElementById('toolbar');
-      if (toolbar) toolbar.scrollIntoView({ behavior: 'smooth', block: 'end' });
-
-      btn.remove();
+  function showAs(sel, disp){
+    document.querySelectorAll(sel).forEach(el=>{
+      try {
+        el.style.setProperty('display', disp, 'important'); // ← inlineのdisplay:noneも上書き
+        el.removeAttribute('hidden');
+        el.setAttribute('aria-hidden','false');
+      } catch {}
     });
   }
 
-  // 初期化
-  window.addEventListener('DOMContentLoaded', () => {
-    cleanupIfNotView();
-    ensureReeditButton();
-  });
+  function forceShowForCreate(){
+    if (isPreviewView()) return; // プレビューでは何もしない（別ブロックで再編集制御）
 
-  // BFCache 復元でも必ず判定し直す（iOS Safari 対策）
-  window.addEventListener('pageshow', (ev) => {
-    cleanupIfNotView();
-    ensureReeditButton();
-  });
+    // “再編集”ボタンが残っていたら念のため削除（BFCache復元対策）
+    const rb = document.getElementById('reedit-button');
+    if (rb) rb.remove();
+
+    // 作成段階で表示したい要素を強制復帰
+    showAs('.toolbar', 'flex');
+    showAs('.text-style-toolbar', 'block');
+
+    // テンプレ/ボタン群
+    showAs('#pr-template-buttons', 'flex');
+    showAs('.deletable-templates', 'block');
+    showAs('.self-pr-template-section', 'block');
+
+    // SNS/削除バツなど
+    showAs('.sns-delete-btn', 'block');
+    showAs('.deco-delete-btn', 'block');
+    showAs('.text-stamp-delete-btn', 'block');
+
+    // YouTube / Spotify 入力とボタン
+    showAs('.youtube-section button', 'inline-block');
+    showAs('#spotify-section button', 'inline-block');
+    showAs('#youtube-url', 'block');
+    showAs('#spotify-url', 'block');
+    showAs('#sns-explain', 'block');
+
+    // “作成/保存”ボタン
+    showAs('#finish-button', 'block');
+
+    // 目アイコン/戻るボタン（編集時は表示運用なら）
+    showAs('#edit-toggle', 'block');
+    showAs('#return-toggle', 'block');
+  }
+
+  window.addEventListener('DOMContentLoaded', forceShowForCreate);
+  window.addEventListener('pageshow', forceShowForCreate); // ← iOSの戻る(BFCache)対策
 })();
 </script>
-<!-- ▲▲ 追記部分 ▲▲ -->
+<!-- ▲▲ 追加ここまで ▲▲ -->
+
 
 
 
