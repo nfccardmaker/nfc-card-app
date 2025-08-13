@@ -3057,61 +3057,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
 
 </script>
-<script type="module">
-/* ==== 🩹 編集画面でツールバー等を必ず復活させる ==== */
-(function fixToolbarRestore(){
-  function isPreviewView(){
-    const p = new URLSearchParams(location.search);
-    const id = (p.get('id') || '').trim();
-    const path = location.pathname || '';
-    return !!id && (path.startsWith('/preview') || path.startsWith('/user_cards'));
-  }
-
-  const HIDE_SELECTORS = [
-    '.toolbar',
-    '.text-style-toolbar',
-    '.sns-delete-btn',
-    '.deco-delete-btn',
-    '.text-stamp-delete-btn',
-    '.youtube-section button',
-    '#spotify-section button',
-    '#youtube-url',
-    '#spotify-url',
-    '#sns-explain',
-    '#extra-text-wrapper .sns-delete-btn',
-    '#diagnosis-wrapper .sns-delete-btn',
-    '#external-link-section .sns-delete-btn',
-    '#self-pr-section .sns-delete-btn',
-    '#spotify-section .sns-delete-btn',
-    '#pr-template-buttons',
-    '.deletable-templates',
-    '.self-pr-template-section'
-  ];
-
-  function restoreEditUI(){
-    document.querySelectorAll(HIDE_SELECTORS.join(',')).forEach(el => {
-      el?.style?.removeProperty?.('display');
-      el?.style?.removeProperty?.('visibility');
-      el?.style?.removeProperty?.('opacity');
-    });
-    document.body.classList.remove('is-view');
-    const btn = document.getElementById('reedit-button');
-    if (btn) btn.remove();
-  }
-
-  function rerenderByMode(){
-    if (isPreviewView()){
-      // 隠すのは既存ブロックが担当
-    } else {
-      restoreEditUI(); // ← ここで“必ず”復活
-    }
-  }
-
-  window.addEventListener('DOMContentLoaded', rerenderByMode);
-  window.addEventListener('pageshow', rerenderByMode);           // BFCache復帰対策
-  window.addEventListener('fureta:navigation', rerenderByMode);  // SPA保険
-})();
-</script>
 
 
 
