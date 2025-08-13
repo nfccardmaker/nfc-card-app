@@ -3057,7 +3057,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
 
 </script>
-<!-- ▼▼ 追記部分（置き換え） ▼▼ -->
+<!-- ▼▼ 追記部分（スマホ安定版に置き換え） ▼▼ -->
 <script type="module">
 window.addEventListener('DOMContentLoaded', () => {
   const params = new URLSearchParams(location.search);
@@ -3072,13 +3072,14 @@ window.addEventListener('DOMContentLoaded', () => {
   // 既にあれば重複生成しない
   if (document.getElementById('reedit-button')) return;
 
-  // 再編集ボタンを追加
+  // 再編集ボタンを追加（iOS安全域 & 高Z）
   const reeditBtn = document.createElement('button');
   reeditBtn.textContent = '再編集';
   reeditBtn.id = 'reedit-button';
+  reeditBtn.type = 'button';
   Object.assign(reeditBtn.style, {
     position: 'fixed',
-    bottom: '20px',
+    bottom: 'calc(20px + env(safe-area-inset-bottom))',
     right: '20px',
     padding: '10px 20px',
     fontSize: '16px',
@@ -3087,42 +3088,56 @@ window.addEventListener('DOMContentLoaded', () => {
     background: '#ffd966',
     boxShadow: '0 4px 12px rgba(0,0,0,.25)',
     cursor: 'pointer',
-    zIndex: 9999
+    zIndex: 2147483647,          // ← 最前面
+    pointerEvents: 'auto',
+    WebkitTapHighlightColor: 'transparent'
   });
   document.body.appendChild(reeditBtn);
 
-  reeditBtn.addEventListener('click', () => {
-    // 隠されている編集UIを復活
-    const SHOW_SELECTORS = [
-      '.toolbar',
-      '.text-style-toolbar',
-      '.sns-delete-btn',
-      '.deco-delete-btn',
-      '.text-stamp-delete-btn',
-      '.youtube-section button',
-      '#spotify-section button',
-      '#youtube-url',
-      '#spotify-url',
-      '#sns-explain',
-      '#extra-text-wrapper .sns-delete-btn',
-      '#diagnosis-wrapper .sns-delete-btn',
-      '#external-link-section .sns-delete-btn',
-      '#self-pr-section .sns-delete-btn',
-      '#spotify-section .sns-delete-btn',
-      '#pr-template-buttons',
-      '.deletable-templates',
-      '.self-pr-template-section',
-      '#finish-button'            // ★ 作成（保存）ボタンも表示に
-    ];
-    document.querySelectorAll(SHOW_SELECTORS.join(',')).forEach(el => {
-      try { el.style.display = ''; } catch {}
+  // 要素ごとの“本来の display”を指定して復活
+  function showAs(selector, display) {
+    document.querySelectorAll(selector).forEach(el => {
+      try {
+        el.style.setProperty('display', display, 'important'); // ← display:none を確実に上書き
+      } catch {}
     });
+  }
 
-    // 目アイコン/戻るボタンを表示
+  reeditBtn.addEventListener('click', () => {
+    // flex系
+    showAs('.toolbar', 'flex');
+    showAs('#pr-template-buttons', 'flex');
+    showAs('.deletable-templates', 'block');         // ボタン一式のラッパは block
+    showAs('.self-pr-template-section', 'block');
+
+    // 単体ブロック
+    showAs('.text-style-toolbar', 'block');
+    showAs('#sns-explain', 'block');
+    showAs('#extra-text-wrapper .sns-delete-btn', 'block');
+    showAs('#diagnosis-wrapper .sns-delete-btn', 'block');
+    showAs('#external-link-section .sns-delete-btn', 'block');
+    showAs('#self-pr-section .sns-delete-btn', 'block');
+    showAs('#spotify-section .sns-delete-btn', 'block');
+    showAs('#finish-button', 'block');               // ← 保存ボタン
+
+    // インラインボタン類
+    showAs('.youtube-section button', 'inline-block');
+    showAs('#spotify-section button', 'inline-block');
+
+    // 入力欄
+    showAs('#youtube-url', 'block');
+    showAs('#spotify-url', 'block');
+
+    // SNS削除バツ（個別）
+    showAs('.sns-delete-btn', 'block');
+    showAs('.deco-delete-btn', 'block');
+    showAs('.text-stamp-delete-btn', 'block');
+
+    // 目アイコン/戻るボタン
     const editToggle = document.getElementById('edit-toggle');
-    if (editToggle) editToggle.style.display = '';
+    if (editToggle) editToggle.style.setProperty('display','', 'important');
     const returnToggle = document.getElementById('return-toggle');
-    if (returnToggle) returnToggle.style.display = '';
+    if (returnToggle) returnToggle.style.setProperty('display','', 'important');
 
     // ツールバーへスクロール（任意）
     const toolbar = document.getElementById('toolbar');
