@@ -3056,6 +3056,94 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 
+/* === Re-Edit Button & View Mode Helpers ===
+ * プレビュー/公開ページでは再編集ボタンを出す。
+ * それ以外ではボタンを確実に除去＆view用クラスを外す。
+ */
+(function installReeditControls(){
+  function isPreviewView(){
+    const p = new URLSearchParams(location.search);
+    const id = (p.get('id') || '').trim();
+    const path = location.pathname || '';
+    return !!id && (/^(\/preview|\/user_cards)(\/|$)/.test(path));
+  }
+  function getCurrentId(){
+    const p = new URLSearchParams(location.search);
+    return (p.get('id') || '').trim();
+  }
+  function ensureStyles(){
+    if (document.getElementById('reedit-style')) return;
+    const css = `
+      .is-view #reedit-button{
+        position: fixed;
+        right: 16px;
+        bottom: 16px;
+        z-index: 99999;
+        padding: 12px 16px;
+        border: none;
+        border-radius: 999px;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+        background: #111;
+        color: #fff;
+        font-size: 14px;
+        font-weight: 600;
+        letter-spacing: .03em;
+        cursor: pointer;
+        transform: translateZ(0);
+        -webkit-tap-highlight-color: transparent;
+      }
+      .is-view #reedit-button:active{ transform: scale(.98); }
+    `;
+    const s = document.createElement('style');
+    s.id = 'reedit-style';
+    s.textContent = css;
+    document.head.appendChild(s);
+  }
+  function cleanupIfNotView(){
+    if (isPreviewView()) return;
+    const btn = document.getElementById('reedit-button');
+    if (btn) btn.remove();
+    document.body.classList.remove('is-view');
+  }
+  function ensureReeditButton(){
+    if (!isPreviewView()) return;
+    ensureStyles();
+    document.body.classList.add('is-view');
+    if (document.getElementById('reedit-button')) return;
+
+    const btn = document.createElement('button');
+    btn.id = 'reedit-button';
+    btn.type = 'button';
+    btn.textContent = '再編集する';
+    btn.addEventListener('click', () => {
+      const id = getCurrentId();
+      if (!id) return;
+      // 既定の編集URL。プロジェクトで edit.html を使っている想定
+      const next = `/edit?id=${encodeURIComponent(id)}`;
+      L('reedit.click', { next });
+      location.href = next;
+    });
+    document.body.appendChild(btn);
+  }
+
+  // 初期化
+  window.addEventListener('DOMContentLoaded', () => {
+    if (isPreviewView()) ensureReeditButton();
+    else cleanupIfNotView();
+  });
+
+  // 画面復帰（BFCache含む）
+  window.addEventListener('pageshow', () => {
+    if (isPreviewView()) ensureReeditButton();
+    else cleanupIfNotView();
+  });
+
+  // パスが変わる SPA 対応の保険（必要なら手動で dispatch してもOK）
+  window.addEventListener('fureta:navigation', () => {
+    if (isPreviewView()) ensureReeditButton();
+    else cleanupIfNotView();
+  });
+})();
 </script>
 
 
