@@ -2502,6 +2502,55 @@ text.addEventListener('click', enableEditing);
   }
 
   /***********************
+   *  ✏️ Re-Edit mode helpers (追加)
+   ***********************/
+  function isViewPage(){
+    const p = new URLSearchParams(location.search);
+    const hasId = p.has('id');
+    const path  = location.pathname || '';
+    return hasId && (path.startsWith('/preview') || path.startsWith('/user_cards'));
+  }
+  function isEditMode(){
+    return new URLSearchParams(location.search).get('edit') === '1';
+  }
+  function gotoEditMode(){
+    const u = new URL(location.href);
+    u.searchParams.set('edit', '1');
+    location.href = u.toString();
+  }
+  function enableEditMode(){
+    // 既存の復元関数があれば呼ぶ（なければ無視）
+    try { restoreSNS?.(); } catch {}
+    try { restoreSelfPRSection?.(); } catch {}
+    try { restoreSpotifySection?.(); } catch {}
+
+    // 代表的な編集UIを念のため再表示（隠れていた場合のみ）
+    const SHOW_SELECTORS = [
+      '.toolbar',
+      '.text-style-toolbar',
+      '.sns-delete-btn',
+      '.deco-delete-btn',
+      '.text-stamp-delete-btn',
+      '.youtube-section button',
+      '#spotify-section button',
+      '#youtube-url',
+      '#spotify-url',
+      '#sns-explain',
+      '#extra-text-wrapper .sns-delete-btn',
+      '#diagnosis-wrapper .sns-delete-btn',
+      '#external-link-section .sns-delete-btn',
+      '#self-pr-section .sns-delete-btn',
+      '#spotify-section .sns-delete-btn',
+      '#pr-template-buttons',
+      '.deletable-templates',
+      '.self-pr-template-section'
+    ];
+    document.querySelectorAll(SHOW_SELECTORS.join(',')).forEach(el => {
+      if (el && el.style.display === 'none') el.style.display = '';
+    });
+  }
+
+  /***********************
  *  🌐 SNS Setups（このブロックを丸ごと置き換え）
  ***********************/
 const SNS_KEYS = ['instagram','line','bereal','x','tiktok'];
@@ -2985,15 +3034,16 @@ window.handleBlur = async function(type){
         alert("保存に失敗しました: " + e.message);
       }
     }
+
+    // ★ ここで edit=1 のとき編集UI復元
+    if (isEditMode()) enableEditMode();
   });
 
 /* ====== 完成/プレビューで編集UIを隠す（ホワイトリストで残す） ====== */
 window.addEventListener('DOMContentLoaded', () => {
-  const params = new URLSearchParams(location.search);
-  const hasId  = params.has('id');
-  const path   = location.pathname || '';
-  const isView = hasId && (path.startsWith('/preview') || path.startsWith('/user_cards'));
-  if (!isView) return;
+  const isView = isViewPage();
+  // ★ 再編集モード時は隠さない
+  if (!isView || isEditMode()) return;
 
   // 1) 隠すもの（テンプレ関連も含めて消す）
   const HIDE_SELECTORS = [
@@ -3055,7 +3105,31 @@ window.addEventListener('DOMContentLoaded', () => {
   if (returnToggle) returnToggle.style.display = 'none';
 });
 
+// ★ プレビュー時に右下へ「再編集」ボタンを表示
+window.addEventListener('DOMContentLoaded', () => {
+  if (!isViewPage() || isEditMode()) return;
 
+  const btn = document.createElement('button');
+  btn.id = 'reedit-button';
+  btn.type = 'button';
+  btn.textContent = '再編集';
+  Object.assign(btn.style, {
+    position: 'fixed',
+    right: '16px',
+    bottom: '16px',
+    zIndex: 10001,
+    padding: '10px 16px',
+    border: 'none',
+    borderRadius: '9999px',
+    background: '#ffd966',
+    boxShadow: '0 6px 16px rgba(0,0,0,0.2)',
+    fontSize: '14px',
+    fontWeight: 'bold',
+    cursor: 'pointer'
+  });
+  btn.addEventListener('click', () => gotoEditMode());
+  document.body.appendChild(btn);
+});
 </script>
 
 
