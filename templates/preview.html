@@ -2548,6 +2548,10 @@ text.addEventListener('click', enableEditing);
     document.querySelectorAll(SHOW_SELECTORS.join(',')).forEach(el => {
       if (el && el.style.display === 'none') el.style.display = '';
     });
+
+    // ★ 再編集モードでは作成ボタンは表示しない
+    const finishBtn = document.getElementById('finish-button');
+    if (finishBtn) finishBtn.style.display = 'none';
   }
 
   /***********************
