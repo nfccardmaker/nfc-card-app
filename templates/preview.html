@@ -2271,59 +2271,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </script>
 
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const toggleBtn     = document.getElementById('toggle-background-btn');
-    const mainWrapper   = document.querySelector('.main-wrapper');
-    const backgroundImg = document.getElementById('background-img'); // ← 今は<img>想定
-    let showingBackground = false;
-
-    // ✅ 完成系URLの判定を少し緩める（/user_cards/ か /preview で表示）
-    const isFinalLike = location.href.includes('/user_cards/') || location.href.includes('/preview');
-    if (isFinalLike && toggleBtn) {
-      toggleBtn.style.display = 'block';
-    }
-
-    // ✅ bodyの背景画像を #background-img にコピー（setBackgroundで設定したやつを使う）
-    const bodyBg = getComputedStyle(document.body).backgroundImage; // e.g. url(".../haikei_x.jpeg")
-    const m = bodyBg && bodyBg !== 'none' ? bodyBg.match(/url\(["']?(.*?)["']?\)/) : null;
-    if (m && backgroundImg && backgroundImg.tagName === 'IMG') {
-      backgroundImg.src = m[1];
-    }
-
-    // （お好み）背景だけモードでは編集系UIを隠す
-    const hideEditUIs = (hide) => {
-      ['toolbar','finish-button','text-tools','bg-template-list','terms-modal','terms-notice']
-        .forEach(id => { const el = document.getElementById(id); if (el) el.style.display = hide ? 'none' : ''; });
-      document.querySelectorAll(
-        '.sns-delete-btn, .deco-delete-btn, .text-stamp-delete-btn,' +
-        '.deletable-templates, .self-pr-template-section,' +
-        '.youtube-section button, #spotify-section button,' +
-        '#youtube-url, #spotify-url, #sns-explain'
-      ).forEach(el => el.style.display = hide ? 'none' : '');
-    };
-
-    toggleBtn?.addEventListener('click', () => {
-      showingBackground = !showingBackground;
-
-      if (mainWrapper)  mainWrapper.style.display  = showingBackground ? 'none' : 'block';
-      if (backgroundImg) backgroundImg.style.display = showingBackground ? 'block' : 'none';
-
-      // アイコン切り替え（任意）
-      toggleBtn.src = showingBackground ? "/static/closed_eye.jpeg" : "/static/open_eye.jpeg";
-
-      // 編集系UIの表示/非表示（任意）
-      hideEditUIs(showingBackground);
-
-      // 背景を後から変更しても同期されるよう、毎回取り直す
-      if (showingBackground) {
-        const latest = getComputedStyle(document.body).backgroundImage;
-        const mm = latest && latest !== 'none' ? latest.match(/url\(["']?(.*?)["']?\)/) : null;
-        if (mm && backgroundImg && backgroundImg.tagName === 'IMG') backgroundImg.src = mm[1];
-      }
-    });
-  });
-</script>
 
 <script>
 const input = document.getElementById('scroll-text-input');
@@ -3141,6 +3088,71 @@ window.addEventListener('DOMContentLoaded', () => {
   btn.addEventListener('click', () => gotoEditMode());
   document.body.appendChild(btn);
 });
+</script>
+<script type="module">
+/* ===== 背景だけトグル（追記） ===== */
+window.addEventListener('DOMContentLoaded', () => {
+  const btn     = document.getElementById('toggle-background-btn');
+  const bgLayer = document.getElementById('background-img');
+  const main    = document.querySelector('.main-wrapper');
+  let showing = false;
+
+  // 完成ビューでのみボタンを出す（?edit=1 の再編集モードでは隠す）
+  const shouldShowBtn = (typeof isViewPage === 'function' ? isViewPage() : location.href.includes('/user_cards/'))
+                     && !(typeof isEditMode === 'function' && isEditMode());
+  if (btn && shouldShowBtn) btn.style.display = 'block';
+
+  // bodyの背景を bgLayer に同期
+  function syncBg() {
+    if (!bgLayer) return;
+    const img = getComputedStyle(document.body).backgroundImage; // url("...") or none/gradient
+    if (img && img.startsWith('url(')) {
+      bgLayer.style.backgroundImage = img;
+      bgLayer.style.display = showing ? 'block' : 'none';
+    } else {
+      bgLayer.style.backgroundImage = 'none';
+      bgLayer.style.display = 'none';
+    }
+  }
+
+  // 背景変更APIをフック（このモジュール内で window.setBackground を定義済み）
+  const _origSetBackground = window.setBackground;
+  window.setBackground = async function(url) {
+    try { if (typeof _origSetBackground === 'function') await _origSetBackground(url);
+          else document.body.style.backgroundImage = `url('${url}')`;
+    } finally { requestAnimationFrame(syncBg); }
+  };
+
+  function hideEditUIs(hide) {
+    // 画面上の編集系UI/補助UIをまとめて隠す（足りなければここに追加）
+    const ids = ['toolbar','finish-button','text-tools','bg-template-list','terms-modal','terms-notice','reedit-button'];
+    ids.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = hide ? 'none' : ''; });
+
+    document.querySelectorAll(
+      '.sns-delete-btn, .deco-delete-btn, .text-stamp-delete-btn,' +
+      '.deletable-templates, .self-pr-template-section,' +
+      '.youtube-section button, #spotify-section button,' +
+      '#youtube-url, #spotify-url, #sns-explain'
+    ).forEach(el => { el.style.display = hide ? 'none' : ''; });
+  }
+
+  btn?.addEventListener('click', () => {
+    showing = !showing;
+
+    // 最新の背景を毎回同期（作業中に背景変更してもOK）
+    syncBg();
+
+    if (main)    main.style.display    = showing ? 'none' : 'block';
+    if (bgLayer) bgLayer.style.display = showing ? 'block' : 'none';
+
+    hideEditUIs(showing);
+    btn.src = showing ? '/static/closed_eye.jpeg' : '/static/open_eye.jpeg';
+  });
+
+  // 初期同期
+  syncBg();
+});
+/* ===== ここまで ===== */
 </script>
 
 
