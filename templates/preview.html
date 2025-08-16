@@ -2271,30 +2271,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </script>
 
-</script>
 <!-- 背景画像 -->
 <img id="background-img" src="/static/box.png" style="
   display: none;
-  position: fixed;   /* ← absolute を fixed に変更（画面全体に固定） */
+  position: fixed;      /* 画面全体に固定 */
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
   object-fit: cover;
   z-index: 9990;
-  pointer-events: none; /* ← 背景クリックが操作を邪魔しない */
+  pointer-events: none; /* 背景クリックが操作を邪魔しない */
 ">
-</div>
-<!-- ✅ 画像ボタン（アイコン） -->
+
+<!-- ボックス（左下に固定） -->
 <img id="toggle-background-btn" src="/static/box.png" style="
-  position: fixed;   /* ← absolute から fixed に変更（常に右下に固定） */
+  position: fixed;      /* 常に固定 */
   bottom: 20px;
-  right: 20px;
+  left: 20px;           /* ← 左下に配置 */
   width: 48px;
   height: 48px;
   cursor: pointer;
-  z-index: 9999;
-  display: block;    /* ← 最初から表示する */
+  z-index: 10002;       /* 再編集ボタンより前に出す */
+  display: block;
 ">
 
 <script>
@@ -2305,18 +2304,14 @@ document.addEventListener('DOMContentLoaded', () => {
     let showing = false;
 
     if (!toggleBtn) return;
-
-    // どんなページでもボタンを表示。見た目は常にボックス固定
     toggleBtn.style.display = 'block';
-    toggleBtn.src = '/static/box.png';
+    toggleBtn.src = '/static/box.png'; // 常にボックス
 
     toggleBtn.addEventListener('click', () => {
       showing = !showing;
       if (mainWrapper)   mainWrapper.style.display   = showing ? 'none'  : '';
       if (backgroundImg) backgroundImg.style.display = showing ? 'block' : 'none';
-
-      // アイコンは常にボックスのまま
-      toggleBtn.src = '/static/box.png';
+      toggleBtn.src = '/static/box.png'; // 常にボックスのまま
     });
   });
 </script>
