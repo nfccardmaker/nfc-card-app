@@ -2271,53 +2271,60 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </script>
 
-</script>
-<!-- 背景画像 -->
-<img id="background-img" src="/static/box.png" style="
-  display: none;
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  object-fit: cover;
-  z-index: 9990;
-">
-</div>
-<!-- ✅ 画像ボタン（アイコン） -->
-<img id="toggle-background-btn" src="/static/box.png" style="
-  display: none;
-  position: absolute;
-  bottom: 20px;
-  right: 20px;
-  width: 48px;
-  height: 48px;
-  cursor: pointer;
-  z-index: 9999;
-">
-
-
 <script>
   document.addEventListener('DOMContentLoaded', () => {
-    const toggleBtn = document.getElementById('toggle-background-btn');
-    const mainWrapper = document.querySelector('.main-wrapper');
-    const backgroundImg = document.getElementById('background-img');
+    const toggleBtn     = document.getElementById('toggle-background-btn');
+    const mainWrapper   = document.querySelector('.main-wrapper');
+    const backgroundImg = document.getElementById('background-img'); // ← 今は<img>想定
     let showingBackground = false;
 
-    // ✅ 完成ページのときだけボタン表示
-    const isFinalPage = window.location.href.includes('/user_cards/');
-    if (isFinalPage && toggleBtn) {
+    // ✅ 完成系URLの判定を少し緩める（/user_cards/ か /preview で表示）
+    const isFinalLike = location.href.includes('/user_cards/') || location.href.includes('/preview');
+    if (isFinalLike && toggleBtn) {
       toggleBtn.style.display = 'block';
     }
 
+    // ✅ bodyの背景画像を #background-img にコピー（setBackgroundで設定したやつを使う）
+    const bodyBg = getComputedStyle(document.body).backgroundImage; // e.g. url(".../haikei_x.jpeg")
+    const m = bodyBg && bodyBg !== 'none' ? bodyBg.match(/url\(["']?(.*?)["']?\)/) : null;
+    if (m && backgroundImg && backgroundImg.tagName === 'IMG') {
+      backgroundImg.src = m[1];
+    }
+
+    // （お好み）背景だけモードでは編集系UIを隠す
+    const hideEditUIs = (hide) => {
+      ['toolbar','finish-button','text-tools','bg-template-list','terms-modal','terms-notice']
+        .forEach(id => { const el = document.getElementById(id); if (el) el.style.display = hide ? 'none' : ''; });
+      document.querySelectorAll(
+        '.sns-delete-btn, .deco-delete-btn, .text-stamp-delete-btn,' +
+        '.deletable-templates, .self-pr-template-section,' +
+        '.youtube-section button, #spotify-section button,' +
+        '#youtube-url, #spotify-url, #sns-explain'
+      ).forEach(el => el.style.display = hide ? 'none' : '');
+    };
+
     toggleBtn?.addEventListener('click', () => {
       showingBackground = !showingBackground;
-      if (mainWrapper) mainWrapper.style.display = showingBackground ? 'none' : 'block';
+
+      if (mainWrapper)  mainWrapper.style.display  = showingBackground ? 'none' : 'block';
       if (backgroundImg) backgroundImg.style.display = showingBackground ? 'block' : 'none';
-      toggleBtn.src = showingBackground ? "/static/box.png" : "/static/box.png";
+
+      // アイコン切り替え（任意）
+      toggleBtn.src = showingBackground ? "/static/closed_eye.jpeg" : "/static/open_eye.jpeg";
+
+      // 編集系UIの表示/非表示（任意）
+      hideEditUIs(showingBackground);
+
+      // 背景を後から変更しても同期されるよう、毎回取り直す
+      if (showingBackground) {
+        const latest = getComputedStyle(document.body).backgroundImage;
+        const mm = latest && latest !== 'none' ? latest.match(/url\(["']?(.*?)["']?\)/) : null;
+        if (mm && backgroundImg && backgroundImg.tagName === 'IMG') backgroundImg.src = mm[1];
+      }
     });
   });
 </script>
+
 <script>
 const input = document.getElementById('scroll-text-input');
 const text = document.getElementById('scrolling-text');
