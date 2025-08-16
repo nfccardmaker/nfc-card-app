@@ -365,22 +365,7 @@ body {
   top: 0;
   left: 0;
 }
-#background-img {
-      position: fixed; inset: 0;
-      width: 100vw; height: 100vh;
-      object-fit: cover;           /* IMGのとき */
-      background-size: cover;      /* DIVのとき */
-      background-position: center; /* DIVのとき */
-      display: none;
-      z-index: 9990;
-      pointer-events: none;        /* 背景表示中も画面操作を邪魔しない */
-    }
-    #toggle-background-btn {
-      position: fixed; right: 20px; bottom: 20px;
-      width: 48px; height: 48px;
-      z-index: 9999; cursor: pointer;
-      display: none;
-    }
+
 @keyframes scroll-left {
   0% { transform: translateX(0%); }
   100% { transform: translateX(-100%); }
@@ -2286,6 +2271,53 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </script>
 
+</script>
+<!-- 背景画像 -->
+<img id="background-img" src="/static/box.png" style="
+  display: none;
+  position: fixed;   /* ← absolute を fixed に変更（画面全体に固定） */
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  z-index: 9990;
+  pointer-events: none; /* ← 背景クリックが操作を邪魔しない */
+">
+</div>
+<!-- ✅ 画像ボタン（アイコン） -->
+<img id="toggle-background-btn" src="/static/box.png" style="
+  position: fixed;   /* ← absolute から fixed に変更（常に右下に固定） */
+  bottom: 20px;
+  right: 20px;
+  width: 48px;
+  height: 48px;
+  cursor: pointer;
+  z-index: 9999;
+  display: block;    /* ← 最初から表示する */
+">
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const toggleBtn = document.getElementById('toggle-background-btn');
+    const mainWrapper = document.querySelector('.main-wrapper');
+    const backgroundImg = document.getElementById('background-img');
+    let showingBackground = false;
+
+    // ✅ どんなページでも常にボタン表示
+    if (toggleBtn) toggleBtn.style.display = 'block';
+
+    toggleBtn?.addEventListener('click', () => {
+      showingBackground = !showingBackground;
+      if (mainWrapper)   mainWrapper.style.display   = showingBackground ? 'none' : 'block';
+      if (backgroundImg) backgroundImg.style.display = showingBackground ? 'block' : 'none';
+
+      // アイコン画像を切り替えたいならここで変更
+      toggleBtn.src = showingBackground ? "/static/closed_eye.jpeg"
+                                        : "/static/open_eye.jpeg";
+    });
+  });
+</script>
 
 <script>
 const input = document.getElementById('scroll-text-input');
@@ -3103,83 +3135,6 @@ window.addEventListener('DOMContentLoaded', () => {
   btn.addEventListener('click', () => gotoEditMode());
   document.body.appendChild(btn);
 });
-</script>
-<script type="module">
-/* ===== 背景だけトグル（idなしでも表示） ===== */
-window.addEventListener('DOMContentLoaded', () => {
-  const btn     = document.getElementById('toggle-background-btn');
-  const bgLayer = document.getElementById('background-img');
-  const main    = document.querySelector('.main-wrapper');
-  let showing = false;
-
-  // ✅ idの有無に関係なく、/preview または /user_cards のときにボタン表示（ただし ?edit=1 は非表示）
-  const path = location.pathname;
-  const params = new URLSearchParams(location.search);
-  const shouldShowBtn = (path.startsWith('/preview') || path.startsWith('/user_cards')) && params.get('edit') !== '1';
-  if (btn && shouldShowBtn) btn.style.display = 'block';
-
-  // bodyの背景を bgLayer に同期（IMGでもDIVでもOK）
-  function syncBg() {
-    if (!bgLayer) return;
-    const cssBg = getComputedStyle(document.body).backgroundImage; // url("...") or none
-    const m = cssBg && cssBg !== 'none' ? cssBg.match(/url\(["']?(.*?)["']?\)/) : null;
-    const url = m ? m[1] : "";
-
-    if (bgLayer.tagName === 'IMG') {
-      if (url) {
-        bgLayer.src = url;
-        bgLayer.style.display = showing ? 'block' : 'none';
-      } else {
-        bgLayer.removeAttribute('src');
-        bgLayer.style.display = 'none';
-      }
-    } else {
-      bgLayer.style.backgroundImage = url ? `url("${url}")` : 'none';
-      bgLayer.style.backgroundSize = 'cover';
-      bgLayer.style.backgroundPosition = 'center';
-      bgLayer.style.display = (url && showing) ? 'block' : 'none';
-    }
-  }
-
-  // 背景変更APIをフックして常に同期
-  const _origSetBackground = window.setBackground;
-  window.setBackground = async function(url) {
-    try {
-      if (typeof _origSetBackground === 'function') {
-        await _origSetBackground(url);
-      } else {
-        document.body.style.backgroundImage = `url('${url}')`;
-      }
-    } finally {
-      requestAnimationFrame(syncBg);
-    }
-  };
-
-  function hideEditUIs(hide) {
-    const ids = ['toolbar','finish-button','text-tools','bg-template-list','terms-modal','terms-notice','reedit-button'];
-    ids.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = hide ? 'none' : ''; });
-
-    document.querySelectorAll(
-      '.sns-delete-btn, .deco-delete-btn, .text-stamp-delete-btn,' +
-      '.deletable-templates, .self-pr-template-section,' +
-      '.youtube-section button, #spotify-section button,' +
-      '#youtube-url, #spotify-url, #sns-explain'
-    ).forEach(el => { el.style.display = hide ? 'none' : ''; });
-  }
-
-  btn?.addEventListener('click', () => {
-    showing = !showing;
-    syncBg(); // 最新の背景を反映
-    if (main)    main.style.display    = showing ? 'none' : 'block';
-    if (bgLayer) bgLayer.style.display = showing ? 'block' : 'none';
-    hideEditUIs(showing);
-    btn.src = showing ? '/static/closed_eye.jpeg' : '/static/open_eye.jpeg';
-  });
-
-  // 初期同期
-  syncBg();
-});
-/* ===== ここまで ===== */
 </script>
 
 
