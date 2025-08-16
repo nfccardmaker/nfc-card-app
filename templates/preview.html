@@ -2291,30 +2291,52 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </script>
 
+<!-- 背景画像 -->
+<img id="background-img" src="/static/box.png" style="
+  display:none;
+  position:fixed;      /* 画面全体に固定 */
+  top:0; left:0;
+  width:100vw; height:100vh;
+  object-fit:cover;
+  z-index:9990;
+  pointer-events:none; /* 背景クリックが操作を邪魔しない */
+">
+
+<!-- ボックス（左下に固定） -->
+<img id="toggle-background-btn" src="/static/box.png" style="
+  position:fixed;      /* 常に固定 */
+  bottom:20px;
+  left:20px;           /* 左下に配置 */
+  width:48px; height:48px;
+  cursor:pointer;
+  z-index:10002;       /* 再編集ボタンより前に出す */
+  display:block;
+">
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-  const bg  = document.getElementById('background-img');
-  const btn = document.getElementById('toggle-background-btn');
-  const main = document.querySelector('.main-wrapper');
-  if (!bg || !btn) return;
-
-  // 念のため body 直下へ移動（スクロール領域やtransformの影響を受けないため）
-  if (bg.parentElement !== document.body)  document.body.appendChild(bg);
-  if (btn.parentElement !== document.body) document.body.appendChild(btn);
-
+  const toggleBtn     = document.getElementById('toggle-background-btn');
+  const backgroundImg = document.getElementById('background-img');
+  const mainWrapper   = document.querySelector('.main-wrapper');
   let showing = false;
-  btn.src = '/static/box.png'; // ずっとボックス表示
 
-  btn.addEventListener('click', () => {
+  if (!toggleBtn) return;
+
+  // 常にボックスアイコン
+  toggleBtn.src = '/static/box.png';
+  toggleBtn.style.display = 'block';
+
+  toggleBtn.addEventListener('click', () => {
     showing = !showing;
-    if (main) main.style.display = showing ? 'none' : '';
-    bg.style.display = showing ? 'block' : 'none';
-    btn.src = '/static/box.png'; // 常にボックス
+
+    if (mainWrapper)   mainWrapper.style.display   = showing ? 'none'  : '';
+    if (backgroundImg) backgroundImg.style.display = showing ? 'block' : 'none';
+
+    // アイコンは常にボックスのまま
+    toggleBtn.src = '/static/box.png';
   });
 });
 </script>
-
 
 
 
@@ -3140,27 +3162,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
 
 
-<!-- 背景画像（全画面・クリック貫通） -->
-<img id="background-img" src="/static/box.png" style="
-  display:none;
-  position:fixed;
-  inset:0;
-  width:100vw; height:100vh;
-  object-fit:cover;
-  z-index:9990;
-  pointer-events:none;
-">
-
-<!-- ボックス（左下固定・セーフエリア考慮） -->
-<img id="toggle-background-btn" src="/static/box.png" style="
-  position:fixed;
-  left:16px;
-  bottom:calc(env(safe-area-inset-bottom,0) + 16px);
-  width:48px; height:48px;
-  cursor:pointer;
-  z-index:10002;
-  display:block;
-">
 
 </body>
 </html>
