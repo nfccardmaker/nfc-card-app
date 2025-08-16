@@ -365,7 +365,7 @@ body {
   top: 0;
   left: 0;
 }
-/* 背景レイヤー（全画面固定） */
+/* 背景レイヤー（全画面固定） ←これはこのままでOK */
 #background-img{
   position: fixed; inset: 0;
   width: 100vw; height: 100vh;
@@ -375,16 +375,17 @@ body {
   pointer-events: none;
 }
 
-/* トグル用ボックス（左下に固定） */
+/* トグル用ボックス（ページ最下部・左端に固定） */
 #toggle-background-btn{
-  position: fixed;
+  position: absolute;     /* ← fixed から absolute に変更 */
   left: 16px;
-  bottom: calc(env(safe-area-inset-bottom,0) + 16px);
+  bottom: 16px;           /* safe-area は不要。ページ内の“下端”に張り付く */
   width: 48px; height: 48px;
   cursor: pointer;
   z-index: 10002;
-  display: block;          /* 常に表示 */
+  display: block;
 }
+
 
 @keyframes scroll-left {
   0% { transform: translateX(0%); }
