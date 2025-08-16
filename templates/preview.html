@@ -2273,48 +2273,51 @@ document.addEventListener('DOMContentLoaded', () => {
 
 <!-- 背景画像 -->
 <img id="background-img" src="/static/box.png" style="
-  display: none;
-  position: fixed;      /* 画面全体に固定 */
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  object-fit: cover;
-  z-index: 9990;
-  pointer-events: none; /* 背景クリックが操作を邪魔しない */
+  display:none;
+  position:fixed;      /* 画面全体に固定 */
+  top:0; left:0;
+  width:100vw; height:100vh;
+  object-fit:cover;
+  z-index:9990;
+  pointer-events:none; /* 背景クリックが操作を邪魔しない */
 ">
 
 <!-- ボックス（左下に固定） -->
 <img id="toggle-background-btn" src="/static/box.png" style="
-  position: fixed;      /* 常に固定 */
-  bottom: 20px;
-  left: 20px;           /* ← 左下に配置 */
-  width: 48px;
-  height: 48px;
-  cursor: pointer;
-  z-index: 10002;       /* 再編集ボタンより前に出す */
-  display: block;
+  position:fixed;      /* 常に固定 */
+  bottom:20px;
+  left:20px;           /* 左下に配置 */
+  width:48px; height:48px;
+  cursor:pointer;
+  z-index:10002;       /* 再編集ボタンより前に出す */
+  display:block;
 ">
 
 <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const toggleBtn     = document.getElementById('toggle-background-btn');
-    const mainWrapper   = document.querySelector('.main-wrapper');
-    const backgroundImg = document.getElementById('background-img');
-    let showing = false;
+document.addEventListener('DOMContentLoaded', () => {
+  const toggleBtn     = document.getElementById('toggle-background-btn');
+  const backgroundImg = document.getElementById('background-img');
+  const mainWrapper   = document.querySelector('.main-wrapper');
+  let showing = false;
 
-    if (!toggleBtn) return;
-    toggleBtn.style.display = 'block';
-    toggleBtn.src = '/static/box.png'; // 常にボックス
+  if (!toggleBtn) return;
 
-    toggleBtn.addEventListener('click', () => {
-      showing = !showing;
-      if (mainWrapper)   mainWrapper.style.display   = showing ? 'none'  : '';
-      if (backgroundImg) backgroundImg.style.display = showing ? 'block' : 'none';
-      toggleBtn.src = '/static/box.png'; // 常にボックスのまま
-    });
+  // 常にボックスアイコン
+  toggleBtn.src = '/static/box.png';
+  toggleBtn.style.display = 'block';
+
+  toggleBtn.addEventListener('click', () => {
+    showing = !showing;
+
+    if (mainWrapper)   mainWrapper.style.display   = showing ? 'none'  : '';
+    if (backgroundImg) backgroundImg.style.display = showing ? 'block' : 'none';
+
+    // アイコンは常にボックスのまま
+    toggleBtn.src = '/static/box.png';
   });
+});
 </script>
+
 
 
 <script>
