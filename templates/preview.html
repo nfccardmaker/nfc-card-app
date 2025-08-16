@@ -2313,28 +2313,6 @@ document.addEventListener('DOMContentLoaded', () => {
   display:block;
 ">
 
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-  const bg  = document.getElementById('background-img');
-  const btn = document.getElementById('toggle-background-btn');
-  const main = document.querySelector('.main-wrapper');
-  if (!bg || !btn) return;
-
-  // 念のため body 直下へ移動（スクロール領域やtransformの影響を受けないため）
-  if (bg.parentElement !== document.body)  document.body.appendChild(bg);
-  if (btn.parentElement !== document.body) document.body.appendChild(btn);
-
-  let showing = false;
-  btn.src = '/static/box.png'; // ずっとボックス表示
-
-  btn.addEventListener('click', () => {
-    showing = !showing;
-    if (main) main.style.display = showing ? 'none' : '';
-    bg.style.display = showing ? 'block' : 'none';
-    btn.src = '/static/box.png'; // 常にボックス
-  });
-});
-</script>
 
 
 
@@ -3161,7 +3139,28 @@ window.addEventListener('DOMContentLoaded', () => {
 
 
 
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const bg  = document.getElementById('background-img');
+  const btn = document.getElementById('toggle-background-btn');
+  const main = document.querySelector('.main-wrapper');
+  if (!bg || !btn) return;
 
+  // 念のため body 直下へ移動（スクロール領域やtransformの影響を受けないため）
+  if (bg.parentElement !== document.body)  document.body.appendChild(bg);
+  if (btn.parentElement !== document.body) document.body.appendChild(btn);
+
+  let showing = false;
+  btn.src = '/static/box.png'; // ずっとボックス表示
+
+  btn.addEventListener('click', () => {
+    showing = !showing;
+    if (main) main.style.display = showing ? 'none' : '';
+    bg.style.display = showing ? 'block' : 'none';
+    btn.src = '/static/box.png'; // 常にボックス
+  });
+});
+</script>
 </body>
 </html>
 
