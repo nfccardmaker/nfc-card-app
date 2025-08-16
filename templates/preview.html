@@ -365,7 +365,7 @@ body {
   top: 0;
   left: 0;
 }
-/* 背景レイヤー（全画面固定） ←これはこのままでOK */
+/* 背景レイヤー（全画面固定） */
 #background-img{
   position: fixed; inset: 0;
   width: 100vw; height: 100vh;
@@ -375,17 +375,16 @@ body {
   pointer-events: none;
 }
 
-/* トグル用ボックス（ページ最下部・左端に固定） */
+/* トグル用ボックス（左下に固定） */
 #toggle-background-btn{
-  position: absolute;     /* ← fixed から absolute に変更 */
+  position: fixed;
   left: 16px;
-  bottom: 16px;           /* safe-area は不要。ページ内の“下端”に張り付く */
+  bottom: calc(env(safe-area-inset-bottom,0) + 16px);
   width: 48px; height: 48px;
   cursor: pointer;
   z-index: 10002;
-  display: block;
+  display: block;          /* 常に表示 */
 }
-
 
 @keyframes scroll-left {
   0% { transform: translateX(0%); }
@@ -2292,28 +2291,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </script>
 
-<!-- 背景画像（全画面・クリック貫通） -->
-<img id="background-img" src="/static/box.png" style="
-  display:none;
-  position:fixed;
-  inset:0;
-  width:100vw; height:100vh;
-  object-fit:cover;
-  z-index:9990;
-  pointer-events:none;
-">
 
-<!-- ボックス（左下固定・セーフエリア考慮） -->
-<img id="toggle-background-btn" src="/static/box.png" style="
-  position:fixed;
-  left:16px;
-  bottom:calc(env(safe-area-inset-bottom,0) + 16px);
-  width:48px; height:48px;
-  cursor:pointer;
-  z-index:10002;
-  display:block;
-">
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const bg  = document.getElementById('background-img');
+  const btn = document.getElementById('toggle-background-btn');
+  const main = document.querySelector('.main-wrapper');
+  if (!bg || !btn) return;
 
+  // 念のため body 直下へ移動（スクロール領域やtransformの影響を受けないため）
+  if (bg.parentElement !== document.body)  document.body.appendChild(bg);
+  if (btn.parentElement !== document.body) document.body.appendChild(btn);
+
+  let showing = false;
+  btn.src = '/static/box.png'; // ずっとボックス表示
+
+  btn.addEventListener('click', () => {
+    showing = !showing;
+    if (main) main.style.display = showing ? 'none' : '';
+    bg.style.display = showing ? 'block' : 'none';
+    btn.src = '/static/box.png'; // 常にボックス
+  });
+});
+</script>
 
 
 
@@ -3140,28 +3140,28 @@ window.addEventListener('DOMContentLoaded', () => {
 
 
 
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-  const bg  = document.getElementById('background-img');
-  const btn = document.getElementById('toggle-background-btn');
-  const main = document.querySelector('.main-wrapper');
-  if (!bg || !btn) return;
+<!-- 背景画像（全画面・クリック貫通） -->
+<img id="background-img" src="/static/box.png" style="
+  display:none;
+  position:fixed;
+  inset:0;
+  width:100vw; height:100vh;
+  object-fit:cover;
+  z-index:9990;
+  pointer-events:none;
+">
 
-  // 念のため body 直下へ移動（スクロール領域やtransformの影響を受けないため）
-  if (bg.parentElement !== document.body)  document.body.appendChild(bg);
-  if (btn.parentElement !== document.body) document.body.appendChild(btn);
+<!-- ボックス（左下固定・セーフエリア考慮） -->
+<img id="toggle-background-btn" src="/static/box.png" style="
+  position:fixed;
+  left:16px;
+  bottom:calc(env(safe-area-inset-bottom,0) + 16px);
+  width:48px; height:48px;
+  cursor:pointer;
+  z-index:10002;
+  display:block;
+">
 
-  let showing = false;
-  btn.src = '/static/box.png'; // ずっとボックス表示
-
-  btn.addEventListener('click', () => {
-    showing = !showing;
-    if (main) main.style.display = showing ? 'none' : '';
-    bg.style.display = showing ? 'block' : 'none';
-    btn.src = '/static/box.png'; // 常にボックス
-  });
-});
-</script>
 </body>
 </html>
 
