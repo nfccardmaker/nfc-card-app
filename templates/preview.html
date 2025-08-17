@@ -2327,27 +2327,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (!toggleBtn) return;
 
-  // 常にボックスアイコン
-  toggleBtn.src = '/static/box.png';
-  toggleBtn.style.display = 'block';
-
   toggleBtn.addEventListener('click', () => {
     showing = !showing;
 
-    // 本体を消さずに「透明＋操作不可」にするだけ
-    if (mainWrapper){
-      mainWrapper.style.opacity       = showing ? '0'   : '1';
-      mainWrapper.style.pointerEvents = showing ? 'none': 'auto';
+    if (showing) {
+      // 押したら背景を出す・他を消す
+      if (backgroundImg) backgroundImg.style.display = 'block';
+      if (mainWrapper)   mainWrapper.style.display   = 'none';
+    } else {
+      // もう一度押したら戻す
+      if (backgroundImg) backgroundImg.style.display = 'none';
+      if (mainWrapper)   mainWrapper.style.display   = '';
     }
 
-    // 背景の表示切替
-    if (backgroundImg) backgroundImg.style.display = showing ? 'block' : 'none';
-
-    // アイコンは常にボックスのまま
+    // ボックス自体は残す（消さない）
     toggleBtn.src = '/static/box.png';
   });
 });
 </script>
+
 
 
 
