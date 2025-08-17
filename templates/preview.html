@@ -2323,28 +2323,69 @@ document.addEventListener('DOMContentLoaded', () => {
   const toggleBtn     = document.getElementById('toggle-background-btn');
   const backgroundImg = document.getElementById('background-img');
   const mainWrapper   = document.querySelector('.main-wrapper');
+  if (!toggleBtn || !backgroundImg) return;
+
   let showing = false;
 
-  if (!toggleBtn) return;
+  // 元の親と差し戻し用のプレースホルダ
+  const btnOriginalParent = toggleBtn.parentElement;
+  const btnPlaceholder    = document.createComment('btn-placeholder');
+  btnOriginalParent.insertBefore(btnPlaceholder, toggleBtn);
+
+  const bgOriginalParent  = backgroundImg.parentElement;
+  const bgPlaceholder     = document.createComment('bg-placeholder');
+  bgOriginalParent.insertBefore(bgPlaceholder, backgroundImg);
 
   toggleBtn.addEventListener('click', () => {
     showing = !showing;
 
     if (showing) {
-      // 押したら背景を出す・他を消す
-      if (backgroundImg) backgroundImg.style.display = 'block';
-      if (mainWrapper)   mainWrapper.style.display   = 'none';
-    } else {
-      // もう一度押したら戻す
-      if (backgroundImg) backgroundImg.style.display = 'none';
-      if (mainWrapper)   mainWrapper.style.display   = '';
-    }
+      // 背景を画面全体に表示できるよう body 直下へ退避
+      document.body.appendChild(backgroundImg);
+      backgroundImg.style.display = 'block';
+      backgroundImg.style.position = 'fixed';
+      backgroundImg.style.inset = '0';
+      backgroundImg.style.width = '100vw';
+      backgroundImg.style.height = '100vh';
+      backgroundImg.style.objectFit = 'cover';
+      backgroundImg.style.zIndex = '9990';
+      backgroundImg.style.pointerEvents = 'none';
 
-    // ボックス自体は残す（消さない）
-    toggleBtn.src = '/static/box.png';
+      // ボタンも body 直下へ退避して常に押せるように
+      document.body.appendChild(toggleBtn);
+      toggleBtn.style.position = 'fixed';
+      toggleBtn.style.left = '12px';
+      toggleBtn.style.bottom = 'calc(env(safe-area-inset-bottom,0) + 12px)';
+      toggleBtn.style.zIndex = '10002';
+
+      // 他を非表示（親ごと消してOK）
+      if (mainWrapper) mainWrapper.style.display = 'none';
+    } else {
+      // 他を復帰
+      if (mainWrapper) mainWrapper.style.display = '';
+
+      // 背景を元のセクションへ差し戻し＆元の見た目に戻す
+      bgOriginalParent.insertBefore(backgroundImg, bgPlaceholder);
+      backgroundImg.style.display = 'none';
+      backgroundImg.style.position = 'absolute';
+      backgroundImg.style.inset = '';
+      backgroundImg.style.width = '100%';
+      backgroundImg.style.height = '100%';
+      backgroundImg.style.objectFit = 'cover';
+      backgroundImg.style.zIndex = '0';
+      backgroundImg.style.pointerEvents = 'none';
+
+      // ボタンも元のセクション左下へ戻す
+      btnOriginalParent.insertBefore(toggleBtn, btnPlaceholder);
+      toggleBtn.style.position = 'absolute';
+      toggleBtn.style.left = '20px';
+      toggleBtn.style.bottom = '20px';
+      toggleBtn.style.zIndex = '10';
+    }
   });
 });
 </script>
+
 
 
 
