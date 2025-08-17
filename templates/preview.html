@@ -2291,51 +2291,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </script>
 
-<!-- セクションの親 -->
-<div class="my-section" style="position: relative; min-height: 100vh;">
-  <!-- 背景（常に最背面） -->
-  <img id="background-img" src="/static/box.png" style="
-    display:none;
-    position:absolute;
-    top:0; left:0;
-    width:100%; height:100%;
-    object-fit:cover;
-    z-index:-1;           /* ← 裏に固定 */
-    pointer-events:none;
-  ">
-
-  <!-- トグル用ボックス（左下に常に見える） -->
-  <img id="toggle-background-btn" src="/static/box.png" style="
-    position:absolute;
-    bottom:20px; left:20px;
-    width:48px; height:48px;
-    cursor:pointer;
-    z-index:10;          /* 背景より前 */
-    display:block;
-  ">
-</div>
-
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-  const toggleBtn     = document.getElementById('toggle-background-btn');
-  const backgroundImg = document.getElementById('background-img');
-  let showing = false;
-
-  if (!toggleBtn) return;
-
-  toggleBtn.addEventListener('click', () => {
-    showing = !showing;
-    if (backgroundImg) backgroundImg.style.display = showing ? 'block' : 'none';
-    // ここで mainWrapper を消さない！ ← これが原因だった
-    toggleBtn.src = '/static/box.png';
-  });
-});
-</script>
-
-
-
-
-
 
 <script>
 const input = document.getElementById('scroll-text-input');
