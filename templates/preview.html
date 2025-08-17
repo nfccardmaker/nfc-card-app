@@ -2297,19 +2297,19 @@ document.addEventListener('DOMContentLoaded', () => {
   <!-- 背景画像（セクション内に表示） -->
   <img id="background-img" src="/static/box.png" style="
     display:none;
-    position:absolute;   /* ← fixed を absolute に */
-    top:0; left:0;
+    position:absolute;       /* セクション基準 */
+    inset:0;                 /* top:0; right:0; bottom:0; left:0 と同義 */
     width:100%; height:100%;
     object-fit:cover;
     z-index:0;
     pointer-events:none;
   ">
 
-  <!-- ボックス（セクション左下に配置） -->
+  <!-- ボックス（通常はセクション左下） -->
   <img id="toggle-background-btn" src="/static/box.png" style="
-    position:absolute;   /* ← fixed を absolute に */
-    bottom:20px;
-    left:20px;
+    position:absolute;       /* 通常はセクション基準 */
+    bottom:12px;             /* もう少し下へ寄せる */
+    left:12px;
     width:48px; height:48px;
     cursor:pointer;
     z-index:10;
@@ -2322,26 +2322,38 @@ document.addEventListener('DOMContentLoaded', () => {
 document.addEventListener('DOMContentLoaded', () => {
   const toggleBtn     = document.getElementById('toggle-background-btn');
   const backgroundImg = document.getElementById('background-img');
-  const mainWrapper   = document.querySelector('.main-wrapper');
+  const mainWrapper   = document.querySelector('.main-wrapper'); // ページ本体
+
   let showing = false;
-
-  if (!toggleBtn) return;
-
-  // 常にボックスアイコン
-  toggleBtn.src = '/static/box.png';
-  toggleBtn.style.display = 'block';
 
   toggleBtn.addEventListener('click', () => {
     showing = !showing;
 
-    if (mainWrapper)   mainWrapper.style.display   = showing ? 'none'  : '';
-    if (backgroundImg) backgroundImg.style.display = showing ? 'block' : 'none';
+    // 背景の表示/非表示
+    backgroundImg.style.display = showing ? 'block' : 'none';
 
-    // アイコンは常にボックスのまま
-    toggleBtn.src = '/static/box.png';
+    // 本体は非表示にせず、操作だけ止めて薄くする（戻せなくなるのを防ぐ）
+    if (mainWrapper){
+      mainWrapper.style.opacity       = showing ? '0'   : '1';
+      mainWrapper.style.pointerEvents = showing ? 'none': 'auto';
+    }
+
+    // 表示中だけボタンを画面左下に固定して、必ず押せるようにする
+    if (showing){
+      toggleBtn.style.position = 'fixed';
+      toggleBtn.style.left     = '12px';
+      toggleBtn.style.bottom   = 'calc(env(safe-area-inset-bottom,0) + 12px)';
+      toggleBtn.style.zIndex   = '10002';
+    } else {
+      toggleBtn.style.position = 'absolute';  // ふだんはセクション左下
+      toggleBtn.style.left     = '12px';
+      toggleBtn.style.bottom   = '12px';
+      toggleBtn.style.zIndex   = '10';
+    }
   });
 });
 </script>
+
 
 
 
