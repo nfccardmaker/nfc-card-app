@@ -375,20 +375,19 @@ body {
   pointer-events: none;
 }
 
-/* トグル用ボックス（左下に固定） */
-#toggle-background-btn{
-  position: fixed;
-  left: 16px;
-  bottom: calc(env(safe-area-inset-bottom,0) + 16px);
-  width: 48px; height: 48px;
-  cursor: pointer;
-  z-index: 10002;
-  display: block;          /* 常に表示 */
-}
-
 @keyframes scroll-left {
   0% { transform: translateX(0%); }
   100% { transform: translateX(-100%); }
+}
+/* ▼ 全ボタンに押下時の拡大効果 */
+button {
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  will-change: transform;
+}
+
+button:active {
+  transform: scale(1.12);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
 }
 
 
