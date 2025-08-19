@@ -392,19 +392,11 @@ button:active {
 /* 既存の @keyframes glow-temporary はそのまま使える */
 
 #scroll-text-input.glow-once {
-  position: relative;   /* 擬似要素の基準 */
-  border-radius: 8px;   /* 光が角に沿うように */
+  animation: glow-temporary 1.1s ease-in-out 3;
+  border-radius: 8px;              /* 光の角を丸く */
+  box-shadow: 0 0 22px #00bfff inset; /* 内側光を直接適用 */
 }
 
-#scroll-text-input.glow-once::after {
-  content: "";
-  position: absolute;
-  inset: 0;                     /* input全体にフィット */
-  border-radius: 8px;
-  pointer-events: none;
-  animation: glow-temporary 1.1s ease-in-out 3;
-  box-shadow: 0 0 22px #00bfff inset; /* 内側に光らせる */
-}
 
 
 
@@ -3123,10 +3115,10 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // 再生用（付け直しで確実に発火）
   function pulseName(){
-    nameInput.classList.remove('name-cue');
+    nameInput.classList.remove('glow-once');
     void nameInput.offsetWidth;              // リセット
-    nameInput.classList.add('name-cue');
-    setTimeout(()=> nameInput.classList.remove('name-cue'), 4000); // 後片付け
+    nameInput.classList.add('glow-once');
+    setTimeout(()=> nameInput.classList.remove('glow-once'), 4000); // 後片付け
   }
 
   // 初回ロード：未入力なら光らせる
@@ -3134,12 +3126,14 @@ window.addEventListener('DOMContentLoaded', () => {
     if ((nameInput.value || '').trim() === '') pulseName();
   });
 
-  // 触ったら終了（任意）
-  ['focus','input'].forEach(ev => nameInput.addEventListener(ev, () => {
-    nameInput.classList.remove('name-cue');
-  }));
+  // ユーザーが触ったら光を外す（任意）
+  ['focus','input'].forEach(ev => {
+    nameInput.addEventListener(ev, () => {
+      nameInput.classList.remove('glow-once');
+    });
+  });
 
-  // いつでも手動で再生したい時：window.pulseName()
+  // いつでも手動で再生したい時に呼べる
   window.pulseName = pulseName;
 })();
 </script>
