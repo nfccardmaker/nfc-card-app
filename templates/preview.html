@@ -389,19 +389,23 @@ button:active {
   transform: scale(1.12);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
 }
-/* 既存の @keyframes glow-temporary はそのままでOK */
+/* 既存の @keyframes glow-temporary はそのまま使える */
 
-#header-bar.glow-once { position: relative; } /* 念のため */
-#header-bar.glow-once::after{
-  content:"";
-  position:absolute;
-  inset: 2px;               /* 端が切れないように少し内側 */
-  border-radius: 8px;
-  pointer-events:none;
-  /* 既存のglow-temporaryを流用してもOKだけど、内側用に見えを強める */
-  animation: glow-temporary 1.1s ease-in-out 3;
-  box-shadow: 0 0 22px #00bfff inset;  /* 内側に光らせるのがポイント */
+#scroll-text-input.glow-once {
+  position: relative;   /* 擬似要素の基準 */
+  border-radius: 8px;   /* 光が角に沿うように */
 }
+
+#scroll-text-input.glow-once::after {
+  content: "";
+  position: absolute;
+  inset: 0;                     /* input全体にフィット */
+  border-radius: 8px;
+  pointer-events: none;
+  animation: glow-temporary 1.1s ease-in-out 3;
+  box-shadow: 0 0 22px #00bfff inset; /* 内側に光らせる */
+}
+
 
 
 
@@ -3113,28 +3117,33 @@ window.addEventListener('DOMContentLoaded', () => {
 </script>
 
 <script>
-(function () {
-  const bar = document.getElementById('header-bar');
+(function(){
   const nameInput = document.getElementById('scroll-text-input');
-  if (!bar || !nameInput) return;
+  if (!nameInput) return;
 
-  // アニメを確実に再生する関数（付け直し）
-  function playHeaderGlow(){
-    bar.classList.remove('glow-once');
-    void bar.offsetWidth;            // 再計算でリセット
-    bar.classList.add('glow-once');
-    setTimeout(()=> bar.classList.remove('glow-once'), 4000); // お掃除
+  // 再生用（付け直しで確実に発火）
+  function pulseName(){
+    nameInput.classList.remove('name-cue');
+    void nameInput.offsetWidth;              // リセット
+    nameInput.classList.add('name-cue');
+    setTimeout(()=> nameInput.classList.remove('name-cue'), 4000); // 後片付け
   }
 
-  // 初回ロード時：未入力なら光らせる
+  // 初回ロード：未入力なら光らせる
   window.addEventListener('load', () => {
-    if ((nameInput.value || '').trim() === '') playHeaderGlow();
+    if ((nameInput.value || '').trim() === '') pulseName();
   });
 
-  // 入力し始めたら終了（任意）
-  ['focus','input'].forEach(ev => nameInput.addEventListener(ev, ()=> bar.classList.remove('glow-once')));
+  // 触ったら終了（任意）
+  ['focus','input'].forEach(ev => nameInput.addEventListener(ev, () => {
+    nameInput.classList.remove('name-cue');
+  }));
+
+  // いつでも手動で再生したい時：window.pulseName()
+  window.pulseName = pulseName;
 })();
 </script>
+
 
 
 
