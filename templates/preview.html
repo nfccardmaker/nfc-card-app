@@ -378,11 +378,12 @@ button:active {
 }
 /* 既存の @keyframes glow-temporary はそのまま使える */
 
-#scroll-text-input.glow-once {
-  animation: glow-temporary 1.1s ease-in-out 3;
-  border-radius: 8px;              /* 光の角を丸く */
-  box-shadow: 0 0 22px #00bfff inset; /* 内側光を直接適用 */
+#name.glow-once {
+  border-radius: 8px; /* 光が角に沿うように */
+  animation: glow-temporary 1.1s ease-in-out 3 !important;
+  box-shadow: 0 0 22px #00bfff; /* 外側に光らせる方が見えやすい */
 }
+
 
 
 
@@ -3097,7 +3098,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
 <script>
 (function(){
-  const nameInput = document.getElementById('scroll-text-input');
+  const nameInput = document.getElementById('name');  // ← ここを修正！
   if (!nameInput) return;
 
   // 再生用（付け直しで確実に発火）
