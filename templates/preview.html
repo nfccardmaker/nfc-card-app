@@ -389,6 +389,24 @@ button:active {
   transform: scale(1.12);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
 }
+/* 目線を集める一瞬の光（数回だけ） */
+@keyframes cuePulse {
+  0%   { box-shadow: 0 0 0px rgba(255,216,77,0);    }
+  50%  { box-shadow: 0 0 18px rgba(255,216,77,.85); }
+  100% { box-shadow: 0 0 0px rgba(255,216,77,0);    }
+}
+
+/* 入力欄の強調用クラス */
+#scroll-text-input.cue {
+  outline: none;
+  border-radius: 8px;
+  animation: cuePulse .9s ease-in-out 0s 4; /* 0.9s×4回 */
+}
+
+/* フォーカス中は自然な光だけ（派手すぎ防止） */
+#scroll-text-input:focus {
+  box-shadow: 0 0 10px rgba(255,216,77,.35);
+}
 
 
 
@@ -3100,6 +3118,26 @@ window.addEventListener('DOMContentLoaded', () => {
 </script>
 
 
+<script>
+  (function () {
+    const el = document.getElementById('scroll-text-input');
+    if (!el) return;
+
+    // 初回ロードで光らせる
+    window.addEventListener('load', () => {
+      el.classList.add('cue');
+      // 入力済みなら光らせない
+      if ((el.value || '').trim() !== '') el.classList.remove('cue');
+      // 4回分終わったら自動で消す（保険）
+      setTimeout(() => el.classList.remove('cue'), 4000);
+    });
+
+    // ユーザーが触れたら即終了
+    const removeCue = () => el.classList.remove('cue');
+    el.addEventListener('focus', removeCue);
+    el.addEventListener('input', removeCue);
+  })();
+</script>
 
 
 
