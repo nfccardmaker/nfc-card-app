@@ -384,6 +384,42 @@ button:active {
   box-shadow: 0 0 22px #00bfff; /* 外側に光らせる方が見えやすい */
 }
 
+.deco-wrapper{
+  position: absolute;
+  left: 100px; top: 100px;
+  transform-origin: center center;
+  touch-action: none;
+  will-change: transform;
+  z-index: 1200;
+}
+.deco-wrapper.active{
+  outline: 2px dashed rgba(80,120,255,.9);
+  outline-offset: 2px;
+  filter: drop-shadow(0 6px 10px rgba(0,0,0,.12));
+}
+.deco-wrapper img.deco-img{
+  display: block;
+  max-width: min(60vw, 420px);
+  height: auto;
+  user-select: none;
+  -webkit-user-drag: none;
+  pointer-events: none;  /* ラッパーで操作 */
+  background: transparent;
+}
+.deco-del{
+  position: absolute;
+  top: -10px; right: -10px;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: rgba(0,0,0,.7);
+  color: #fff;
+  font-size: 14px;
+  line-height: 22px;
+  text-align: center;
+  cursor: pointer;
+  user-select: none;
+  z-index: 2;
+}
 
 
 
@@ -3232,7 +3268,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     el.addEventListener('pointerdown', (e) => {
       // × を押したときはスルー
-      if ((e.target as HTMLElement).classList.contains('deco-del')) return;
+      if (e.target && e.target.classList && e.target.classList.contains('deco-del')) return;
       el.setPointerCapture(e.pointerId);
       pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
       el.classList.add('active');
