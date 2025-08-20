@@ -406,7 +406,10 @@ button:active {
   pointer-events: none;  /* ラッパーで操作 */
   background: transparent;
 }
+
+/* ←ここ修正：デフォは非表示、選択中(.active)で出す */
 .deco-del{
+  display: none;
   position: absolute;
   top: -10px; right: -10px;
   width: 22px; height: 22px;
@@ -419,6 +422,9 @@ button:active {
   cursor: pointer;
   user-select: none;
   z-index: 2;
+}
+.deco-wrapper.active .deco-del{
+  display: block;
 }
 
 
@@ -3211,9 +3217,9 @@ document.addEventListener('DOMContentLoaded', () => {
     img.src = src;
     img.alt = 'deco';
 
-    // 削除ボタン
+    // 削除ボタン（編集モード連動のためクラスを追加）
     const del = document.createElement('div');
-    del.className = 'deco-del';
+    del.className = 'deco-del deco-delete-btn';
     del.textContent = '×';
 
     del.addEventListener('click', (ev) => {
@@ -3229,7 +3235,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 操作を付与
     makeTransformable(wrap);
-    // ちょい演出
+
+    // 追加直後は一瞬だけ強調
     wrap.classList.add('active');
     setTimeout(() => wrap.classList.remove('active'), 600);
   }
@@ -3237,7 +3244,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // === 1本指/マウス: 移動、2本指: 拡大回転（Pointer Eventsベース） ===
   function makeTransformable(el){
     let tx = 0, ty = 0, scale = 1, rot = 0; // 現在値
-    let base = { tx:0, ty:0, scale:1, rot:0 }; // 操作開始基準
     const pointers = new Map();
 
     const update = () => {
@@ -3269,9 +3275,13 @@ document.addEventListener('DOMContentLoaded', () => {
     el.addEventListener('pointerdown', (e) => {
       // × を押したときはスルー
       if (e.target && e.target.classList && e.target.classList.contains('deco-del')) return;
+
+      // ← 追加：一旦すべてのactiveを外し、この要素だけactiveに
+      document.querySelectorAll('.deco-wrapper.active').forEach(w => w.classList.remove('active'));
+      el.classList.add('active');
+
       el.setPointerCapture(e.pointerId);
       pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-      el.classList.add('active');
 
       if (pointers.size === 1) {
         // 1本指/マウス: ドラッグ
@@ -3319,7 +3329,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const end = (e) => {
       pointers.delete(e.pointerId);
       if (pointers.size === 0) {
-        el.classList.remove('active');
+        // 指が全て離れたら active を残す/消すは好みで。残すならこのまま。
+        // el.classList.remove('active'); // ← 常時枠を消したいなら有効化
       } else if (pointers.size === 1) {
         // 2本指から1本に戻ったら次のドラッグ基準を更新
         const p = Array.from(pointers.values())[0];
@@ -3344,6 +3355,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 </script>
+
 
 
 </body>
