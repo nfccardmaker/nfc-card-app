@@ -681,6 +681,8 @@ box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   <img id="deco-photo-btn" src="/static/icon-deco-photo.png"
        style="width: 28px; height: 28px; cursor: pointer;" 
        alt="デコり写真">
+<!-- デコ写真選択input（非表示） -->
+<input type="file" id="deco-photo-input" accept="image/*" style="display:none;">
 
   <div style="position: relative; width: 28px; height: 28px;">
     <img src="/static/student.jpeg" style="width: 100%; height: 100%; cursor: pointer;">
@@ -3129,6 +3131,183 @@ window.addEventListener('DOMContentLoaded', () => {
 
 
 
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const MAX_DECO = 5;
+  const btn   = document.getElementById('deco-photo-btn');
+  const input = document.getElementById('deco-photo-input');
+  const stage = document.getElementById('page-wrapper'); // 配置先
+  let decoCount = 0;
+
+  if (!btn || !input || !stage) return;
+
+  btn.addEventListener('click', () => {
+    if (decoCount >= MAX_DECO) {
+      alert(`デコ写真は最大 ${MAX_DECO} 枚までです`);
+      return;
+    }
+    input.value = '';
+    // iOS対策
+    if (input.showPicker) input.showPicker(); else input.click();
+  });
+
+  input.addEventListener('change', e => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    if (decoCount >= MAX_DECO) {
+      alert(`デコ写真は最大 ${MAX_DECO} 枚までです`);
+      return;
+    }
+    const url = URL.createObjectURL(file);
+    addDeco(url);
+  });
+
+  function addDeco(src){
+    // ラッパー
+    const wrap = document.createElement('div');
+    wrap.className = 'deco-wrapper';
+    wrap.style.left = '100px';
+    wrap.style.top  = '100px';
+
+    // 画像（透過対応OK）
+    const img = document.createElement('img');
+    img.className = 'deco-img';
+    img.src = src;
+    img.alt = 'deco';
+
+    // 削除ボタン
+    const del = document.createElement('div');
+    del.className = 'deco-del';
+    del.textContent = '×';
+
+    del.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      stage.removeChild(wrap);
+      decoCount = Math.max(0, decoCount - 1);
+    });
+
+    wrap.appendChild(img);
+    wrap.appendChild(del);
+    stage.appendChild(wrap);
+    decoCount++;
+
+    // 操作を付与
+    makeTransformable(wrap);
+    // ちょい演出
+    wrap.classList.add('active');
+    setTimeout(() => wrap.classList.remove('active'), 600);
+  }
+
+  // === 1本指/マウス: 移動、2本指: 拡大回転（Pointer Eventsベース） ===
+  function makeTransformable(el){
+    let tx = 0, ty = 0, scale = 1, rot = 0; // 現在値
+    let base = { tx:0, ty:0, scale:1, rot:0 }; // 操作開始基準
+    const pointers = new Map();
+
+    const update = () => {
+      el.style.transform = `translate(${tx}px, ${ty}px) rotate(${rot}deg) scale(${scale})`;
+    };
+
+    const getCenter = () => {
+      const pts = Array.from(pointers.values());
+      const x = pts.reduce((s,p)=>s+p.x,0) / pts.length;
+      const y = pts.reduce((s,p)=>s+p.y,0) / pts.length;
+      return {x,y};
+    };
+
+    const getDist = () => {
+      const pts = Array.from(pointers.values());
+      return Math.hypot(pts[1].x-pts[0].x, pts[1].y-pts[0].y);
+    };
+
+    const getAngle = () => {
+      const pts = Array.from(pointers.values());
+      return Math.atan2(pts[1].y-pts[0].y, pts[1].x-pts[0].x) * 180 / Math.PI;
+    };
+
+    // ドラッグ開始位置
+    let dragStart = { x:0, y:0 };
+    // ピンチ基準
+    let pinchStart = { dist:0, angle:0, center:{x:0,y:0}, scale:1, rot:0, tx:0, ty:0 };
+
+    el.addEventListener('pointerdown', (e) => {
+      // × を押したときはスルー
+      if ((e.target as HTMLElement).classList.contains('deco-del')) return;
+      el.setPointerCapture(e.pointerId);
+      pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      el.classList.add('active');
+
+      if (pointers.size === 1) {
+        // 1本指/マウス: ドラッグ
+        dragStart = { x: e.clientX - tx, y: e.clientY - ty };
+      } else if (pointers.size === 2) {
+        // 2本指: ピンチ＆回転
+        const center = pinchStart.center = getCenter();
+        pinchStart.dist  = getDist();
+        pinchStart.angle = getAngle();
+        pinchStart.scale = scale;
+        pinchStart.rot   = rot;
+        pinchStart.tx    = tx;
+        pinchStart.ty    = ty;
+      }
+    });
+
+    el.addEventListener('pointermove', (e) => {
+      if (!pointers.has(e.pointerId)) return;
+      pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+      if (pointers.size === 1) {
+        // 移動
+        tx = e.clientX - dragStart.x;
+        ty = e.clientY - dragStart.y;
+      } else if (pointers.size === 2) {
+        // ピンチ（スケール）
+        const newDist  = getDist();
+        const newAngle = getAngle();
+        const center   = getCenter();
+
+        // スケール＆回転
+        const s = Math.max(0.2, Math.min(5, pinchStart.scale * (newDist / Math.max(1, pinchStart.dist))));
+        const r = pinchStart.rot + (newAngle - pinchStart.angle);
+
+        // 中心を保つよう平行移動（簡易版）
+        tx = pinchStart.tx + (center.x - pinchStart.center.x);
+        ty = pinchStart.ty + (center.y - pinchStart.center.y);
+
+        scale = s;
+        rot   = r;
+      }
+      update();
+    }, { passive: true });
+
+    const end = (e) => {
+      pointers.delete(e.pointerId);
+      if (pointers.size === 0) {
+        el.classList.remove('active');
+      } else if (pointers.size === 1) {
+        // 2本指から1本に戻ったら次のドラッグ基準を更新
+        const p = Array.from(pointers.values())[0];
+        dragStart = { x: p.x - tx, y: p.y - ty };
+      }
+    };
+
+    el.addEventListener('pointerup', end);
+    el.addEventListener('pointercancel', end);
+    el.addEventListener('lostpointercapture', end);
+
+    // ホイールで拡大縮小（PC）
+    el.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const factor = (e.deltaY < 0) ? 1.1 : 0.9;
+      scale = Math.max(0.2, Math.min(5, scale * factor));
+      update();
+    }, { passive: false });
+
+    // ダブルクリックで回転リセット（便利）
+    el.addEventListener('dblclick', () => { rot = 0; update(); });
+  }
+});
+</script>
 
 
 </body>
