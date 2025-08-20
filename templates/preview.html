@@ -3354,6 +3354,22 @@ document.addEventListener('DOMContentLoaded', () => {
     el.addEventListener('dblclick', () => { rot = 0; update(); });
   }
 });
+// どこか（.deco-wrapper 以外）を押したら選択解除
+document.addEventListener('pointerdown', (e) => {
+  if (!e.target.closest('.deco-wrapper')) {
+    document.querySelectorAll('.deco-wrapper.active')
+      .forEach(w => w.classList.remove('active'));
+  }
+});
+
+// Escキーでも解除
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.deco-wrapper.active')
+      .forEach(w => w.classList.remove('active'));
+  }
+});
+
 </script>
 
 
