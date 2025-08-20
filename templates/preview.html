@@ -3211,6 +3211,12 @@ document.addEventListener('DOMContentLoaded', () => {
     wrap.style.left = '100px';
     wrap.style.top  = '100px';
 
+    // ★ 追加：保存用の初期値（data-*）
+    wrap.dataset.tx    = '0';
+    wrap.dataset.ty    = '0';
+    wrap.dataset.scale = '1';
+    wrap.dataset.rot   = '0';
+
     // 画像（透過対応OK）
     const img = document.createElement('img');
     img.className = 'deco-img';
@@ -3243,12 +3249,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // === 1本指/マウス: 移動、2本指: 拡大回転（Pointer Eventsベース） ===
   function makeTransformable(el){
-    let tx = 0, ty = 0, scale = 1, rot = 0; // 現在値
+    // ★ 変更：data-* に値があればそれを初期値として使う
+    let tx    = +el.dataset.tx    || 0;
+    let ty    = +el.dataset.ty    || 0;
+    let scale = +el.dataset.scale || 1;
+    let rot   = +el.dataset.rot   || 0;
+
     const pointers = new Map();
 
     const update = () => {
       el.style.transform = `translate(${tx}px, ${ty}px) rotate(${rot}deg) scale(${scale})`;
+      // ★ 追加：常に data-* にも書き戻す（保存時に拾えるように）
+      el.dataset.tx    = String(tx);
+      el.dataset.ty    = String(ty);
+      el.dataset.scale = String(scale);
+      el.dataset.rot   = String(rot);
     };
+    // 初期反映
+    update();
 
     const getCenter = () => {
       const pts = Array.from(pointers.values());
@@ -3276,7 +3294,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // × を押したときはスルー
       if (e.target && e.target.classList && e.target.classList.contains('deco-del')) return;
 
-      // ← 追加：一旦すべてのactiveを外し、この要素だけactiveに
+      // 一旦すべてのactiveを外し、この要素だけactiveに
       document.querySelectorAll('.deco-wrapper.active').forEach(w => w.classList.remove('active'));
       el.classList.add('active');
 
@@ -3329,8 +3347,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const end = (e) => {
       pointers.delete(e.pointerId);
       if (pointers.size === 0) {
-        // 指が全て離れたら active を残す/消すは好みで。残すならこのまま。
-        // el.classList.remove('active'); // ← 常時枠を消したいなら有効化
+        // 指が全て離れたら active は残す（常時点線表示の仕様）
       } else if (pointers.size === 1) {
         // 2本指から1本に戻ったら次のドラッグ基準を更新
         const p = Array.from(pointers.values())[0];
@@ -3369,8 +3386,8 @@ document.addEventListener('keydown', (e) => {
       .forEach(w => w.classList.remove('active'));
   }
 });
-
 </script>
+
 
 
 
