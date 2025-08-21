@@ -3200,11 +3200,15 @@ document.addEventListener('DOMContentLoaded', () => {
       alert(`デコ写真は最大 ${MAX_DECO} 枚までです`);
       return;
     }
-    const url = URL.createObjectURL(file);
-    addDeco(url);
+    // ★ 変更：URL化せず file をそのまま渡す
+    addDeco(file);
   });
 
-  function addDeco(src){
+  // ★ 変更：引数は src ではなく file
+  function addDeco(file){
+    // 表示用の ObjectURL（透過OK）
+    const objUrl = URL.createObjectURL(file);
+
     // ラッパー
     const wrap = document.createElement('div');
     wrap.className = 'deco-wrapper';
@@ -3216,11 +3220,17 @@ document.addEventListener('DOMContentLoaded', () => {
     wrap.dataset.ty    = '0';
     wrap.dataset.scale = '1';
     wrap.dataset.rot   = '0';
+    // ★ 追加：保存メタ
+    wrap.dataset.decoId      = (globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2));
+    wrap.dataset.mime        = file.type || 'image/png';
+    wrap.dataset.name        = file.name || (wrap.dataset.decoId + '.png');
+    wrap.dataset.needsUpload = '1';     // 後でアップロード対象
+    wrap.__file = file;                 // 実体も保持（後でStorageへ）
 
     // 画像（透過対応OK）
     const img = document.createElement('img');
     img.className = 'deco-img';
-    img.src = src;
+    img.src = objUrl;
     img.alt = 'deco';
 
     // 削除ボタン（編集モード連動のためクラスを追加）
@@ -3232,6 +3242,7 @@ document.addEventListener('DOMContentLoaded', () => {
       ev.stopPropagation();
       stage.removeChild(wrap);
       decoCount = Math.max(0, decoCount - 1);
+      try { URL.revokeObjectURL(objUrl); } catch {}
     });
 
     wrap.appendChild(img);
