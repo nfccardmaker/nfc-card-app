@@ -2556,8 +2556,8 @@ text.addEventListener('click', enableEditing);
   }
 
   /***********************
- *  🌐 SNS Setups（このブロックを丸ごと置き換え）
- ***********************/
+   *  🌐 SNS Setups
+   ***********************/
   const SNS_KEYS = ['instagram','line','bereal','x','tiktok'];
   const snsLinks = Object.fromEntries(SNS_KEYS.map(k => [k, '']));
   const SNS_OFFICIAL = {
@@ -2609,7 +2609,7 @@ text.addEventListener('click', enableEditing);
   };
 
   /***********************
-   *  🎵 YouTube / Spotify  ←★ 追加ブロック（追記）
+   *  🎵 YouTube / Spotify
    ***********************/
   const __URL_PARAMS = new URLSearchParams(window.location.search);
   const __ID_FOR_DRAFT = __URL_PARAMS.get('id') || 'draft';
@@ -2695,7 +2695,7 @@ text.addEventListener('click', enableEditing);
   };
 
   /***********************
-   *  🔁 共通: プロフィール処理（状態/本体）
+   *  🔁 共通: プロフィール処理
    ***********************/
   let __pfUploading = false;
   let __pfCurrentURL = '';
@@ -2738,7 +2738,7 @@ text.addEventListener('click', enableEditing);
   }
 
   /***********************
-   *  🧩 デコ（スタンプ）保存・復元 ここから
+   *  🧩 デコ（スタンプ）保存・復元
    ***********************/
   const MAX_DECO = 5;
   const DECO_STAGE_ID = 'page-wrapper';
@@ -2747,11 +2747,10 @@ text.addEventListener('click', enableEditing);
     if (mime === 'image/jpeg' || mime === 'image/jpg') return 'jpg';
     if (mime === 'image/png') return 'png';
     if (mime === 'image/webp') return 'webp';
-    // デフォルトは png（透過保持）
     return 'png';
   };
 
-  // デコ要素に操作性を付与（移動/回転/拡大、選択）
+  // 操作付与
   function makeTransformable(el){
     let tx    = +el.dataset.tx    || 0;
     let ty    = +el.dataset.ty    || 0;
@@ -2818,10 +2817,13 @@ text.addEventListener('click', enableEditing);
         const newDist  = getDist();
         const newAngle = getAngle();
         const center   = getCenter();
+
         const s = Math.max(0.2, Math.min(5, pinchStart.scale * (newDist / Math.max(1, pinchStart.dist))));
         const r = pinchStart.rot + (newAngle - pinchStart.angle);
+
         tx = pinchStart.tx + (center.x - pinchStart.center.x);
         ty = pinchStart.ty + (center.y - pinchStart.center.y);
+
         scale = s;
         rot   = r;
       }
@@ -2849,9 +2851,10 @@ text.addEventListener('click', enableEditing);
     el.addEventListener('dblclick', () => { rot = 0; update(); });
   }
 
-  // 新規デコ生成（File/Blob を保持しておく → 保存時にアップロード）
+  // 新規デコ（File を保持→保存時にUpload）
   function addDecoWithFile(stage, file){
     const url = URL.createObjectURL(file);
+
     const wrap = document.createElement('div');
     wrap.className = 'deco-wrapper';
     wrap.style.left = '100px';
@@ -2861,7 +2864,12 @@ text.addEventListener('click', enableEditing);
     wrap.dataset.scale = '1';
     wrap.dataset.rot = '0';
     wrap.dataset.mime = file.type || 'image/png';
-    wrap.__blob = file; // ← 保存時にそのまま使う
+
+    // 安定ID（保存→復元で同じid）
+    const decoId = makeId();
+    wrap.dataset.id = decoId;
+    wrap.__objUrl = url;
+    wrap.__blob = file;
 
     const img = document.createElement('img');
     img.className = 'deco-img';
@@ -2873,6 +2881,7 @@ text.addEventListener('click', enableEditing);
     del.textContent = '×';
     del.addEventListener('click', (ev) => {
       ev.stopPropagation();
+      try { if (wrap.__objUrl) URL.revokeObjectURL(wrap.__objUrl); } catch {}
       stage.removeChild(wrap);
     });
 
@@ -2886,18 +2895,19 @@ text.addEventListener('click', enableEditing);
     setTimeout(() => wrap.classList.remove('active'), 600);
   }
 
-  // 保存済みデコを復元（URL から）
+  // 復元（保存済みURLから）
   function addDecoFromSaved(stage, item){
     const wrap = document.createElement('div');
     wrap.className = 'deco-wrapper';
     wrap.style.left = '100px';
     wrap.style.top  = '100px';
+    wrap.dataset.id = item.id || makeId();
     wrap.dataset.tx = String(item.tx || 0);
     wrap.dataset.ty = String(item.ty || 0);
     wrap.dataset.scale = String(item.scale || 1);
     wrap.dataset.rot = String(item.rot || 0);
     if (item.mime) wrap.dataset.mime = item.mime;
-    if (item.url) wrap.dataset.remoteUrl = item.url;
+    if (item.url)  wrap.dataset.remoteUrl = item.url;
 
     const img = document.createElement('img');
     img.className = 'deco-img';
@@ -2910,7 +2920,7 @@ text.addEventListener('click', enableEditing);
     del.addEventListener('click', (ev) => {
       ev.stopPropagation();
       stage.removeChild(wrap);
-      // 削除は保存時に decos から除外される（再保存で反映）
+      // 再保存時に decos から消える
     });
 
     wrap.appendChild(img);
@@ -2920,17 +2930,17 @@ text.addEventListener('click', enableEditing);
     makeTransformable(wrap);
   }
 
-  // そのデコが未アップロードなら Storage へアップロードして URL を返す
+  // 必要ならアップロードしてURLを返す
   async function ensureDecoUploaded(cardId, wrap){
-    // 既にURLがあればそれを返す
-    if (wrap.dataset.remoteUrl) return { url: wrap.dataset.remoteUrl, mime: wrap.dataset.mime || '' };
-
+    if (wrap.dataset.remoteUrl) {
+      return { url: wrap.dataset.remoteUrl, mime: wrap.dataset.mime || '' };
+    }
     const blob = wrap.__blob;
-    if (!blob) return null; // 何も持ってなければアップロード対象なし
+    if (!blob) return null;
 
     const mime = blob.type || wrap.dataset.mime || 'image/png';
     const ext  = extFromMime(mime);
-    const decoId = makeId();
+    const decoId = wrap.dataset.id || makeId();
     const filePath = `decos/${cardId}/${decoId}.${ext}`;
     const fileRef  = ref(storage, filePath);
 
@@ -2940,28 +2950,25 @@ text.addEventListener('click', enableEditing);
     });
     const url = await withRetry(() => getDownloadURL(fileRef));
     wrap.dataset.remoteUrl = url;
-    // 一度上げたら blob は解放してもOK
-    try { URL.revokeObjectURL(wrap.querySelector('img')?.src || ''); } catch {}
+
+    try { if (wrap.__objUrl) URL.revokeObjectURL(wrap.__objUrl); } catch {}
     wrap.__blob = null;
+    wrap.__objUrl = null;
 
     return { url, mime };
   }
 
-  // 画面内の全デコをアップロード＆メタ化
+  // 画面の全デコを配列化（最大5枚）
   async function serializeAndUploadDecos(cardId){
     const stage = document.getElementById(DECO_STAGE_ID);
     if (!stage) return [];
-    const nodes = Array.from(stage.querySelectorAll('.deco-wrapper'));
+    const nodes = Array.from(stage.querySelectorAll('.deco-wrapper')).slice(0, MAX_DECO);
     const out = [];
     for (const wrap of nodes) {
-      // もし削除されたものが混ざっていたら skip
       if (!wrap.isConnected) continue;
-
       const uploaded = await ensureDecoUploaded(cardId, wrap);
-      // URL が無い（アップ対象なかった/失敗）場合はスキップ
       const url = uploaded?.url || wrap.dataset.remoteUrl;
       if (!url) continue;
-
       out.push({
         id: wrap.dataset.id || makeId(),
         url,
@@ -2996,7 +3003,7 @@ text.addEventListener('click', enableEditing);
     const params = new URLSearchParams(window.location.search);
     const id = params.get('id');
     L('params', { id });
-    __currentId = id; // ★ SNSオートセーブ用に共有
+    __currentId = id;
 
     const profileImg      = document.getElementById('profile-img');
     const profileInput    = document.getElementById('profile-input');
@@ -3112,6 +3119,7 @@ text.addEventListener('click', enableEditing);
       e.target.value = '';
     });
 
+    // iOS保険
     (function installProfileFallback(){
       const input = profileInput;
       const img   = profileImg;
@@ -3195,7 +3203,7 @@ text.addEventListener('click', enableEditing);
       });
     });
 
-    // ---- デコ：追加ボタン/入力
+    // ---- デコ：追加ボタン/入力（※ここだけで管理）
     if (decoBtn && decoInput && stage) {
       decoBtn.addEventListener('click', () => {
         if (stage.querySelectorAll('.deco-wrapper').length >= MAX_DECO) {
@@ -3212,8 +3220,7 @@ text.addEventListener('click', enableEditing);
           alert(`デコ写真は最大 ${MAX_DECO} 枚までです`);
           return;
         }
-        // 透過PNGはそのまま、JPEGもそのまま保存していく方針
-        addDecoWithFile(stage, file);
+        addDecoWithFile(stage, file);  // ← ここだけで生成する（重複なし）
       });
     }
 
@@ -3255,7 +3262,7 @@ text.addEventListener('click', enableEditing);
 
       const linksDraft = readLinksDraft();
 
-      // ★ デコをアップロードして配列化
+      // デコをアップロードして配列化（最大5）
       const decos = await serializeAndUploadDecos(targetId);
 
       const data = {
@@ -3271,7 +3278,7 @@ text.addEventListener('click', enableEditing);
         backgroundUrl: finalBackgroundURL,
         ...snsLinks,
         ...(linksDraft ? { links: linksDraft } : {}),
-        ...(decos.length ? { decos } : {})   // ★ ここで保存
+        ...(decos.length ? { decos } : {})   // ← 配列で保存
       };
 
       try {
@@ -3290,11 +3297,11 @@ text.addEventListener('click', enableEditing);
       }
     }
 
-    // ★ ここで edit=1 のとき編集UI復元
+    // edit=1 のとき編集UI復元
     if (isEditMode()) enableEditMode();
   });
 
-  /* ====== 完成/プレビューで編集UIを隠す（ホワイトリストで残す） ====== */
+  /* ====== 完成/プレビューで編集UIを隠す ====== */
   window.addEventListener('DOMContentLoaded', () => {
     const isView = isViewPage();
     if (!isView || isEditMode()) return;
@@ -3382,263 +3389,32 @@ text.addEventListener('click', enableEditing);
 </script>
 
 <script>
+/* 名前の入力欄の光る演出だけ残す（デコ処理の重複は削除済み） */
 (function(){
-  const nameInput = document.getElementById('name');  // ← ここを修正！
+  const nameInput = document.getElementById('name');
   if (!nameInput) return;
 
-  // 再生用（付け直しで確実に発火）
   function pulseName(){
     nameInput.classList.remove('glow-once');
-    void nameInput.offsetWidth;              // リセット
+    void nameInput.offsetWidth;
     nameInput.classList.add('glow-once');
-    setTimeout(()=> nameInput.classList.remove('glow-once'), 4000); // 後片付け
+    setTimeout(()=> nameInput.classList.remove('glow-once'), 4000);
   }
 
-  // 初回ロード：未入力なら光らせる
   window.addEventListener('load', () => {
     if ((nameInput.value || '').trim() === '') pulseName();
   });
 
-  // ユーザーが触ったら光を外す（任意）
   ['focus','input'].forEach(ev => {
     nameInput.addEventListener(ev, () => {
       nameInput.classList.remove('glow-once');
     });
   });
 
-  // いつでも手動で再生したい時に呼べる
   window.pulseName = pulseName;
 })();
 </script>
 
-
-
-
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-  const MAX_DECO = 5;
-  const btn   = document.getElementById('deco-photo-btn');
-  const input = document.getElementById('deco-photo-input');
-  const stage = document.getElementById('page-wrapper'); // 配置先
-  let decoCount = 0;
-
-  if (!btn || !input || !stage) return;
-
-  btn.addEventListener('click', () => {
-    if (decoCount >= MAX_DECO) {
-      alert(`デコ写真は最大 ${MAX_DECO} 枚までです`);
-      return;
-    }
-    input.value = '';
-    // iOS対策
-    if (input.showPicker) input.showPicker(); else input.click();
-  });
-
-  input.addEventListener('change', e => {
-    const file = e.target.files && e.target.files[0];
-    if (!file) return;
-    if (decoCount >= MAX_DECO) {
-      alert(`デコ写真は最大 ${MAX_DECO} 枚までです`);
-      return;
-    }
-    // ★ 変更：URL化せず file をそのまま渡す
-    addDeco(file);
-  });
-
-  // ★ 変更：引数は src ではなく file
-  function addDeco(file){
-    // 表示用の ObjectURL（透過OK）
-    const objUrl = URL.createObjectURL(file);
-
-    // ラッパー
-    const wrap = document.createElement('div');
-    wrap.className = 'deco-wrapper';
-    wrap.style.left = '100px';
-    wrap.style.top  = '100px';
-
-    // ★ 追加：保存用の初期値（data-*）
-    wrap.dataset.tx    = '0';
-    wrap.dataset.ty    = '0';
-    wrap.dataset.scale = '1';
-    wrap.dataset.rot   = '0';
-    // ★ 追加：保存メタ
-    wrap.dataset.decoId      = (globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2));
-    wrap.dataset.mime        = file.type || 'image/png';
-    wrap.dataset.name        = file.name || (wrap.dataset.decoId + '.png');
-    wrap.dataset.needsUpload = '1';     // 後でアップロード対象
-    wrap.__file = file;                 // 実体も保持（後でStorageへ）
-
-    // 画像（透過対応OK）
-    const img = document.createElement('img');
-    img.className = 'deco-img';
-    img.src = objUrl;
-    img.alt = 'deco';
-
-    // 削除ボタン（編集モード連動のためクラスを追加）
-    const del = document.createElement('div');
-    del.className = 'deco-del deco-delete-btn';
-    del.textContent = '×';
-
-    del.addEventListener('click', (ev) => {
-      ev.stopPropagation();
-      stage.removeChild(wrap);
-      decoCount = Math.max(0, decoCount - 1);
-      try { URL.revokeObjectURL(objUrl); } catch {}
-    });
-
-    wrap.appendChild(img);
-    wrap.appendChild(del);
-    stage.appendChild(wrap);
-    decoCount++;
-
-    // 操作を付与
-    makeTransformable(wrap);
-
-    // 追加直後は一瞬だけ強調
-    wrap.classList.add('active');
-    setTimeout(() => wrap.classList.remove('active'), 600);
-  }
-
-  // === 1本指/マウス: 移動、2本指: 拡大回転（Pointer Eventsベース） ===
-  function makeTransformable(el){
-    // ★ 変更：data-* に値があればそれを初期値として使う
-    let tx    = +el.dataset.tx    || 0;
-    let ty    = +el.dataset.ty    || 0;
-    let scale = +el.dataset.scale || 1;
-    let rot   = +el.dataset.rot   || 0;
-
-    const pointers = new Map();
-
-    const update = () => {
-      el.style.transform = `translate(${tx}px, ${ty}px) rotate(${rot}deg) scale(${scale})`;
-      // ★ 追加：常に data-* にも書き戻す（保存時に拾えるように）
-      el.dataset.tx    = String(tx);
-      el.dataset.ty    = String(ty);
-      el.dataset.scale = String(scale);
-      el.dataset.rot   = String(rot);
-    };
-    // 初期反映
-    update();
-
-    const getCenter = () => {
-      const pts = Array.from(pointers.values());
-      const x = pts.reduce((s,p)=>s+p.x,0) / pts.length;
-      const y = pts.reduce((s,p)=>s+p.y,0) / pts.length;
-      return {x,y};
-    };
-
-    const getDist = () => {
-      const pts = Array.from(pointers.values());
-      return Math.hypot(pts[1].x-pts[0].x, pts[1].y-pts[0].y);
-    };
-
-    const getAngle = () => {
-      const pts = Array.from(pointers.values());
-      return Math.atan2(pts[1].y-pts[0].y, pts[1].x-pts[0].x) * 180 / Math.PI;
-    };
-
-    // ドラッグ開始位置
-    let dragStart = { x:0, y:0 };
-    // ピンチ基準
-    let pinchStart = { dist:0, angle:0, center:{x:0,y:0}, scale:1, rot:0, tx:0, ty:0 };
-
-    el.addEventListener('pointerdown', (e) => {
-      // × を押したときはスルー
-      if (e.target && e.target.classList && e.target.classList.contains('deco-del')) return;
-
-      // 一旦すべてのactiveを外し、この要素だけactiveに
-      document.querySelectorAll('.deco-wrapper.active').forEach(w => w.classList.remove('active'));
-      el.classList.add('active');
-
-      el.setPointerCapture(e.pointerId);
-      pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-
-      if (pointers.size === 1) {
-        // 1本指/マウス: ドラッグ
-        dragStart = { x: e.clientX - tx, y: e.clientY - ty };
-      } else if (pointers.size === 2) {
-        // 2本指: ピンチ＆回転
-        const center = pinchStart.center = getCenter();
-        pinchStart.dist  = getDist();
-        pinchStart.angle = getAngle();
-        pinchStart.scale = scale;
-        pinchStart.rot   = rot;
-        pinchStart.tx    = tx;
-        pinchStart.ty    = ty;
-      }
-    });
-
-    el.addEventListener('pointermove', (e) => {
-      if (!pointers.has(e.pointerId)) return;
-      pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-
-      if (pointers.size === 1) {
-        // 移動
-        tx = e.clientX - dragStart.x;
-        ty = e.clientY - dragStart.y;
-      } else if (pointers.size === 2) {
-        // ピンチ（スケール）
-        const newDist  = getDist();
-        const newAngle = getAngle();
-        const center   = getCenter();
-
-        // スケール＆回転
-        const s = Math.max(0.2, Math.min(5, pinchStart.scale * (newDist / Math.max(1, pinchStart.dist))));
-        const r = pinchStart.rot + (newAngle - pinchStart.angle);
-
-        // 中心を保つよう平行移動（簡易版）
-        tx = pinchStart.tx + (center.x - pinchStart.center.x);
-        ty = pinchStart.ty + (center.y - pinchStart.center.y);
-
-        scale = s;
-        rot   = r;
-      }
-      update();
-    }, { passive: true });
-
-    const end = (e) => {
-      pointers.delete(e.pointerId);
-      if (pointers.size === 0) {
-        // 指が全て離れたら active は残す（常時点線表示の仕様）
-      } else if (pointers.size === 1) {
-        // 2本指から1本に戻ったら次のドラッグ基準を更新
-        const p = Array.from(pointers.values())[0];
-        dragStart = { x: p.x - tx, y: p.y - ty };
-      }
-    };
-
-    el.addEventListener('pointerup', end);
-    el.addEventListener('pointercancel', end);
-    el.addEventListener('lostpointercapture', end);
-
-    // ホイールで拡大縮小（PC）
-    el.addEventListener('wheel', (e) => {
-      e.preventDefault();
-      const factor = (e.deltaY < 0) ? 1.1 : 0.9;
-      scale = Math.max(0.2, Math.min(5, scale * factor));
-      update();
-    }, { passive: false });
-
-    // ダブルクリックで回転リセット（便利）
-    el.addEventListener('dblclick', () => { rot = 0; update(); });
-  }
-});
-// どこか（.deco-wrapper 以外）を押したら選択解除
-document.addEventListener('pointerdown', (e) => {
-  if (!e.target.closest('.deco-wrapper')) {
-    document.querySelectorAll('.deco-wrapper.active')
-      .forEach(w => w.classList.remove('active'));
-  }
-});
-
-// Escキーでも解除
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') {
-    document.querySelectorAll('.deco-wrapper.active')
-      .forEach(w => w.classList.remove('active'));
-  }
-});
-</script>
 
 
 
