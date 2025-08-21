@@ -2423,7 +2423,7 @@ text.addEventListener('click', enableEditing);
     throw last;
   }
 
-  // 画像をJPEGに再エンコード（iOS安定化）
+  // 画像をJPEGに再エンコード（iOS安定化）※プロフィール/背景のみで使用
   async function forceJpegBlob(fileOrBlob, maxDim = 2560) {
     L('forceJpegBlob.start', { size: fileOrBlob.size, type: fileOrBlob.type });
     const objUrl = URL.createObjectURL(fileOrBlob);
@@ -2523,12 +2523,10 @@ text.addEventListener('click', enableEditing);
     location.href = u.toString();
   }
   function enableEditMode(){
-    // 既存の復元関数があれば呼ぶ（なければ無視）
     try { restoreSNS?.(); } catch {}
     try { restoreSelfPRSection?.(); } catch {}
     try { restoreSpotifySection?.(); } catch {}
 
-    // 代表的な編集UIを念のため再表示（隠れていた場合のみ）
     const SHOW_SELECTORS = [
       '.toolbar',
       '.text-style-toolbar',
@@ -2553,7 +2551,6 @@ text.addEventListener('click', enableEditing);
       if (el && el.style.display === 'none') el.style.display = '';
     });
 
-    // ★ 再編集モードでは作成ボタンは表示しない
     const finishBtn = document.getElementById('finish-button');
     if (finishBtn) finishBtn.style.display = 'none';
   }
@@ -2561,77 +2558,64 @@ text.addEventListener('click', enableEditing);
   /***********************
  *  🌐 SNS Setups（このブロックを丸ごと置き換え）
  ***********************/
-const SNS_KEYS = ['instagram','line','bereal','x','tiktok'];
-const snsLinks = Object.fromEntries(SNS_KEYS.map(k => [k, '']));
-const SNS_OFFICIAL = {
-  instagram: 'https://www.instagram.com/',
-  line:      'https://line.me/ja/',
-  bereal:    'https://bere.al/',
-  x:         'https://twitter.com/',
-  tiktok:    'https://www.tiktok.com/'
-};
-let __currentId = null;
+  const SNS_KEYS = ['instagram','line','bereal','x','tiktok'];
+  const snsLinks = Object.fromEntries(SNS_KEYS.map(k => [k, '']));
+  const SNS_OFFICIAL = {
+    instagram: 'https://www.instagram.com/',
+    line:      'https://line.me/ja/',
+    bereal:    'https://bere.al/',
+    x:         'https://twitter.com/',
+    tiktok:    'https://www.tiktok.com/'
+  };
+  let __currentId = null;
+  const __snsOpenedOnce = Object.fromEntries(SNS_KEYS.map(k => [k, false]));
 
-// SNSアイコン初回クリック判定用フラグ（各サービスごとに1回目かどうか）
-const __snsOpenedOnce = Object.fromEntries(SNS_KEYS.map(k => [k, false]));
+  window.handleIconClick = function(type){
+    const inp   = document.getElementById(`input-${type}`);
+    const saved = (snsLinks[type] || inp?.value || '').trim();
+    const first = __snsOpenedOnce[type] !== true;
 
-// クリック挙動：1回目=公式 / 2回目=入力欄 / 入力済みなら以後はユーザーURLへ
-window.handleIconClick = function(type){
-  const inp   = document.getElementById(`input-${type}`);
-  const saved = (snsLinks[type] || inp?.value || '').trim(); // Firestoreからの復元や手入力も拾う
-  const first = __snsOpenedOnce[type] !== true;
-
-  // 1回目は公式へ
-  if (first) {
-    __snsOpenedOnce[type] = true;
-    const url = SNS_OFFICIAL[type];
-    if (url) window.open(url, '_blank', 'noopener');
-    return;
-  }
-
-  // 2回目以降：入力済みURLがあればそちらへ、無ければ入力欄を表示
-  if (saved) {
-    window.open(saved, '_blank', 'noopener');
-    return;
-  }
-
-  if (inp) {
-    inp.style.display = 'block';
-    inp.scrollIntoView?.({ block: 'center', inline: 'nearest' });
-    inp.focus();
-  }
-};
-
-// 入力欄 onblur：保存＆非表示（値が空なら次回も入力欄、値があれば次回はURLへ）
-window.handleBlur = async function(type){
-  const inputEl = document.getElementById(`input-${type}`);
-  const v = inputEl?.value.trim() || '';
-  snsLinks[type] = v;
-
-  // 入力欄は閉じる
-  if (inputEl) inputEl.style.display = 'none';
-
-  // Firestore（再編集中のみ）
-  if (__currentId) {
-    try {
-      await setDoc(doc(db, 'cards', __currentId), { [type]: v }, { merge: true });
-      L('sns.autosave', { type, v });
-    } catch(e) {
-      W('sns.autosave.fail', e);
+    if (first) {
+      __snsOpenedOnce[type] = true;
+      const url = SNS_OFFICIAL[type];
+      if (url) window.open(url, '_blank', 'noopener');
+      return;
     }
-  }
-};
+    if (saved) {
+      window.open(saved, '_blank', 'noopener');
+      return;
+    }
+    if (inp) {
+      inp.style.display = 'block';
+      inp.scrollIntoView?.({ block: 'center', inline: 'nearest' });
+      inp.focus();
+    }
+  };
+
+  window.handleBlur = async function(type){
+    const inputEl = document.getElementById(`input-${type}`);
+    const v = inputEl?.value.trim() || '';
+    snsLinks[type] = v;
+    if (inputEl) inputEl.style.display = 'none';
+
+    if (__currentId) {
+      try {
+        await setDoc(doc(db, 'cards', __currentId), { [type]: v }, { merge: true });
+        L('sns.autosave', { type, v });
+      } catch(e) {
+        W('sns.autosave.fail', e);
+      }
+    }
+  };
 
   /***********************
    *  🎵 YouTube / Spotify  ←★ 追加ブロック（追記）
    ***********************/
-  // ▼▼▼ ここを id スコープ付きに変更 ▼▼▼
   const __URL_PARAMS = new URLSearchParams(window.location.search);
   const __ID_FOR_DRAFT = __URL_PARAMS.get('id') || 'draft';
   const LINKS_DRAFT_KEY = `fureta_draft_links_${__ID_FOR_DRAFT}`;
   const readLinksDraft  = () => JSON.parse(localStorage.getItem(LINKS_DRAFT_KEY) || "{}");
   const writeLinksDraft = (obj) => localStorage.setItem(LINKS_DRAFT_KEY, JSON.stringify(obj));
-  // ▲▲▲ ここまで変更 ▲▲▲
 
   async function saveLinks(partial){
     const merged = { ...readLinksDraft(), ...partial };
@@ -2685,7 +2669,6 @@ window.handleBlur = async function(type){
         frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>` : "";
   }
 
-  // HTMLのonclickから呼ばれる
   window.embedYouTubeVideo = async function (){
     const raw = document.getElementById('youtube-url')?.value?.trim();
     if (!raw) return;
@@ -2702,7 +2685,6 @@ window.handleBlur = async function(type){
     renderSpotify(norm.embedUrl);
     await saveLinks({ spotify: norm });
   };
-  // ✕ボタン
   window.hideYouTubeSection = async function (){
     const i = document.getElementById('youtube-url'); if (i) i.value = '';
     renderYouTube(''); await saveLinks({ youtube:null });
@@ -2756,6 +2738,256 @@ window.handleBlur = async function(type){
   }
 
   /***********************
+   *  🧩 デコ（スタンプ）保存・復元 ここから
+   ***********************/
+  const MAX_DECO = 5;
+  const DECO_STAGE_ID = 'page-wrapper';
+
+  const extFromMime = (mime) => {
+    if (mime === 'image/jpeg' || mime === 'image/jpg') return 'jpg';
+    if (mime === 'image/png') return 'png';
+    if (mime === 'image/webp') return 'webp';
+    // デフォルトは png（透過保持）
+    return 'png';
+  };
+
+  // デコ要素に操作性を付与（移動/回転/拡大、選択）
+  function makeTransformable(el){
+    let tx    = +el.dataset.tx    || 0;
+    let ty    = +el.dataset.ty    || 0;
+    let scale = +el.dataset.scale || 1;
+    let rot   = +el.dataset.rot   || 0;
+    const pointers = new Map();
+
+    const update = () => {
+      el.style.transform = `translate(${tx}px, ${ty}px) rotate(${rot}deg) scale(${scale})`;
+      el.dataset.tx    = String(tx);
+      el.dataset.ty    = String(ty);
+      el.dataset.scale = String(scale);
+      el.dataset.rot   = String(rot);
+    };
+    update();
+
+    const getCenter = () => {
+      const pts = Array.from(pointers.values());
+      const x = pts.reduce((s,p)=>s+p.x,0) / pts.length;
+      const y = pts.reduce((s,p)=>s+p.y,0) / pts.length;
+      return {x,y};
+    };
+    const getDist = () => {
+      const pts = Array.from(pointers.values());
+      return Math.hypot(pts[1].x-pts[0].x, pts[1].y-pts[0].y);
+    };
+    const getAngle = () => {
+      const pts = Array.from(pointers.values());
+      return Math.atan2(pts[1].y-pts[0].y, pts[1].x-pts[0].x) * 180 / Math.PI;
+    };
+
+    let dragStart = { x:0, y:0 };
+    let pinchStart = { dist:0, angle:0, center:{x:0,y:0}, scale:1, rot:0, tx:0, ty:0 };
+
+    el.addEventListener('pointerdown', (e) => {
+      if (e.target && e.target.classList && e.target.classList.contains('deco-del')) return;
+      document.querySelectorAll('.deco-wrapper.active').forEach(w => w.classList.remove('active'));
+      el.classList.add('active');
+
+      el.setPointerCapture(e.pointerId);
+      pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+      if (pointers.size === 1) {
+        dragStart = { x: e.clientX - tx, y: e.clientY - ty };
+      } else if (pointers.size === 2) {
+        const center = pinchStart.center = getCenter();
+        pinchStart.dist  = getDist();
+        pinchStart.angle = getAngle();
+        pinchStart.scale = scale;
+        pinchStart.rot   = rot;
+        pinchStart.tx    = tx;
+        pinchStart.ty    = ty;
+      }
+    });
+
+    el.addEventListener('pointermove', (e) => {
+      if (!pointers.has(e.pointerId)) return;
+      pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+      if (pointers.size === 1) {
+        tx = e.clientX - dragStart.x;
+        ty = e.clientY - dragStart.y;
+      } else if (pointers.size === 2) {
+        const newDist  = getDist();
+        const newAngle = getAngle();
+        const center   = getCenter();
+        const s = Math.max(0.2, Math.min(5, pinchStart.scale * (newDist / Math.max(1, pinchStart.dist))));
+        const r = pinchStart.rot + (newAngle - pinchStart.angle);
+        tx = pinchStart.tx + (center.x - pinchStart.center.x);
+        ty = pinchStart.ty + (center.y - pinchStart.center.y);
+        scale = s;
+        rot   = r;
+      }
+      update();
+    }, { passive: true });
+
+    const end = (e) => {
+      pointers.delete(e.pointerId);
+      if (pointers.size === 1) {
+        const p = Array.from(pointers.values())[0];
+        dragStart = { x: p.x - tx, y: p.y - ty };
+      }
+    };
+    el.addEventListener('pointerup', end);
+    el.addEventListener('pointercancel', end);
+    el.addEventListener('lostpointercapture', end);
+
+    el.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const factor = (e.deltaY < 0) ? 1.1 : 0.9;
+      scale = Math.max(0.2, Math.min(5, scale * factor));
+      update();
+    }, { passive: false });
+
+    el.addEventListener('dblclick', () => { rot = 0; update(); });
+  }
+
+  // 新規デコ生成（File/Blob を保持しておく → 保存時にアップロード）
+  function addDecoWithFile(stage, file){
+    const url = URL.createObjectURL(file);
+    const wrap = document.createElement('div');
+    wrap.className = 'deco-wrapper';
+    wrap.style.left = '100px';
+    wrap.style.top  = '100px';
+    wrap.dataset.tx = '0';
+    wrap.dataset.ty = '0';
+    wrap.dataset.scale = '1';
+    wrap.dataset.rot = '0';
+    wrap.dataset.mime = file.type || 'image/png';
+    wrap.__blob = file; // ← 保存時にそのまま使う
+
+    const img = document.createElement('img');
+    img.className = 'deco-img';
+    img.src = url;
+    img.alt = 'deco';
+
+    const del = document.createElement('div');
+    del.className = 'deco-del deco-delete-btn';
+    del.textContent = '×';
+    del.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      stage.removeChild(wrap);
+    });
+
+    wrap.appendChild(img);
+    wrap.appendChild(del);
+    stage.appendChild(wrap);
+
+    makeTransformable(wrap);
+
+    wrap.classList.add('active');
+    setTimeout(() => wrap.classList.remove('active'), 600);
+  }
+
+  // 保存済みデコを復元（URL から）
+  function addDecoFromSaved(stage, item){
+    const wrap = document.createElement('div');
+    wrap.className = 'deco-wrapper';
+    wrap.style.left = '100px';
+    wrap.style.top  = '100px';
+    wrap.dataset.tx = String(item.tx || 0);
+    wrap.dataset.ty = String(item.ty || 0);
+    wrap.dataset.scale = String(item.scale || 1);
+    wrap.dataset.rot = String(item.rot || 0);
+    if (item.mime) wrap.dataset.mime = item.mime;
+    if (item.url) wrap.dataset.remoteUrl = item.url;
+
+    const img = document.createElement('img');
+    img.className = 'deco-img';
+    img.src = item.url;
+    img.alt = 'deco';
+
+    const del = document.createElement('div');
+    del.className = 'deco-del deco-delete-btn';
+    del.textContent = '×';
+    del.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      stage.removeChild(wrap);
+      // 削除は保存時に decos から除外される（再保存で反映）
+    });
+
+    wrap.appendChild(img);
+    wrap.appendChild(del);
+    stage.appendChild(wrap);
+
+    makeTransformable(wrap);
+  }
+
+  // そのデコが未アップロードなら Storage へアップロードして URL を返す
+  async function ensureDecoUploaded(cardId, wrap){
+    // 既にURLがあればそれを返す
+    if (wrap.dataset.remoteUrl) return { url: wrap.dataset.remoteUrl, mime: wrap.dataset.mime || '' };
+
+    const blob = wrap.__blob;
+    if (!blob) return null; // 何も持ってなければアップロード対象なし
+
+    const mime = blob.type || wrap.dataset.mime || 'image/png';
+    const ext  = extFromMime(mime);
+    const decoId = makeId();
+    const filePath = `decos/${cardId}/${decoId}.${ext}`;
+    const fileRef  = ref(storage, filePath);
+
+    await uploadBytes(fileRef, blob, {
+      contentType: mime,
+      cacheControl: 'public, max-age=31536000, immutable'
+    });
+    const url = await withRetry(() => getDownloadURL(fileRef));
+    wrap.dataset.remoteUrl = url;
+    // 一度上げたら blob は解放してもOK
+    try { URL.revokeObjectURL(wrap.querySelector('img')?.src || ''); } catch {}
+    wrap.__blob = null;
+
+    return { url, mime };
+  }
+
+  // 画面内の全デコをアップロード＆メタ化
+  async function serializeAndUploadDecos(cardId){
+    const stage = document.getElementById(DECO_STAGE_ID);
+    if (!stage) return [];
+    const nodes = Array.from(stage.querySelectorAll('.deco-wrapper'));
+    const out = [];
+    for (const wrap of nodes) {
+      // もし削除されたものが混ざっていたら skip
+      if (!wrap.isConnected) continue;
+
+      const uploaded = await ensureDecoUploaded(cardId, wrap);
+      // URL が無い（アップ対象なかった/失敗）場合はスキップ
+      const url = uploaded?.url || wrap.dataset.remoteUrl;
+      if (!url) continue;
+
+      out.push({
+        id: wrap.dataset.id || makeId(),
+        url,
+        mime: uploaded?.mime || wrap.dataset.mime || '',
+        tx: +wrap.dataset.tx || 0,
+        ty: +wrap.dataset.ty || 0,
+        scale: +wrap.dataset.scale || 1,
+        rot: +wrap.dataset.rot || 0
+      });
+    }
+    return out;
+  }
+
+  // 外側タップ・Esc で選択解除
+  document.addEventListener('pointerdown', (e) => {
+    if (!e.target.closest?.('.deco-wrapper')) {
+      document.querySelectorAll('.deco-wrapper.active').forEach(w => w.classList.remove('active'));
+    }
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.deco-wrapper.active').forEach(w => w.classList.remove('active'));
+    }
+  });
+
+  /***********************
    *  🚀 Main
    ***********************/
   window.addEventListener('DOMContentLoaded', () => {
@@ -2769,14 +3001,21 @@ window.handleBlur = async function(type){
     const profileImg      = document.getElementById('profile-img');
     const profileInput    = document.getElementById('profile-input');
     const profileUrlInput = document.getElementById('profile-url');
-    const bgInputs        = Array.from(document.querySelectorAll('#background-input')); // 重複ID対応
+    const bgInputs        = Array.from(document.querySelectorAll('#background-input'));
     const bgUrlInput      = document.getElementById('background-url');
     const backgroundEl    = document.body;
+
+    const decoBtn   = document.getElementById('deco-photo-btn');
+    const decoInput = document.getElementById('deco-photo-input');
+    const stage     = document.getElementById(DECO_STAGE_ID);
 
     L('dom.refs', {
       hasProfileImg: !!profileImg,
       hasProfileInput: !!profileInput,
-      hasBgInputCount: bgInputs.length
+      hasBgInputCount: bgInputs.length,
+      hasDecoBtn: !!decoBtn,
+      hasDecoInput: !!decoInput,
+      hasStage: !!stage
     });
 
     hookImgDebug(profileImg, 'PROFILE');
@@ -2784,19 +3023,13 @@ window.handleBlur = async function(type){
     let backgroundURL = '';
     let uploadingBg = false;
 
-    // ★ テンプレ背景を適用＆Firestoreに保存（HTMLの onclick から呼ばれる）
     window.setBackground = async function(url) {
       try {
         L('bg.theme.click', { url });
-
-        // 画面に即反映（CDN待ち＋キャッシュバスター付き）
         await setBackgroundImageForce(backgroundEl, url);
-
-        // フォーム値/状態を更新（saveAndRedirect が拾う）
         backgroundURL = url;
         if (bgUrlInput) bgUrlInput.value = url;
 
-        // 再編集中なら即Firestore保存
         if (typeof db !== 'undefined' && typeof id !== 'undefined' && id) {
           await setDoc(doc(db, "cards", id), { backgroundUrl: url }, { merge: true });
           L('bg.theme.saved', { id, url });
@@ -2807,14 +3040,6 @@ window.handleBlur = async function(type){
       }
     };
 
-    // ❌ プロフィールの programmatic click は削除（背景と同じ「onclick起動」前提）
-    // profileImg?.addEventListener('click', () => {
-    //   L('profileImg.click');
-    //   if (profileInput) profileInput.value = "";
-    //   profileInput?.click();
-    // });
-
-    // 同じファイルでも発火させるため、input 自身をタップした時は value を都度クリア
     profileInput?.addEventListener('click', () => { profileInput.value = ""; });
 
     // ---- 再編集ロード
@@ -2827,7 +3052,6 @@ window.handleBlur = async function(type){
         const data = snap.data();
         L('edit.data', data);
 
-        // ★ ここを置換：ID → Firestoreキーのマッピングで復元
         const setVal = (i, v) => { const el = document.getElementById(i); if (el) el.value = v || ''; };
         const fieldMap = {
           name: 'name',
@@ -2841,7 +3065,6 @@ window.handleBlur = async function(type){
         };
         Object.entries(fieldMap).forEach(([idKey, dataKey]) => setVal(idKey, data[dataKey]));
 
-        // ★ SNS復元（保存済みなら各入力欄に反映）
         SNS_KEYS.forEach(key => {
           if (data[key]) {
             snsLinks[key] = data[key];
@@ -2850,8 +3073,6 @@ window.handleBlur = async function(type){
           }
         });
 
-        // ★ YouTube / Spotify 復元（Firestore > draft）
-        // 変更前: const links = data?.links || readLinksDraft();
         const links = id ? (data?.links || null) : readLinksDraft();
         if (links?.youtube?.embedUrl){
           const y = document.getElementById('youtube-url'); if (y) y.value = links.youtube.rawUrl || "";
@@ -2875,18 +3096,22 @@ window.handleBlur = async function(type){
           backgroundURL = data.backgroundUrl;
           if (bgUrlInput) bgUrlInput.value = data.backgroundUrl;
         }
+
+        // ★ デコ復元
+        if (Array.isArray(data.decos) && stage) {
+          data.decos.forEach(item => addDecoFromSaved(stage, item));
+        }
       } catch (e) { E('edit.load.fail', e); }
     })();
 
-    // ---- プロフィール画像: 直接 change で処理（背景と同じに統一）
+    // ---- プロフィール画像
     profileInput?.addEventListener('change', async (e) => {
       const file = e.target.files?.[0];
       L('profile.change(DIRECT)', { hasFile: !!file, uploading: __pfUploading });
       await handleProfileFile(file, { id, profileImg, profileUrlInput });
-      e.target.value = '';   // 同じファイルでも再選択できるように
+      e.target.value = '';
     });
 
-    // ---- iOS保険: フォーカス戻り & ポーリングで files を検知
     (function installProfileFallback(){
       const input = profileInput;
       const img   = profileImg;
@@ -2908,14 +3133,13 @@ window.handleBlur = async function(type){
       }, true);
       window.addEventListener('pageshow', () => tryPick('pageshow'), true);
 
-      // 画像クリック後に短時間ポーリング（選択直後の取りこぼし防止）
       img?.addEventListener('click', () => {
         let n = 0;
         const t = setInterval(() => { n++; tryPick('poll'); if (n >= 5) clearInterval(t); }, 500);
       });
     })();
 
-    // ---- 背景画像アップロード（重複IDすべて）
+    // ---- 背景画像アップロード
     bgInputs.forEach((bgInput, idx) => {
       bgInput?.addEventListener('click', () => { bgInput.value = ""; });
       bgInput?.addEventListener('change', async (e) => {
@@ -2971,6 +3195,28 @@ window.handleBlur = async function(type){
       });
     });
 
+    // ---- デコ：追加ボタン/入力
+    if (decoBtn && decoInput && stage) {
+      decoBtn.addEventListener('click', () => {
+        if (stage.querySelectorAll('.deco-wrapper').length >= MAX_DECO) {
+          alert(`デコ写真は最大 ${MAX_DECO} 枚までです`);
+          return;
+        }
+        decoInput.value = '';
+        if (decoInput.showPicker) decoInput.showPicker(); else decoInput.click();
+      });
+      decoInput.addEventListener('change', (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        if (stage.querySelectorAll('.deco-wrapper').length >= MAX_DECO) {
+          alert(`デコ写真は最大 ${MAX_DECO} 枚までです`);
+          return;
+        }
+        // 透過PNGはそのまま、JPEGもそのまま保存していく方針
+        addDecoWithFile(stage, file);
+      });
+    }
+
     // ---- 保存
     document.getElementById('finish-button')?.addEventListener('click', () => {
       L('finish.click');
@@ -3007,8 +3253,10 @@ window.handleBlur = async function(type){
       const targetId = id || (globalThis.crypto?.randomUUID?.() ?? makeId());
       const getVal = (i) => document.getElementById(i)?.value || "";
 
-      // ▼ 追加：YouTube/Spotifyのドラフトも保存に含める
       const linksDraft = readLinksDraft();
+
+      // ★ デコをアップロードして配列化
+      const decos = await serializeAndUploadDecos(targetId);
 
       const data = {
         name: getVal("name"),
@@ -3017,13 +3265,13 @@ window.handleBlur = async function(type){
         department: getVal("department"),
         birthplace: getVal("birthplace"),
         hobby: getVal("hobby"),
-        selfPr: getVal("self-pr-textarea"),   // ★ 追加：自己PR
-        extraText: getVal("extra-text"),      // ★ 追加：記入欄
+        selfPr: getVal("self-pr-textarea"),
+        extraText: getVal("extra-text"),
         imageUrl: finalProfileURL,
         backgroundUrl: finalBackgroundURL,
-        // ★ SNSリンクをまとめて保存
         ...snsLinks,
-        ...(linksDraft ? { links: linksDraft } : {}) // ★ 追加：YouTube/Spotify
+        ...(linksDraft ? { links: linksDraft } : {}),
+        ...(decos.length ? { decos } : {})   // ★ ここで保存
       };
 
       try {
@@ -3031,7 +3279,6 @@ window.handleBlur = async function(type){
         await setDoc(doc(db, "cards", targetId), data, { merge: true });
         L('save.firestore.OK');
 
-        // ★ 保存成功後、この作業のドラフトだけ掃除
         localStorage.removeItem(LINKS_DRAFT_KEY);
 
         const next = `/preview?id=${targetId}`;
@@ -3047,97 +3294,91 @@ window.handleBlur = async function(type){
     if (isEditMode()) enableEditMode();
   });
 
-/* ====== 完成/プレビューで編集UIを隠す（ホワイトリストで残す） ====== */
-window.addEventListener('DOMContentLoaded', () => {
-  const isView = isViewPage();
-  // ★ 再編集モード時は隠さない
-  if (!isView || isEditMode()) return;
+  /* ====== 完成/プレビューで編集UIを隠す（ホワイトリストで残す） ====== */
+  window.addEventListener('DOMContentLoaded', () => {
+    const isView = isViewPage();
+    if (!isView || isEditMode()) return;
 
-  // 1) 隠すもの（テンプレ関連も含めて消す）
-  const HIDE_SELECTORS = [
-    '.toolbar',
-    '.text-style-toolbar',
-    '.sns-delete-btn',
-    '.deco-delete-btn',
-    '.text-stamp-delete-btn',
-    '.youtube-section button',
-    '#spotify-section button',
-    '#youtube-url',
-    '#spotify-url',
-    '#sns-explain',
-    '#extra-text-wrapper .sns-delete-btn',
-    '#diagnosis-wrapper .sns-delete-btn',
-    '#external-link-section .sns-delete-btn',
-    '#self-pr-section .sns-delete-btn',
-    '#spotify-section .sns-delete-btn',
-    '#pr-template-buttons',          // 自己PRテンプレ項目群
-    '.deletable-templates',          // ← 記入欄テンプレートのボタンを消す
-    '.self-pr-template-section'      // ← 自己PRテンプレのボタンも消す
-  ];
-  document.querySelectorAll(HIDE_SELECTORS.join(',')).forEach(el => {
-    try { el.style.display = 'none'; } catch {}
+    const HIDE_SELECTORS = [
+      '.toolbar',
+      '.text-style-toolbar',
+      '.sns-delete-btn',
+      '.deco-delete-btn',
+      '.text-stamp-delete-btn',
+      '.youtube-section button',
+      '#spotify-section button',
+      '#youtube-url',
+      '#spotify-url',
+      '#sns-explain',
+      '#extra-text-wrapper .sns-delete-btn',
+      '#diagnosis-wrapper .sns-delete-btn',
+      '#external-link-section .sns-delete-btn',
+      '#self-pr-section .sns-delete-btn',
+      '#spotify-section .sns-delete-btn',
+      '#pr-template-buttons',
+      '.deletable-templates',
+      '.self-pr-template-section'
+    ];
+    document.querySelectorAll(HIDE_SELECTORS.join(',')).forEach(el => {
+      try { el.style.display = 'none'; } catch {}
+    });
+
+    const FORCE_SHOW = [
+      '#diagnosis-wrapper',
+      '#diagnosis-wrapper #diagnosis-button',
+      '#self-pr-section',
+      '#self-pr-section button[onclick="analyzeSelfPR()"]'
+    ];
+    FORCE_SHOW.forEach(sel => {
+      const el = document.querySelector(sel);
+      if (el) el.style.display = 'block';
+    });
+
+    const diagWrap = document.getElementById('diagnosis-wrapper');
+    const diagBtn  = document.getElementById('diagnosis-button');
+    if (diagWrap) {
+      diagWrap.style.textAlign = 'center';
+    }
+    if (diagBtn) {
+      diagBtn.style.display = 'inline-block';
+      diagBtn.style.margin  = '12px auto';
+      diagBtn.style.position = 'relative';
+      diagBtn.style.left = '';
+      diagBtn.style.right = '';
+      diagBtn.style.transform = 'none';
+    }
+
+    const editToggle = document.getElementById('edit-toggle');
+    if (editToggle) editToggle.style.display = 'none';
+    const returnToggle = document.getElementById('return-toggle');
+    if (returnToggle) returnToggle.style.display = 'none';
   });
 
-  // 2) 残すもの（診断＆分析ボタン）を強制表示
-  const FORCE_SHOW = [
-    '#diagnosis-wrapper',
-    '#diagnosis-wrapper #diagnosis-button',
-    '#self-pr-section',
-    '#self-pr-section button[onclick="analyzeSelfPR()"]'
-  ];
-  FORCE_SHOW.forEach(sel => {
-    const el = document.querySelector(sel);
-    if (el) el.style.display = 'block';
+  // ★ プレビュー時に右下へ「再編集」ボタンを表示
+  window.addEventListener('DOMContentLoaded', () => {
+    if (!isViewPage() || isEditMode()) return;
+
+    const btn = document.createElement('button');
+    btn.id = 'reedit-button';
+    btn.type = 'button';
+    btn.textContent = '再編集';
+    Object.assign(btn.style, {
+      position: 'fixed',
+      right: '16px',
+      bottom: '16px',
+      zIndex: 10001,
+      padding: '10px 16px',
+      border: 'none',
+      borderRadius: '9999px',
+      background: '#ffd966',
+      boxShadow: '0 6px 16px rgba(0,0,0,0.2)',
+      fontSize: '14px',
+      fontWeight: 'bold',
+      cursor: 'pointer'
+    });
+    btn.addEventListener('click', () => gotoEditMode());
+    document.body.appendChild(btn);
   });
-
-  // 3) 〇〇さんの特徴！を中央寄せに固定
-  const diagWrap = document.getElementById('diagnosis-wrapper');
-  const diagBtn  = document.getElementById('diagnosis-button');
-  if (diagWrap) {
-    diagWrap.style.textAlign = 'center';
-  }
-  if (diagBtn) {
-    diagBtn.style.display = 'inline-block';
-    diagBtn.style.margin  = '12px auto';
-    // もしレイアウトを崩す指定が残っていた場合に備えて無効化
-    diagBtn.style.position = 'relative';
-    diagBtn.style.left = '';
-    diagBtn.style.right = '';
-    diagBtn.style.transform = 'none';
-  }
-
-  // 目アイコン/戻るは完成ビューで非表示
-  const editToggle = document.getElementById('edit-toggle');
-  if (editToggle) editToggle.style.display = 'none';
-  const returnToggle = document.getElementById('return-toggle');
-  if (returnToggle) returnToggle.style.display = 'none';
-});
-
-// ★ プレビュー時に右下へ「再編集」ボタンを表示
-window.addEventListener('DOMContentLoaded', () => {
-  if (!isViewPage() || isEditMode()) return;
-
-  const btn = document.createElement('button');
-  btn.id = 'reedit-button';
-  btn.type = 'button';
-  btn.textContent = '再編集';
-  Object.assign(btn.style, {
-    position: 'fixed',
-    right: '16px',
-    bottom: '16px',
-    zIndex: 10001,
-    padding: '10px 16px',
-    border: 'none',
-    borderRadius: '9999px',
-    background: '#ffd966',
-    boxShadow: '0 6px 16px rgba(0,0,0,0.2)',
-    fontSize: '14px',
-    fontWeight: 'bold',
-    cursor: 'pointer'
-  });
-  btn.addEventListener('click', () => gotoEditMode());
-  document.body.appendChild(btn);
-});
 </script>
 
 <script>
