@@ -3043,6 +3043,7 @@ text.addEventListener('click', enableEditing);
       if (barInput) {
         barInput.value = v;
         barInput.style.display = v ? 'none' : 'block'; // 入力→表示の既存挙動を踏襲
+        if (!v) { barInput.placeholder = ''; } // ★ 追加：未入力時は placeholder 文字だけ消す
       }
     }
     async function saveBar(val){
@@ -3511,6 +3512,7 @@ text.addEventListener('click', enableEditing);
   window.pulseName = pulseName;
 })();
 </script>
+
 
 </body>
 </html>
