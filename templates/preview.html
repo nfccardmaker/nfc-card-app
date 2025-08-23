@@ -3027,6 +3027,62 @@ text.addEventListener('click', enableEditing);
     const decoInput = document.getElementById('deco-photo-input');
     const stage     = document.getElementById(DECO_STAGE_ID);
 
+    // 🔽 追加: バー（スクロール文字）
+    const barInput   = document.getElementById('scroll-text-input');
+    const barTextEl  = document.getElementById('scrolling-text');
+    const BAR_DRAFT_KEY = `fureta_draft_bar_${__ID_FOR_DRAFT}`;
+    const readBarDraft  = () => localStorage.getItem(BAR_DRAFT_KEY) ?? '';
+    const writeBarDraft = (v) => localStorage.setItem(BAR_DRAFT_KEY, v ?? '');
+
+    function updateBarUI(val){
+      const v = (val ?? '').trim();
+      if (barTextEl) {
+        barTextEl.textContent = v;
+        barTextEl.style.display = v ? 'inline-block' : 'none';
+      }
+      if (barInput) {
+        barInput.value = v;
+        barInput.style.display = v ? 'none' : 'block'; // 入力→表示の既存挙動を踏襲
+      }
+    }
+    async function saveBar(val){
+      const v = (val ?? '').trim();
+      if (__currentId) {
+        try{
+          await setDoc(doc(db, 'cards', __currentId), { barText: v }, { merge: true });
+          L('bar.autosave', { v });
+        }catch(e){
+          W('bar.autosave.fail', e);
+        }
+      } else {
+        writeBarDraft(v);
+        L('bar.draft.save', { v });
+      }
+      updateBarUI(v);
+    }
+
+    if (barInput){
+      barInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          saveBar(barInput.value);
+        }
+      });
+      barInput.addEventListener('blur', () => {
+        saveBar(barInput.value);
+      });
+    }
+    if (barTextEl){
+      // 表示テキストをタップで再編集（既存の挙動と同じ体験）
+      barTextEl.addEventListener('click', () => {
+        if (barInput){
+          barInput.style.display = 'block';
+          barTextEl.style.display = 'none';
+          barInput.focus();
+        }
+      });
+    }
+
     L('dom.refs', {
       hasProfileImg: !!profileImg,
       hasProfileInput: !!profileInput,
@@ -3062,7 +3118,13 @@ text.addEventListener('click', enableEditing);
 
     // ---- 再編集ロード
     (async () => {
-      if (!id) { L('edit.skip.noId'); return; }
+      if (!id) {
+        L('edit.skip.noId');
+        // 🔽 IDがない＝ドラフト時：バーはドラフトを表示、なければ表示を消す
+        const draftBar = readBarDraft();
+        if (draftBar) updateBarUI(draftBar); else updateBarUI('');
+        return;
+      }
       L('edit.load', { id });
       try {
         const snap = await getDoc(doc(db, 'cards', id));
@@ -3082,6 +3144,13 @@ text.addEventListener('click', enableEditing);
           'extra-text': 'extraText',
         };
         Object.entries(fieldMap).forEach(([idKey, dataKey]) => setVal(idKey, data[dataKey]));
+
+        // 🔽 バー文字：Firebaseにあれば表示、なければバー表示だけ消す
+        if (typeof data.barText === 'string' && data.barText.trim() !== '') {
+          updateBarUI(data.barText);
+        } else {
+          updateBarUI(''); // ← 未保存なら表示だけ消す
+        }
 
         SNS_KEYS.forEach(key => {
           if (data[key]) {
@@ -3287,6 +3356,7 @@ text.addEventListener('click', enableEditing);
         extraText: getVal("extra-text"),
         imageUrl: finalProfileURL,
         backgroundUrl: finalBackgroundURL,
+        barText: (document.getElementById('scroll-text-input')?.value || '').trim(), // 🔽 追加：最終保存にも含める
         ...snsLinks,
         ...(linksDraft ? { links: linksDraft } : {}),
         ...(decos.length ? { decos } : {})
@@ -3314,6 +3384,7 @@ text.addEventListener('click', enableEditing);
 
         // ★ 保存成功後、この作業のドラフトだけ掃除
         localStorage.removeItem(LINKS_DRAFT_KEY);
+        localStorage.removeItem(BAR_DRAFT_KEY); // 🔽 バードラフトも掃除
 
         const next = `/preview?id=${targetId}`;
         L('save.redirect', next);
