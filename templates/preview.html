@@ -2611,6 +2611,23 @@ text.addEventListener('click', enableEditing);
   /***********************
    *  🎵 YouTube / Spotify
    ***********************/
+  const __URL_PARAMS = new URLSearchParams(window.location.search);
+  const __ID_FOR_DRAFT = __URL_PARAMS.get('id') || 'draft';
+  const LINKS_DRAFT_KEY = `fureta_draft_links_${__ID_FOR_DRAFT}`;
+  const readLinksDraft  = () => JSON.parse(localStorage.getItem(LINKS_DRAFT_KEY) || "{}");
+  const writeLinksDraft = (obj) => localStorage.setItem(LINKS_DRAFT_KEY, JSON.stringify(obj));
+
+  async function saveLinks(partial){
+    const merged = { ...readLinksDraft(), ...partial };
+    writeLinksDraft(merged);
+    if (__currentId) {
+      await setDoc(doc(db, "cards", __currentId), { links: merged }, { merge: true });
+      L('links.save', merged);
+    } else {
+      L('links.draft.save', merged);
+    }
+  }
+
   function normalizeYouTube(url){
     try{
       const u = new URL(url.replace("m.youtube.com","www.youtube.com"));
@@ -3011,10 +3028,6 @@ text.addEventListener('click', enableEditing);
     const stage     = document.getElementById(DECO_STAGE_ID);
 
     // 🔽 追加: バー（スクロール文字）
-    // 下2行はドラフト用キー生成で使うので冒頭で定義
-    const __URL_PARAMS = new URLSearchParams(window.location.search);
-    const __ID_FOR_DRAFT = __URL_PARAMS.get('id') || 'draft';
-
     const barInput   = document.getElementById('scroll-text-input');
     const barTextEl  = document.getElementById('scrolling-text');
     const BAR_DRAFT_KEY = `fureta_draft_bar_${__ID_FOR_DRAFT}`;
@@ -3030,7 +3043,6 @@ text.addEventListener('click', enableEditing);
       if (barInput) {
         barInput.value = v;
         barInput.style.display = v ? 'none' : 'block'; // 入力→表示の既存挙動を踏襲
-        if (!v) barInput.placeholder = '';             // 未保存時はプレースホルダ文言を消す
       }
     }
     async function saveBar(val){
@@ -3137,7 +3149,7 @@ text.addEventListener('click', enableEditing);
         if (typeof data.barText === 'string' && data.barText.trim() !== '') {
           updateBarUI(data.barText);
         } else {
-          updateBarUI(''); // ← 未保存なら表示だけ消す & placeholder も消える
+          updateBarUI(''); // ← 未保存なら表示だけ消す
         }
 
         SNS_KEYS.forEach(key => {
@@ -3148,7 +3160,17 @@ text.addEventListener('click', enableEditing);
           }
         });
 
-        // ★ 画像復元
+        const links = id ? (data?.links || null) : readLinksDraft();
+        if (links?.youtube?.embedUrl){
+          const y = document.getElementById('youtube-url'); if (y) y.value = links.youtube.rawUrl || "";
+          renderYouTube(links.youtube.embedUrl);
+        }
+        if (links?.spotify?.embedUrl){
+          const s = document.getElementById('spotify-url'); if (s) s.value = links.spotify.rawUrl || "";
+          renderSpotify(links.spotify.embedUrl);
+        }
+        if (links) localStorage.setItem(LINKS_DRAFT_KEY, JSON.stringify(links));
+
         if (data.imageUrl && profileImg) {
           try { await setImgSrc(profileImg, data.imageUrl); }
           catch (e) { W('edit.profile.setSrc.fail', e); profileImg.src = bust(data.imageUrl); }
@@ -3163,7 +3185,6 @@ text.addEventListener('click', enableEditing);
         }
 
         // ★ デコ復元
-        const links = null; // ここでは省略（他の処理は変更しない）
         if (Array.isArray(data.decos) && stage) {
           data.decos.forEach(item => addDecoFromSaved(stage, item));
         }
@@ -3319,6 +3340,8 @@ text.addEventListener('click', enableEditing);
       const targetId = id || (globalThis.crypto?.randomUUID?.() ?? makeId());
       const getVal = (i) => document.getElementById(i)?.value || "";
 
+      const linksDraft = readLinksDraft();
+
       // ★ デコをアップロードして配列化
       const decos = await serializeAndUploadDecos(targetId);
 
@@ -3335,6 +3358,7 @@ text.addEventListener('click', enableEditing);
         backgroundUrl: finalBackgroundURL,
         barText: (document.getElementById('scroll-text-input')?.value || '').trim(), // 🔽 追加：最終保存にも含める
         ...snsLinks,
+        ...(linksDraft ? { links: linksDraft } : {}),
         ...(decos.length ? { decos } : {})
       };
 
@@ -3358,8 +3382,9 @@ text.addEventListener('click', enableEditing);
           W('deco.storage.delete.batch.FAIL', err);
         }
 
-        // ★ 保存成功後、バーのドラフトも掃除
-        localStorage.removeItem(BAR_DRAFT_KEY);
+        // ★ 保存成功後、この作業のドラフトだけ掃除
+        localStorage.removeItem(LINKS_DRAFT_KEY);
+        localStorage.removeItem(BAR_DRAFT_KEY); // 🔽 バードラフトも掃除
 
         const next = `/preview?id=${targetId}`;
         L('save.redirect', next);
