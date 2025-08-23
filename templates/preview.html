@@ -3041,6 +3041,31 @@ text.addEventListener('click', enableEditing);
     let backgroundURL = '';
     let uploadingBg = false;
 
+    // ★★ ここから：バー文字対応（参照＆反映関数）
+    const headerBar     = document.getElementById('header-bar');
+    const barInputEl    = document.getElementById('scroll-text-input');
+    const scrollingText = document.getElementById('scrolling-text');
+
+    function applyBar(val){
+      const t = (val || '').trim();
+      if (!headerBar || !scrollingText) return;
+      if (t) {
+        scrollingText.textContent = t;
+        scrollingText.style.display = 'block';
+        headerBar.style.display = 'block';
+      } else {
+        scrollingText.textContent = '';
+        scrollingText.style.display = 'none';
+        headerBar.style.display = 'none';
+      }
+    }
+    // 入力中プレビュー
+    if (barInputEl) {
+      barInputEl.addEventListener('input', () => applyBar(barInputEl.value));
+      applyBar(barInputEl.value); // 初期反映
+    }
+    // ★★ ここまで：バー文字対応
+
     window.setBackground = async function(url) {
       try {
         L('bg.theme.click', { url });
@@ -3082,6 +3107,13 @@ text.addEventListener('click', enableEditing);
           'extra-text': 'extraText',
         };
         Object.entries(fieldMap).forEach(([idKey, dataKey]) => setVal(idKey, data[dataKey]));
+
+        // ★★ ここから：バー文字（復元）
+        if (barInputEl) barInputEl.value = (data.barText || '');
+        // showBar が false の場合は必ず非表示。それ以外は barText で判断
+        const _barDisplayVal = (data.showBar === false) ? '' : (data.barText || '');
+        applyBar(_barDisplayVal);
+        // ★★ ここまで：バー文字（復元）
 
         SNS_KEYS.forEach(key => {
           if (data[key]) {
@@ -3276,6 +3308,11 @@ text.addEventListener('click', enableEditing);
       // ★ デコをアップロードして配列化
       const decos = await serializeAndUploadDecos(targetId);
 
+      // ★★ ここから：バー文字（保存時に格納）
+      const barTextRaw = (document.getElementById('scroll-text-input')?.value || '').trim();
+      const showBar = barTextRaw !== '';
+      // ★★ ここまで
+
       const data = {
         name: getVal("name"),
         birthday: getVal("birthday"),
@@ -3287,6 +3324,10 @@ text.addEventListener('click', enableEditing);
         extraText: getVal("extra-text"),
         imageUrl: finalProfileURL,
         backgroundUrl: finalBackgroundURL,
+        // ★★ ここから：バー文字（Firestoreへ保存）
+        barText: barTextRaw,
+        showBar,
+        // ★★ ここまで
         ...snsLinks,
         ...(linksDraft ? { links: linksDraft } : {}),
         ...(decos.length ? { decos } : {})
@@ -3440,6 +3481,7 @@ text.addEventListener('click', enableEditing);
   window.pulseName = pulseName;
 })();
 </script>
+
 
 </body>
 </html>
