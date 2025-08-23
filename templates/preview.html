@@ -434,21 +434,26 @@ button:active {
   </style>
 </head>
 <body>
-  <div id="page-wrapper">
-  <div class="main-wrapper">
-  <div class="card">
-   <div class="header-bar" id="header-bar">
+  <div class="header-bar" id="header-bar"
+     style="position: relative; height: 40px; background: lightblue; display: flex; align-items: center; justify-content: center;">
+  
+  <!-- 入力欄（初期は表示、保存したら非表示にして文字に切り替え） -->
   <input id="scroll-text-input" type="text" placeholder="バーに表示する文字を入力"
-    style="width: 100%; max-width: 100%; height: 40px;
+    style="width: 100%; height: 100%;
            border: none; background: transparent;
-           padding: 0; font-size: 18px;
-           position: absolute; top: 0; left: 0;
-           transform: none;
-           color: white; text-align: center;
-           z-index: 2; font-weight: bold;
-           font-family: inherit; outline: none;">
-  <div class="scrolling-text" id="scrolling-text" style="display: none;"></div>
+           font-size: 18px; color: white; text-align: center;
+           font-weight: bold; font-family: inherit; outline: none;
+           z-index: 2;">
+  
+  <!-- 表示用テキスト（初期は非表示、保存時に表示される） -->
+  <div class="scrolling-text" id="scrolling-text"
+    style="display: none; position: absolute; width: 100%; height: 100%;
+           line-height: 40px; text-align: center;
+           font-size: 18px; color: white; font-weight: bold;
+           font-family: inherit; overflow: hidden; z-index: 1;">
+  </div>
 </div>
+
 
     <div class="student-id">
   <div class="left-section">
