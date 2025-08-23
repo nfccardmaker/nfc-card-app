@@ -2556,8 +2556,8 @@ text.addEventListener('click', enableEditing);
   }
 
   /***********************
-   *  🌐 SNS Setups
-   ***********************/
+ *  🌐 SNS Setups
+ ***********************/
   const SNS_KEYS = ['instagram','line','bereal','x','tiktok'];
   const snsLinks = Object.fromEntries(SNS_KEYS.map(k => [k, '']));
   const SNS_OFFICIAL = {
@@ -2743,6 +2743,9 @@ text.addEventListener('click', enableEditing);
   const MAX_DECO = 5;
   const DECO_STAGE_ID = 'page-wrapper';
 
+  // Storage から消すべきファイルのパス（save 成功後にまとめて削除）
+  const __decoPendingDeletes = new Set();
+
   const extFromMime = (mime) => {
     if (mime === 'image/jpeg' || mime === 'image/jpg') return 'jpg';
     if (mime === 'image/png') return 'png';
@@ -2817,13 +2820,10 @@ text.addEventListener('click', enableEditing);
         const newDist  = getDist();
         const newAngle = getAngle();
         const center   = getCenter();
-
         const s = Math.max(0.2, Math.min(5, pinchStart.scale * (newDist / Math.max(1, pinchStart.dist))));
         const r = pinchStart.rot + (newAngle - pinchStart.angle);
-
         tx = pinchStart.tx + (center.x - pinchStart.center.x);
         ty = pinchStart.ty + (center.y - pinchStart.center.y);
-
         scale = s;
         rot   = r;
       }
@@ -2851,10 +2851,9 @@ text.addEventListener('click', enableEditing);
     el.addEventListener('dblclick', () => { rot = 0; update(); });
   }
 
-  // 新規デコ（File を保持→保存時にUpload）
+  // 新規デコ生成（File/Blob を保持 → 保存時にアップロード）
   function addDecoWithFile(stage, file){
     const url = URL.createObjectURL(file);
-
     const wrap = document.createElement('div');
     wrap.className = 'deco-wrapper';
     wrap.style.left = '100px';
@@ -2864,11 +2863,8 @@ text.addEventListener('click', enableEditing);
     wrap.dataset.scale = '1';
     wrap.dataset.rot = '0';
     wrap.dataset.mime = file.type || 'image/png';
-
-    // 安定ID（保存→復元で同じid）
-    const decoId = makeId();
-    wrap.dataset.id = decoId;
-    wrap.__objUrl = url;
+    wrap.dataset.decoId = makeId();
+    wrap.dataset.id = wrap.dataset.decoId; // 安定ID
     wrap.__blob = file;
 
     const img = document.createElement('img');
@@ -2881,7 +2877,16 @@ text.addEventListener('click', enableEditing);
     del.textContent = '×';
     del.addEventListener('click', (ev) => {
       ev.stopPropagation();
-      try { if (wrap.__objUrl) URL.revokeObjectURL(wrap.__objUrl); } catch {}
+
+      // すでにアップロード済みなら Storage パスを保留削除へ
+      const remoteUrl = wrap.dataset.remoteUrl;
+      const p = remoteUrl ? pathFromUrl(remoteUrl) : null;
+      if (p) __decoPendingDeletes.add(p);
+
+      // 表示用URLを掃除
+      try { URL.revokeObjectURL(url); } catch {}
+
+      // DOM から除去（保存時に decos からも除外される）
       stage.removeChild(wrap);
     });
 
@@ -2895,19 +2900,19 @@ text.addEventListener('click', enableEditing);
     setTimeout(() => wrap.classList.remove('active'), 600);
   }
 
-  // 復元（保存済みURLから）
+  // 保存済みデコを復元（URL から）
   function addDecoFromSaved(stage, item){
     const wrap = document.createElement('div');
     wrap.className = 'deco-wrapper';
     wrap.style.left = '100px';
     wrap.style.top  = '100px';
-    wrap.dataset.id = item.id || makeId();
     wrap.dataset.tx = String(item.tx || 0);
     wrap.dataset.ty = String(item.ty || 0);
     wrap.dataset.scale = String(item.scale || 1);
     wrap.dataset.rot = String(item.rot || 0);
-    if (item.mime) wrap.dataset.mime = item.mime;
-    if (item.url)  wrap.dataset.remoteUrl = item.url;
+    wrap.dataset.mime = item.mime || 'image/png';
+    wrap.dataset.remoteUrl = item.url || '';
+    wrap.dataset.id = item.id || makeId();
 
     const img = document.createElement('img');
     img.className = 'deco-img';
@@ -2919,8 +2924,13 @@ text.addEventListener('click', enableEditing);
     del.textContent = '×';
     del.addEventListener('click', (ev) => {
       ev.stopPropagation();
+
+      // 復元アイテムは URL から Storage パスを抽出して保留削除へ
+      const remoteUrl = wrap.dataset.remoteUrl || item.url;
+      const p = remoteUrl ? pathFromUrl(remoteUrl) : null;
+      if (p) __decoPendingDeletes.add(p);
+
       stage.removeChild(wrap);
-      // 再保存時に decos から消える
     });
 
     wrap.appendChild(img);
@@ -2930,11 +2940,10 @@ text.addEventListener('click', enableEditing);
     makeTransformable(wrap);
   }
 
-  // 必要ならアップロードしてURLを返す
+  // 未アップロードなら Storage へアップロードして URL を返す
   async function ensureDecoUploaded(cardId, wrap){
-    if (wrap.dataset.remoteUrl) {
-      return { url: wrap.dataset.remoteUrl, mime: wrap.dataset.mime || '' };
-    }
+    if (wrap.dataset.remoteUrl) return { url: wrap.dataset.remoteUrl, mime: wrap.dataset.mime || '' };
+
     const blob = wrap.__blob;
     if (!blob) return null;
 
@@ -2951,24 +2960,26 @@ text.addEventListener('click', enableEditing);
     const url = await withRetry(() => getDownloadURL(fileRef));
     wrap.dataset.remoteUrl = url;
 
-    try { if (wrap.__objUrl) URL.revokeObjectURL(wrap.__objUrl); } catch {}
+    // ローカルURLの掃除
+    try { URL.revokeObjectURL(wrap.querySelector('img')?.src || ''); } catch {}
     wrap.__blob = null;
-    wrap.__objUrl = null;
 
     return { url, mime };
   }
 
-  // 画面の全デコを配列化（最大5枚）
+  // 画面内の全デコをアップロード＆メタ化
   async function serializeAndUploadDecos(cardId){
     const stage = document.getElementById(DECO_STAGE_ID);
     if (!stage) return [];
-    const nodes = Array.from(stage.querySelectorAll('.deco-wrapper')).slice(0, MAX_DECO);
+    const nodes = Array.from(stage.querySelectorAll('.deco-wrapper'));
     const out = [];
     for (const wrap of nodes) {
       if (!wrap.isConnected) continue;
+
       const uploaded = await ensureDecoUploaded(cardId, wrap);
       const url = uploaded?.url || wrap.dataset.remoteUrl;
       if (!url) continue;
+
       out.push({
         id: wrap.dataset.id || makeId(),
         url,
@@ -3119,7 +3130,6 @@ text.addEventListener('click', enableEditing);
       e.target.value = '';
     });
 
-    // iOS保険
     (function installProfileFallback(){
       const input = profileInput;
       const img   = profileImg;
@@ -3203,7 +3213,7 @@ text.addEventListener('click', enableEditing);
       });
     });
 
-    // ---- デコ：追加ボタン/入力（※ここだけで管理）
+    // ---- デコ：追加ボタン/入力
     if (decoBtn && decoInput && stage) {
       decoBtn.addEventListener('click', () => {
         if (stage.querySelectorAll('.deco-wrapper').length >= MAX_DECO) {
@@ -3220,7 +3230,8 @@ text.addEventListener('click', enableEditing);
           alert(`デコ写真は最大 ${MAX_DECO} 枚までです`);
           return;
         }
-        addDecoWithFile(stage, file);  // ← ここだけで生成する（重複なし）
+        // 透過PNGはそのまま、JPEGもそのまま保存
+        addDecoWithFile(stage, file);
       });
     }
 
@@ -3262,7 +3273,7 @@ text.addEventListener('click', enableEditing);
 
       const linksDraft = readLinksDraft();
 
-      // デコをアップロードして配列化（最大5）
+      // ★ デコをアップロードして配列化
       const decos = await serializeAndUploadDecos(targetId);
 
       const data = {
@@ -3278,7 +3289,7 @@ text.addEventListener('click', enableEditing);
         backgroundUrl: finalBackgroundURL,
         ...snsLinks,
         ...(linksDraft ? { links: linksDraft } : {}),
-        ...(decos.length ? { decos } : {})   // ← 配列で保存
+        ...(decos.length ? { decos } : {})
       };
 
       try {
@@ -3286,6 +3297,22 @@ text.addEventListener('click', enableEditing);
         await setDoc(doc(db, "cards", targetId), data, { merge: true });
         L('save.firestore.OK');
 
+        // ★ Firestore 反映OK → 保留していた Storage を実削除
+        try {
+          if (__decoPendingDeletes.size) {
+            const tasks = [...__decoPendingDeletes].map(p =>
+              deleteObject(ref(storage, p))
+                .then(() => L('deco.storage.delete.OK', p))
+                .catch(err => W('deco.storage.delete.FAIL', p, err))
+            );
+            await Promise.allSettled(tasks);
+            __decoPendingDeletes.clear();
+          }
+        } catch (err) {
+          W('deco.storage.delete.batch.FAIL', err);
+        }
+
+        // ★ 保存成功後、この作業のドラフトだけ掃除
         localStorage.removeItem(LINKS_DRAFT_KEY);
 
         const next = `/preview?id=${targetId}`;
@@ -3297,11 +3324,11 @@ text.addEventListener('click', enableEditing);
       }
     }
 
-    // edit=1 のとき編集UI復元
+    // ★ edit=1 のとき編集UI復元
     if (isEditMode()) enableEditMode();
   });
 
-  /* ====== 完成/プレビューで編集UIを隠す ====== */
+  /* ====== 完成/プレビューで編集UIを隠す（ホワイトリストで残す） ====== */
   window.addEventListener('DOMContentLoaded', () => {
     const isView = isViewPage();
     if (!isView || isEditMode()) return;
@@ -3389,7 +3416,6 @@ text.addEventListener('click', enableEditing);
 </script>
 
 <script>
-/* 名前の入力欄の光る演出だけ残す（デコ処理の重複は削除済み） */
 (function(){
   const nameInput = document.getElementById('name');
   if (!nameInput) return;
@@ -3414,10 +3440,6 @@ text.addEventListener('click', enableEditing);
   window.pulseName = pulseName;
 })();
 </script>
-
-
-
-
 
 </body>
 </html>
