@@ -3041,7 +3041,7 @@ text.addEventListener('click', enableEditing);
     let backgroundURL = '';
     let uploadingBg = false;
 
-    // ★★ ここから：バー文字対応（参照＆反映関数）
+    /* ===== バー文字：参照＆反映関数 ===== */
     const headerBar     = document.getElementById('header-bar');
     const barInputEl    = document.getElementById('scroll-text-input');
     const scrollingText = document.getElementById('scrolling-text');
@@ -3049,22 +3049,23 @@ text.addEventListener('click', enableEditing);
     function applyBar(val){
       const t = (val || '').trim();
       if (!headerBar || !scrollingText) return;
+      // 水色のバーは常に表示
+      headerBar.style.display = 'block';
+      // 文字のみ表示/非表示
       if (t) {
         scrollingText.textContent = t;
         scrollingText.style.display = 'block';
-        headerBar.style.display = 'block';
       } else {
         scrollingText.textContent = '';
         scrollingText.style.display = 'none';
-        headerBar.style.display = 'none';
       }
     }
     // 入力中プレビュー
     if (barInputEl) {
       barInputEl.addEventListener('input', () => applyBar(barInputEl.value));
-      applyBar(barInputEl.value); // 初期反映
+      applyBar(barInputEl.value); // 初期反映（未入力なら文字だけ非表示）
     }
-    // ★★ ここまで：バー文字対応
+    /* ===== ここまで ===== */
 
     window.setBackground = async function(url) {
       try {
@@ -3108,12 +3109,9 @@ text.addEventListener('click', enableEditing);
         };
         Object.entries(fieldMap).forEach(([idKey, dataKey]) => setVal(idKey, data[dataKey]));
 
-        // ★★ ここから：バー文字（復元）
+        // バー文字（復元：バーは常に表示、文字のみ制御）
         if (barInputEl) barInputEl.value = (data.barText || '');
-        // showBar が false の場合は必ず非表示。それ以外は barText で判断
-        const _barDisplayVal = (data.showBar === false) ? '' : (data.barText || '');
-        applyBar(_barDisplayVal);
-        // ★★ ここまで：バー文字（復元）
+        applyBar(data.barText || '');
 
         SNS_KEYS.forEach(key => {
           if (data[key]) {
@@ -3308,10 +3306,8 @@ text.addEventListener('click', enableEditing);
       // ★ デコをアップロードして配列化
       const decos = await serializeAndUploadDecos(targetId);
 
-      // ★★ ここから：バー文字（保存時に格納）
+      // バー文字（保存）
       const barTextRaw = (document.getElementById('scroll-text-input')?.value || '').trim();
-      const showBar = barTextRaw !== '';
-      // ★★ ここまで
 
       const data = {
         name: getVal("name"),
@@ -3324,10 +3320,8 @@ text.addEventListener('click', enableEditing);
         extraText: getVal("extra-text"),
         imageUrl: finalProfileURL,
         backgroundUrl: finalBackgroundURL,
-        // ★★ ここから：バー文字（Firestoreへ保存）
+        // バー文字だけ保存（バーは常時表示のため showBar は保存しない）
         barText: barTextRaw,
-        showBar,
-        // ★★ ここまで
         ...snsLinks,
         ...(linksDraft ? { links: linksDraft } : {}),
         ...(decos.length ? { decos } : {})
