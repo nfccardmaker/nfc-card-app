@@ -434,26 +434,21 @@ button:active {
   </style>
 </head>
 <body>
-  <div class="header-bar" id="header-bar"
-     style="position: relative; height: 40px; background: lightblue; display: flex; align-items: center; justify-content: center;">
-  
-  <!-- 入力欄（初期は表示、保存したら非表示にして文字に切り替え） -->
+  <div id="page-wrapper">
+  <div class="main-wrapper">
+  <div class="card">
+   <div class="header-bar" id="header-bar">
   <input id="scroll-text-input" type="text" placeholder="バーに表示する文字を入力"
-    style="width: 100%; height: 100%;
+    style="width: 100%; max-width: 100%; height: 40px;
            border: none; background: transparent;
-           font-size: 18px; color: white; text-align: center;
-           font-weight: bold; font-family: inherit; outline: none;
-           z-index: 2;">
-  
-  <!-- 表示用テキスト（初期は非表示、保存時に表示される） -->
-  <div class="scrolling-text" id="scrolling-text"
-    style="display: none; position: absolute; width: 100%; height: 100%;
-           line-height: 40px; text-align: center;
-           font-size: 18px; color: white; font-weight: bold;
-           font-family: inherit; overflow: hidden; z-index: 1;">
-  </div>
+           padding: 0; font-size: 18px;
+           position: absolute; top: 0; left: 0;
+           transform: none;
+           color: white; text-align: center;
+           z-index: 2; font-weight: bold;
+           font-family: inherit; outline: none;">
+  <div class="scrolling-text" id="scrolling-text" style="display: none;"></div>
 </div>
-
 
     <div class="student-id">
   <div class="left-section">
@@ -3046,32 +3041,6 @@ text.addEventListener('click', enableEditing);
     let backgroundURL = '';
     let uploadingBg = false;
 
-    /* ===== バー文字：参照＆反映関数 ===== */
-    const headerBar     = document.getElementById('header-bar');
-    const barInputEl    = document.getElementById('scroll-text-input');
-    const scrollingText = document.getElementById('scrolling-text');
-
-    function applyBar(val){
-      const t = (val || '').trim();
-      if (!headerBar || !scrollingText) return;
-      // 水色のバーは常に表示
-      headerBar.style.display = 'block';
-      // 文字のみ表示/非表示
-      if (t) {
-        scrollingText.textContent = t;
-        scrollingText.style.display = 'block';
-      } else {
-        scrollingText.textContent = '';
-        scrollingText.style.display = 'none';
-      }
-    }
-    // 入力中プレビュー
-    if (barInputEl) {
-      barInputEl.addEventListener('input', () => applyBar(barInputEl.value));
-      applyBar(barInputEl.value); // 初期反映（未入力なら文字だけ非表示）
-    }
-    /* ===== ここまで ===== */
-
     window.setBackground = async function(url) {
       try {
         L('bg.theme.click', { url });
@@ -3113,10 +3082,6 @@ text.addEventListener('click', enableEditing);
           'extra-text': 'extraText',
         };
         Object.entries(fieldMap).forEach(([idKey, dataKey]) => setVal(idKey, data[dataKey]));
-
-        // バー文字（復元：バーは常に表示、文字のみ制御）
-        if (barInputEl) barInputEl.value = (data.barText || '');
-        applyBar(data.barText || '');
 
         SNS_KEYS.forEach(key => {
           if (data[key]) {
@@ -3311,9 +3276,6 @@ text.addEventListener('click', enableEditing);
       // ★ デコをアップロードして配列化
       const decos = await serializeAndUploadDecos(targetId);
 
-      // バー文字（保存）
-      const barTextRaw = (document.getElementById('scroll-text-input')?.value || '').trim();
-
       const data = {
         name: getVal("name"),
         birthday: getVal("birthday"),
@@ -3325,8 +3287,6 @@ text.addEventListener('click', enableEditing);
         extraText: getVal("extra-text"),
         imageUrl: finalProfileURL,
         backgroundUrl: finalBackgroundURL,
-        // バー文字だけ保存（バーは常時表示のため showBar は保存しない）
-        barText: barTextRaw,
         ...snsLinks,
         ...(linksDraft ? { links: linksDraft } : {}),
         ...(decos.length ? { decos } : {})
@@ -3480,7 +3440,6 @@ text.addEventListener('click', enableEditing);
   window.pulseName = pulseName;
 })();
 </script>
-
 
 </body>
 </html>
