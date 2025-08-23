@@ -3034,6 +3034,36 @@ text.addEventListener('click', enableEditing);
     const readBarDraft  = () => localStorage.getItem(BAR_DRAFT_KEY) ?? '';
     const writeBarDraft = (v) => localStorage.setItem(BAR_DRAFT_KEY, v ?? '');
 
+    // 🔽 追加: バー色のドラフトキー＆関数
+    const BAR_COLOR_DRAFT_KEY = `fureta_draft_barColor_${__ID_FOR_DRAFT}`;
+    const readBarColorDraft  = () => localStorage.getItem(BAR_COLOR_DRAFT_KEY) ?? '';
+    const writeBarColorDraft = (v) => localStorage.setItem(BAR_COLOR_DRAFT_KEY, v ?? '');
+
+    function applyBarColor(value){
+      const v = (value || '').trim();
+      if (!v) return;
+      document.documentElement.style.setProperty('--bar-color', v);
+      const picker = document.getElementById('bar-color-picker') || document.getElementById('color-picker'); // ← フォールバック
+      if (picker && picker.value !== v) {
+        try { picker.value = v; } catch(_) {}
+      }
+    }
+    async function saveBarColor(value){
+      const v = (value || '').trim();
+      if (__currentId) {
+        try{
+          await setDoc(doc(db, 'cards', __currentId), { barColor: v }, { merge: true });
+          L('barColor.autosave', { v });
+        }catch(e){
+          W('barColor.autosave.fail', e);
+        }
+      } else {
+        writeBarColorDraft(v);
+        L('barColor.draft.save', { v });
+      }
+      applyBarColor(v);
+    }
+
     function updateBarUI(val){
       const v = (val ?? '').trim();
       if (barTextEl) {
@@ -3084,6 +3114,18 @@ text.addEventListener('click', enableEditing);
       });
     }
 
+    // 🔽 追加: カラーピッカー（bar-color-picker が無ければ color-picker を使う）
+    const barColorPicker = document.getElementById('bar-color-picker') || document.getElementById('color-picker');
+    if (barColorPicker){
+      // 現在のCSS変数をピッカーに同期
+      const currentCss = getComputedStyle(document.documentElement).getPropertyValue('--bar-color').trim();
+      if (currentCss) {
+        try { barColorPicker.value = currentCss; } catch(_) {}
+      }
+      barColorPicker.addEventListener('input', (e) => saveBarColor(e.target.value));
+      barColorPicker.addEventListener('change', (e) => saveBarColor(e.target.value));
+    }
+
     L('dom.refs', {
       hasProfileImg: !!profileImg,
       hasProfileInput: !!profileInput,
@@ -3124,6 +3166,9 @@ text.addEventListener('click', enableEditing);
         // 🔽 IDがない＝ドラフト時：バーはドラフトを表示、なければ表示を消す
         const draftBar = readBarDraft();
         if (draftBar) updateBarUI(draftBar); else updateBarUI('');
+        // 🔽 追加：バー色のドラフト適用
+        const draftColor = readBarColorDraft();
+        if (draftColor) applyBarColor(draftColor);
         return;
       }
       L('edit.load', { id });
@@ -3151,6 +3196,13 @@ text.addEventListener('click', enableEditing);
           updateBarUI(data.barText);
         } else {
           updateBarUI(''); // ← 未保存なら表示だけ消す
+        }
+        // 🔽 追加：バー色の復元（Firestore優先 → ドラフト）
+        if (typeof data.barColor === 'string' && data.barColor.trim() !== '') {
+          applyBarColor(data.barColor);
+        } else {
+          const draftColor = readBarColorDraft();
+          if (draftColor) applyBarColor(draftColor);
         }
 
         SNS_KEYS.forEach(key => {
@@ -3262,7 +3314,7 @@ text.addEventListener('click', enableEditing);
           bgUrlInput && (bgUrlInput.value = url);
 
           if (id) {
-            await setDoc(doc(db, 'cards', id), { backgroundUrl: url }, { merge: true });
+            await setDoc(doc(db, "cards", id), { backgroundUrl: url }, { merge: true });
             L('bg.firestore.merge.OK');
           }
 
@@ -3346,6 +3398,9 @@ text.addEventListener('click', enableEditing);
       // ★ デコをアップロードして配列化
       const decos = await serializeAndUploadDecos(targetId);
 
+      // ★ 追加：現在のバー色をCSS変数から取得
+      const barColorNow = getComputedStyle(document.documentElement).getPropertyValue('--bar-color').trim();
+
       const data = {
         name: getVal("name"),
         birthday: getVal("birthday"),
@@ -3358,6 +3413,7 @@ text.addEventListener('click', enableEditing);
         imageUrl: finalProfileURL,
         backgroundUrl: finalBackgroundURL,
         barText: (document.getElementById('scroll-text-input')?.value || '').trim(), // 🔽 追加：最終保存にも含める
+        barColor: barColorNow, // 🔽 追加：バー色も保存
         ...snsLinks,
         ...(linksDraft ? { links: linksDraft } : {}),
         ...(decos.length ? { decos } : {})
@@ -3386,6 +3442,7 @@ text.addEventListener('click', enableEditing);
         // ★ 保存成功後、この作業のドラフトだけ掃除
         localStorage.removeItem(LINKS_DRAFT_KEY);
         localStorage.removeItem(BAR_DRAFT_KEY); // 🔽 バードラフトも掃除
+        localStorage.removeItem(BAR_COLOR_DRAFT_KEY); // 🔽 追加：バー色ドラフトも掃除
 
         const next = `/preview?id=${targetId}`;
         L('save.redirect', next);
