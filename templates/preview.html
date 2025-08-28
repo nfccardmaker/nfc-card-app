@@ -2453,6 +2453,51 @@ text.addEventListener('click', enableEditing);
     } finally { URL.revokeObjectURL(objUrl); }
   }
 
+  /* ★★★ ここから追加（透過保持のための再エンコード関数）★★★ */
+  async function reencodePreservingAlpha(fileOrBlob, maxDim = 2560) {
+    L('reencodePreservingAlpha.start', { size: fileOrBlob.size, type: fileOrBlob.type });
+    const objUrl = URL.createObjectURL(fileOrBlob);
+    try {
+      const img = await new Promise((resolve, reject) => {
+        const im = new Image();
+        im.onload = () => resolve(im);
+        im.onerror = reject;
+        im.src = objUrl;
+      });
+      let w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
+      if (Math.max(w, h) > maxDim) {
+        const s = maxDim / Math.max(w, h);
+        w = Math.round(w * s); h = Math.round(h * s);
+      }
+      const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+      const ctx = cv.getContext('2d', { alpha: true });
+      ctx.clearRect(0, 0, w, h);
+      ctx.drawImage(img, 0, 0, w, h);
+
+      // 透過の有無を簡易判定（小さめ領域でOK）
+      let hasAlpha = false;
+      try {
+        const sw = Math.min(64, w), sh = Math.min(64, h);
+        const { data } = ctx.getImageData(0, 0, sw, sh);
+        for (let i = 3; i < data.length; i += 4) { if (data[i] < 255) { hasAlpha = true; break; } }
+      } catch {
+        const t = (fileOrBlob.type || '').toLowerCase();
+        if (t.includes('png') || t.includes('webp')) hasAlpha = true;
+      }
+
+      const mime = hasAlpha ? 'image/png' : 'image/jpeg';
+      const quality = hasAlpha ? undefined : 0.9;
+      const outBlob = await new Promise((res, rej) => cv.toBlob(b => b ? res(b) : rej(new Error('toBlob null')), mime, quality));
+
+      L('reencodePreservingAlpha.done', { mime: mime, size: outBlob?.size });
+      ctx.clearRect(0,0,w,h); cv.width = 0; cv.height = 0;
+      return { blob: outBlob, mime };
+    } finally {
+      URL.revokeObjectURL(objUrl);
+    }
+  }
+  /* ★★★ 追加ここまで ★★★ */
+
   async function waitUntilCdnReady(url, { tries = 6, delay = 300 } = {}) {
     L('cdn.wait', { url });
     let lastErr;
@@ -2708,11 +2753,15 @@ text.addEventListener('click', enableEditing);
       L('profile.file(HOOK)', { name: file.name, type: file.type, size: file.size });
       const newPath = `profiles/${makeId()}`;
       const fileRef = ref(storage, newPath);
-      const jpegBlob = await forceJpegBlob(file);
-      await uploadBytes(fileRef, jpegBlob, {
-        contentType: 'image/jpeg',
+
+      /* ★ 差し替え：透過保持で再エンコード（PNG or JPEG） */
+      const { blob: encodedBlob, mime } = await reencodePreservingAlpha(file);
+      await uploadBytes(fileRef, encodedBlob, {
+        contentType: mime,
         cacheControl: 'no-store, no-cache, must-revalidate, max-age=0'
       });
+      /* ★ ここまで差し替え */
+
       L('profile.upload.OK(HOOK)');
       const url = await withRetry(() => getDownloadURL(fileRef));
       L('profile.url(HOOK)', url);
@@ -3573,4 +3622,3 @@ text.addEventListener('click', enableEditing);
 
 </body>
 </html>
-
