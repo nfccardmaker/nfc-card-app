@@ -1610,6 +1610,35 @@ function insertPRTemplate(category) {
     line-height: 1.6;
   " id="diagnosis-result"></div>
 </div>
+<!-- 💬 ニッチ質問コーナー -->
+<div id="niche-qna-section" style="margin:28px auto 0; max-width:700px; width:90%; text-align:center;">
+
+  <!-- トグルボタン -->
+  <button id="niche-qna-toggle" style="
+    padding: 12px 24px;
+    font-size: 16px;
+    border-radius: 12px;
+    background: #ffcc66;
+    color: #333;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  ">
+    🔎 10個の質問コーナー！
+  </button>
+
+  <!-- 質問リスト（最初は非表示） -->
+  <div id="niche-qna-box" style="display:none; margin-top:16px;">
+    <p style="font-size:12px;color:#666;">※空欄は公開時に表示されません</p>
+    <div id="niche-qna-list" style="display:flex; flex-direction:column; gap:12px;"></div>
+
+    <!-- 公開用まとめ -->
+    <div id="niche-qna-preview" style="display:none; margin-top:16px; border:1px dashed #ddd; border-radius:12px; padding:14px; background:#fff; text-align:left;">
+      <div style="font-weight:700; margin-bottom:6px;">🔗 公開用まとめ</div>
+      <div id="niche-qna-preview-body" style="font-size:14px; line-height:1.6;"></div>
+    </div>
+  </div>
+</div>
 
 <style>
 @keyframes fadeIn {
