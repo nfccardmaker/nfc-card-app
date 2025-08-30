@@ -3237,7 +3237,173 @@ text.addEventListener('click', enableEditing);
 
     profileInput?.addEventListener('click', () => { profileInput.value = ""; });
 
-    // ---- 再編集ロード
+    /***********************
+     * ⭐⭐⭐ ここから追加：自己PR 500字制限 & ニッチ質問 Q1〜Q10 300字制限・自動保存 ⭐⭐⭐
+     ***********************/
+    const SELF_PR_MAX = 500;
+    const NQ_MAX = 300;
+    const NQ_COUNT = 10;
+    const NQ_KEY = `fureta_draft_niche_${__ID_FOR_DRAFT}`; // ドラフトキー（id未定時）
+
+    // 質問文（固定）
+    const NQ_QUESTIONS = [
+      "小学校の頃にハマっていた「変な遊び」ってあった？",
+      "ランドセルの色は何色だった？",
+      "好きだった給食メニューは？",
+      "スマホで初めてインストールした曲は？",
+      "職場や学校で「なぜか自分だけやってる謎ルーティン」ある？",
+      "今までで一番“変な場所”で寝た経験は？",
+      "学校で流行ってたけど今思えば謎すぎるブームは？",
+      "人に言うと「えっ？」ってなるけど、自分だけのマイルールは？",
+      "究極の2択：一生パン禁止 vs 一生ご飯禁止、どっち選ぶ？",
+      "もし1日だけ昔の学校生活に戻れるなら、何をやりたい？"
+    ];
+
+    // サニタイズ（タグ除去＋最大長切り）
+    function sanitize(str, maxLen){
+      let s = (str ?? '').toString();
+      s = s.replace(/<script.*?>.*?<\/script>/gi, '');
+      s = s.replace(/<[^>]+>/g, '');
+      if (s.length > maxLen) s = s.slice(0, maxLen);
+      return s;
+    }
+
+    // 文字数カウンタ要素を付ける
+    function attachCounter(el, maxLen){
+      const counter = document.createElement('div');
+      counter.className = 'char-counter';
+      Object.assign(counter.style, {
+        textAlign: 'right',
+        fontSize: '11px',
+        color: '#666',
+        marginTop: '4px'
+      });
+      el.insertAdjacentElement('afterend', counter);
+      const update = (v) => {
+        const len = (v ?? '').length;
+        counter.textContent = `${len}/${maxLen}`;
+        counter.style.color = len >= maxLen ? '#d00' : (len >= Math.floor(maxLen*0.9) ? '#c88600' : '#666');
+      };
+      return update;
+    }
+
+    // デバウンス
+    function debounce(fn, ms=1000){
+      let t; return (...args) => { clearTimeout(t); t = setTimeout(()=>fn(...args), ms); };
+    }
+
+    // ニッチQのUI生成
+    const nqToggle = document.getElementById('niche-qna-toggle');
+    const nqBox    = document.getElementById('niche-qna-box');
+    const nqList   = document.getElementById('niche-qna-list');
+    const nqPreview= document.getElementById('niche-qna-preview');
+    const nqPrevBody = document.getElementById('niche-qna-preview-body');
+
+    // 生成ヘルパ
+    const nqInputs = [];
+    function buildNicheInputs(initialAnswers = []){
+      if (!nqList) return;
+      nqList.innerHTML = '';
+      for (let i=0; i<NQ_COUNT; i++){
+        const wrap = document.createElement('div');
+        wrap.style.display = 'flex';
+        wrap.style.flexDirection = 'column';
+        wrap.style.gap = '6px';
+        wrap.style.border = '1px solid #eee';
+        wrap.style.padding = '10px';
+        wrap.style.borderRadius = '10px';
+        wrap.style.background = '#fff';
+
+        const label = document.createElement('div');
+        label.style.fontSize = '14px';
+        label.style.fontWeight = '600';
+        label.textContent = `Q${i+1}. ${NQ_QUESTIONS[i]}`;
+
+        const input = document.createElement('textarea');
+        input.rows = 2;
+        input.placeholder = `ここに回答を入力（最大${NQ_MAX}文字）`;
+        input.style.padding = '8px';
+        input.style.borderRadius = '8px';
+        input.style.border = '1px solid #ccc';
+        input.style.width = '100%';
+        input.style.boxSizing = 'border-box';
+        input.value = sanitize(initialAnswers[i] ?? '', NQ_MAX);
+
+        const updateCounter = attachCounter(input, NQ_MAX);
+        updateCounter(input.value);
+
+        // 入力制限＆カウンタ更新
+        input.addEventListener('input', () => {
+          const cur = input.value;
+          if (cur.length > NQ_MAX) input.value = cur.slice(0, NQ_MAX);
+          updateCounter(input.value);
+          updatePreview();
+          autoSaveNiche();
+        });
+
+        wrap.appendChild(label);
+        wrap.appendChild(input);
+        nqList.appendChild(wrap);
+        nqInputs[i] = input;
+      }
+      updatePreview();
+    }
+
+    // プレビュー更新（空欄もそのまま表示）
+    function updatePreview(){
+      if (!nqPrevBody) return;
+      const lines = nqInputs.map((inp, idx) => `Q${idx+1}: ${inp?.value ?? ''}`);
+      nqPrevBody.innerHTML = lines.map(line => line.replace(/\n/g,'<br>')).join('<br>');
+      if (nqPreview) nqPreview.style.display = 'block';
+    }
+
+    if (nqToggle && nqBox){
+      nqToggle.addEventListener('click', () => {
+        nqBox.style.display = (nqBox.style.display === 'none' || !nqBox.style.display) ? 'block' : 'none';
+      });
+    }
+
+    // 自己PR 500字制限
+    const selfPrEl = document.getElementById('self-pr-textarea');
+    let updateSelfPrCounter = null;
+    if (selfPrEl){
+      updateSelfPrCounter = attachCounter(selfPrEl, SELF_PR_MAX);
+      updateSelfPrCounter(selfPrEl.value || '');
+      selfPrEl.addEventListener('input', () => {
+        const cur = selfPrEl.value || '';
+        if (cur.length > SELF_PR_MAX) selfPrEl.value = cur.slice(0, SELF_PR_MAX);
+        updateSelfPrCounter(selfPrEl.value);
+      });
+    }
+
+    // ニッチQ：ドラフト保存/読込
+    const readNicheDraft  = () => {
+      try { return JSON.parse(localStorage.getItem(NQ_KEY) || '[]'); } catch { return []; }
+    };
+    const writeNicheDraft = (answers) => {
+      try { localStorage.setItem(NQ_KEY, JSON.stringify(answers)); } catch {}
+    };
+
+    // ニッチQ：保存処理
+    const doSaveNiche = async () => {
+      const answers = nqInputs.map(inp => sanitize(inp?.value || '', NQ_MAX));
+      if (__currentId){
+        try{
+          await setDoc(doc(db, 'cards', __currentId), { nicheQna: { answers } }, { merge: true });
+          L('niche.autosave', { id: __currentId, answers });
+        }catch(e){
+          W('niche.autosave.fail', e);
+        }
+      } else {
+        writeNicheDraft(answers);
+        L('niche.draft.save', answers);
+      }
+    };
+    const autoSaveNiche = debounce(doSaveNiche, 1000);
+
+    /***********************
+     * ---- 再編集ロード
+     ***********************/
     (async () => {
       if (!id) {
         L('edit.skip.noId');
@@ -3247,6 +3413,11 @@ text.addEventListener('click', enableEditing);
         // 🔽 追加：バー色のドラフト適用
         const draftColor = readBarColorDraft();
         if (draftColor) applyBarColor(draftColor);
+
+        // 🔽 追加：ニッチQ ドラフト
+        const draftNiche = readNicheDraft();
+        buildNicheInputs(Array.isArray(draftNiche) ? draftNiche : []);
+
         return;
       }
       L('edit.load', { id });
@@ -3269,11 +3440,14 @@ text.addEventListener('click', enableEditing);
         };
         Object.entries(fieldMap).forEach(([idKey, dataKey]) => setVal(idKey, data[dataKey]));
 
+        // 🔽 自己PRカウンタ更新
+        if (selfPrEl && updateSelfPrCounter) updateSelfPrCounter(selfPrEl.value || '');
+
         // 🔽 バー文字：Firebaseにあれば表示、なければバー表示だけ消す
         if (typeof data.barText === 'string' && data.barText.trim() !== '') {
           updateBarUI(data.barText);
         } else {
-          updateBarUI(''); // ← 未保存なら表示だけ消す
+          updateBarUI('');
         }
         // 🔽 追加：バー色の復元（Firestore優先 → ドラフト）
         if (typeof data.barColor === 'string' && data.barColor.trim() !== '') {
@@ -3319,8 +3493,18 @@ text.addEventListener('click', enableEditing);
         if (Array.isArray(data.decos) && stage) {
           data.decos.forEach(item => addDecoFromSaved(stage, item));
         }
+
+        // 🔽 追加：ニッチQ 復元
+        const savedAnswers =
+          (data?.nicheQna && Array.isArray(data.nicheQna.answers)) ? data.nicheQna.answers :
+          (Array.isArray(data?.nicheQnaAnswers) ? data.nicheQnaAnswers : []);
+        buildNicheInputs(savedAnswers);
+
       } catch (e) { E('edit.load.fail', e); }
     })();
+    /***********************
+     * ⭐⭐⭐ 追加ここまで ⭐⭐⭐
+     ***********************/
 
     // ---- プロフィール画像
     profileInput?.addEventListener('change', async (e) => {
@@ -3479,6 +3663,19 @@ text.addEventListener('click', enableEditing);
       // ★ 追加：現在のバー色をCSS変数から取得
       const barColorNow = getComputedStyle(document.documentElement).getPropertyValue('--bar-color').trim();
 
+      // ★ ニッチQ：現在の回答を収集（存在すれば）
+      let nicheAnswers = [];
+      if (nqInputs && nqInputs.length){
+        nicheAnswers = nqInputs.map(inp => sanitize(inp?.value || '', NQ_MAX));
+      } else {
+        // 生成前のケース：ドラフトから拾う
+        const draft = readNicheDraft();
+        if (Array.isArray(draft)) nicheAnswers = draft.map(v => sanitize(v || '', NQ_MAX));
+      }
+
+      // 自己PRは500字以内に整形して保存
+      const selfPrSan = sanitize(getVal("self-pr-textarea"), SELF_PR_MAX);
+
       const data = {
         name: getVal("name"),
         birthday: getVal("birthday"),
@@ -3486,12 +3683,13 @@ text.addEventListener('click', enableEditing);
         department: getVal("department"),
         birthplace: getVal("birthplace"),
         hobby: getVal("hobby"),
-        selfPr: getVal("self-pr-textarea"),
+        selfPr: selfPrSan,
         extraText: getVal("extra-text"),
         imageUrl: finalProfileURL,
         backgroundUrl: finalBackgroundURL,
         barText: (document.getElementById('scroll-text-input')?.value || '').trim(), // 🔽 追加：最終保存にも含める
         barColor: barColorNow, // 🔽 追加：バー色も保存
+        nicheQna: { answers: nicheAnswers }, // 🔽 追加：ニッチQ回答
         ...snsLinks,
         ...(linksDraft ? { links: linksDraft } : {}),
         ...(decos.length ? { decos } : {})
@@ -3521,6 +3719,7 @@ text.addEventListener('click', enableEditing);
         localStorage.removeItem(LINKS_DRAFT_KEY);
         localStorage.removeItem(BAR_DRAFT_KEY); // 🔽 バードラフトも掃除
         localStorage.removeItem(BAR_COLOR_DRAFT_KEY); // 🔽 追加：バー色ドラフトも掃除
+        localStorage.removeItem(NQ_KEY); // 🔽 追加：ニッチQ ドラフトも掃除
 
         const next = `/preview?id=${targetId}`;
         L('save.redirect', next);
