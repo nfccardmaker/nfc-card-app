@@ -3574,11 +3574,14 @@ text.addEventListener('click', enableEditing);
     });
 
     const FORCE_SHOW = [
-      '#diagnosis-wrapper',
-      '#diagnosis-wrapper #diagnosis-button',
-      '#self-pr-section',
-      '#self-pr-section button[onclick="analyzeSelfPR()"]'
-    ];
+  '#diagnosis-wrapper',
+  '#diagnosis-wrapper #diagnosis-button',
+  '#self-pr-section',
+  '#self-pr-section button[onclick="analyzeSelfPR()"]',
+  '#qna-area',   // 追加
+  '#qna-modal'   // 追加
+];
+
     FORCE_SHOW.forEach(sel => {
       const el = document.querySelector(sel);
       if (el) el.style.display = 'block';
