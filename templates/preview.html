@@ -3564,13 +3564,13 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 
   const FORCE_SHOW = [
-  '#diagnosis-wrapper',
-  '#diagnosis-wrapper #diagnosis-button',
-  '#self-pr-section',
-  '#self-pr-section button[onclick="analyzeSelfPR()"]',
-  '#qna-area',   // 質問コーナーのボタン枠
-  '#qna-open'    // 質問コーナーボタン
-];
+    '#diagnosis-wrapper',
+    '#diagnosis-wrapper #diagnosis-button',
+    '#self-pr-section',
+    '#self-pr-section button[onclick="analyzeSelfPR()"]',
+    '#qna-area',   // 質問コーナーのボタン枠
+    '#qna-open'    // 質問コーナーボタン
+  ];
 
   FORCE_SHOW.forEach(sel => {
     const el = document.querySelector(sel);
@@ -3598,11 +3598,23 @@ window.addEventListener('DOMContentLoaded', () => {
     diagBtn.style.transform = 'none';
   }
 
+  // ★ 質問コーナーボタンを中央に寄せる
+  const qBtn = document.getElementById('qna-open');
+  if (qBtn) {
+    qBtn.style.display   = 'block';
+    qBtn.style.margin    = '12px auto';
+    qBtn.style.position  = 'relative';
+    qBtn.style.left      = '0';
+    qBtn.style.right     = '0';
+    qBtn.style.transform = 'none';
+  }
+
   const editToggle = document.getElementById('edit-toggle');
   if (editToggle) editToggle.style.display = 'none';
   const returnToggle = document.getElementById('return-toggle');
   if (returnToggle) returnToggle.style.display = 'none';
 });
+
 
   // ★ プレビュー時に右下へ「再編集」ボタンを表示
   window.addEventListener('DOMContentLoaded', () => {
