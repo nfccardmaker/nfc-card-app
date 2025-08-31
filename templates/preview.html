@@ -1627,10 +1627,16 @@ function insertPRTemplate(category) {
     🔎 10個の質問コーナー！
   </button>
 
-  <!-- 質問リスト -->
-  <div id="niche-qna-box" style="margin-top:16px;">
+  <!-- 質問リスト（最初は非表示） -->
+  <div id="niche-qna-box" style="display:none; margin-top:16px;">
     <p style="font-size:12px;color:#666;">※空欄は公開時に表示されません</p>
     <div id="niche-qna-list" style="display:flex; flex-direction:column; gap:12px;"></div>
+
+    <!-- 公開用まとめ -->
+    <div id="niche-qna-preview" style="display:none; margin-top:16px; border:1px dashed #ddd; border-radius:12px; padding:14px; background:#fff; text-align:left;">
+      <div style="font-weight:700; margin-bottom:6px;">🔗 公開用まとめ</div>
+      <div id="niche-qna-preview-body" style="font-size:14px; line-height:1.6;"></div>
+    </div>
   </div>
 </div>
 
@@ -2476,7 +2482,7 @@ text.addEventListener('click', enableEditing);
     } finally { URL.revokeObjectURL(objUrl); }
   }
 
-  /* 透過保持の再エンコード（プロフィール画像用） */
+  /* ★★★ ここから追加（透過保持のための再エンコード関数）★★★ */
   async function reencodePreservingAlpha(fileOrBlob, maxDim = 2560) {
     L('reencodePreservingAlpha.start', { size: fileOrBlob.size, type: fileOrBlob.type });
     const objUrl = URL.createObjectURL(fileOrBlob);
@@ -2497,7 +2503,7 @@ text.addEventListener('click', enableEditing);
       ctx.clearRect(0, 0, w, h);
       ctx.drawImage(img, 0, 0, w, h);
 
-      // 透過の有無を簡易判定
+      // 透過の有無を簡易判定（小さめ領域でOK）
       let hasAlpha = false;
       try {
         const sw = Math.min(64, w), sh = Math.min(64, h);
@@ -2519,6 +2525,7 @@ text.addEventListener('click', enableEditing);
       URL.revokeObjectURL(objUrl);
     }
   }
+  /* ★★★ 追加ここまで ★★★ */
 
   async function waitUntilCdnReady(url, { tries = 6, delay = 300 } = {}) {
     L('cdn.wait', { url });
@@ -2573,7 +2580,7 @@ text.addEventListener('click', enableEditing);
   }
 
   /***********************
-   *  ✏️ Re-Edit mode helpers
+   *  ✏️ Re-Edit mode helpers (追加)
    ***********************/
   function isViewPage(){
     const p = new URLSearchParams(location.search);
@@ -2623,8 +2630,8 @@ text.addEventListener('click', enableEditing);
   }
 
   /***********************
-  *  🌐 SNS Setups
-  ***********************/
+ *  🌐 SNS Setups
+ ***********************/
   const SNS_KEYS = ['instagram','line','bereal','x','tiktok'];
   const snsLinks = Object.fromEntries(SNS_KEYS.map(k => [k, '']));
   const SNS_OFFICIAL = {
@@ -2776,12 +2783,13 @@ text.addEventListener('click', enableEditing);
       const newPath = `profiles/${makeId()}`;
       const fileRef = ref(storage, newPath);
 
-      // 透過保持で再エンコード
+      /* ★ 差し替え：透過保持で再エンコード（PNG or JPEG） */
       const { blob: encodedBlob, mime } = await reencodePreservingAlpha(file);
       await uploadBytes(fileRef, encodedBlob, {
         contentType: mime,
         cacheControl: 'no-store, no-cache, must-revalidate, max-age=0'
       });
+      /* ★ ここまで差し替え */
 
       L('profile.upload.OK(HOOK)');
       const url = await withRetry(() => getDownloadURL(fileRef));
@@ -3076,125 +3084,10 @@ text.addEventListener('click', enableEditing);
   });
 
   /***********************
-   *  💬 ニッチ質問コーナー（ここから）
-   ***********************/
-  const NICHE_QS = [
-    "小学校の頃にハマっていた<br>「変な遊び」ってあった？",
-    "ランドセルの色は何色だった？",
-    "好きだった給食メニューは？",
-    "スマホで初めてインストールした曲は？",
-    "「なぜか自分だけやってる謎ルーティン」ある？",
-    "今までで一番“変な場所”で寝た経験は？",
-    "学校で流行ってたけど今思えば謎すぎるブームは？",
-    "人に言うと「えっ？」ってなるけど<br>自分だけのマイルールは？",
-    "究極の2択：一生パン禁止 vs 一生ご飯禁止<br>どっち選ぶ？",
-    "もし1日だけ昔の学校生活に戻れるなら<br>何をやりたい？"
-  ];
-
-  const nicheToggleBtn = document.getElementById("niche-qna-toggle");
-  const nicheBox       = document.getElementById("niche-qna-box");
-  const nicheList      = document.getElementById("niche-qna-list");
-  // ▼ 公開用まとめは廃止（DOM参照も削除）
-  // const nichePreview   = ...
-  // const nichePreviewBd = ...
-
-  let nicheAnswers = Array(NICHE_QS.length).fill("");
-  let nicheRenderedInputs = false;
-  let nicheRenderedView   = false;
-
-  const escapeHtml = (str) =>
-    String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
-
-  // 編集用：入力欄を描画
-  function renderNicheInputs(){
-    if (nicheRenderedInputs || !nicheList) return;
-    const frag = document.createDocumentFragment();
-    NICHE_QS.forEach((q, i) => {
-      const wrap = document.createElement("div");
-      wrap.style.background = "#fff";
-      wrap.style.border = "1px solid #eee";
-      wrap.style.borderRadius = "12px";
-      wrap.style.padding = "12px";
-      wrap.innerHTML = `
-        <label style="display:block; font-size:14px; font-weight:700; margin-bottom:6px;">${q}</label>
-        <textarea rows="2" data-niche-index="${i}" placeholder="ここに入力"
-          style="
-            display:block;
-            margin:0 auto;
-            width:92%;
-            max-width:520px;
-            padding:12px;
-            border:1px solid #ddd;
-            border-radius:12px;
-            font-size:14px;
-            box-sizing:border-box;
-            text-align:left;
-          "></textarea>
-      `;
-      frag.appendChild(wrap);
-    });
-    nicheList.innerHTML = "";
-    nicheList.appendChild(frag);
-    nicheList.querySelectorAll("textarea").forEach(ta => {
-      const idx = Number(ta.dataset.nicheIndex);
-      ta.value = nicheAnswers[idx] || "";
-      ta.addEventListener("input", (e) => {
-        nicheAnswers[idx] = e.target.value;
-      });
-    });
-    nicheRenderedInputs = true;
-  }
-
-  // 閲覧用：回答だけのビューを描画
-  function renderNicheView(){
-    if (nicheRenderedView || !nicheList) return;
-    const frag = document.createDocumentFragment();
-    NICHE_QS.forEach((q, i) => {
-      const a = (nicheAnswers[i] || "").trim();
-      const item = document.createElement('div');
-      item.style.background = "#fff";
-      item.style.border = "1px solid #eee";
-      item.style.borderRadius = "12px";
-      item.style.padding = "12px";
-      item.style.lineHeight = "1.6";
-      item.innerHTML = `
-        <div style="font-weight:700; font-size:14px; margin-bottom:4px;">${q}</div>
-        <div style="font-size:14px;">${escapeHtml(a || "（未入力）")}</div>
-      `;
-      frag.appendChild(item);
-    });
-    nicheList.innerHTML = "";
-    nicheList.appendChild(frag);
-    nicheRenderedView = true;
-  }
-
-  function getNicheQnaArray(){
-    return NICHE_QS.map((q, i) => ({ q, a: (nicheAnswers[i] || "").trim() }));
-  }
-
-  // トグル動作：プレビュー/公開はビュー表示、編集は入力欄表示
-  nicheToggleBtn?.addEventListener("click", () => {
-    if (!nicheBox) return;
-    const isView = isViewPage() && !isEditMode();
-    if (nicheBox.style.display === "none" || nicheBox.style.display === "") {
-      if (isView) renderNicheView(); else renderNicheInputs();
-      nicheBox.style.display = "block";
-    } else {
-      nicheBox.style.display = "none";
-    }
-  });
-  /***********************
-   *  💬 ニッチ質問コーナー（ここまで）
-   ***********************/
-
-  /***********************
    *  🚀 Main
    ***********************/
   window.addEventListener('DOMContentLoaded', () => {
     L('DOM ready');
-
-    // 注意文行があれば削除
-    document.querySelector('#niche-qna-box > p')?.remove();
 
     const params = new URLSearchParams(window.location.search);
     const id = params.get('id');
@@ -3212,14 +3105,14 @@ text.addEventListener('click', enableEditing);
     const decoInput = document.getElementById('deco-photo-input');
     const stage     = document.getElementById(DECO_STAGE_ID);
 
-    // バー（スクロール文字）
+    // 🔽 追加: バー（スクロール文字）
     const barInput   = document.getElementById('scroll-text-input');
     const barTextEl  = document.getElementById('scrolling-text');
     const BAR_DRAFT_KEY = `fureta_draft_bar_${__ID_FOR_DRAFT}`;
     const readBarDraft  = () => localStorage.getItem(BAR_DRAFT_KEY) ?? '';
     const writeBarDraft = (v) => localStorage.setItem(BAR_DRAFT_KEY, v ?? '');
 
-    // バー色
+    // 🔽 追加: バー色のドラフトキー＆関数
     const BAR_COLOR_DRAFT_KEY = `fureta_draft_barColor_${__ID_FOR_DRAFT}`;
     const readBarColorDraft  = () => localStorage.getItem(BAR_COLOR_DRAFT_KEY) ?? '';
     const writeBarColorDraft = (v) => localStorage.setItem(BAR_COLOR_DRAFT_KEY, v ?? '');
@@ -3228,7 +3121,7 @@ text.addEventListener('click', enableEditing);
       const v = (value || '').trim();
       if (!v) return;
       document.documentElement.style.setProperty('--bar-color', v);
-      const picker = document.getElementById('bar-color-picker') || document.getElementById('color-picker');
+      const picker = document.getElementById('bar-color-picker') || document.getElementById('color-picker'); // ← フォールバック
       if (picker && picker.value !== v) {
         try { picker.value = v; } catch(_) {}
       }
@@ -3257,8 +3150,8 @@ text.addEventListener('click', enableEditing);
       }
       if (barInput) {
         barInput.value = v;
-        barInput.style.display = v ? 'none' : 'block';
-        if (!v) { barInput.placeholder = ''; }
+        barInput.style.display = v ? 'none' : 'block'; // 入力→表示の既存挙動を踏襲
+        if (!v) { barInput.placeholder = ''; } // ★ 追加：未入力時は placeholder 文字だけ消す
       }
     }
     async function saveBar(val){
@@ -3289,6 +3182,7 @@ text.addEventListener('click', enableEditing);
       });
     }
     if (barTextEl){
+      // 表示テキストをタップで再編集（既存の挙動と同じ体験）
       barTextEl.addEventListener('click', () => {
         if (barInput){
           barInput.style.display = 'block';
@@ -3298,8 +3192,10 @@ text.addEventListener('click', enableEditing);
       });
     }
 
+    // 🔽 追加: カラーピッカー（bar-color-picker が無ければ color-picker を使う）
     const barColorPicker = document.getElementById('bar-color-picker') || document.getElementById('color-picker');
     if (barColorPicker){
+      // 現在のCSS変数をピッカーに同期
       const currentCss = getComputedStyle(document.documentElement).getPropertyValue('--bar-color').trim();
       if (currentCss) {
         try { barColorPicker.value = currentCss; } catch(_) {}
@@ -3345,8 +3241,10 @@ text.addEventListener('click', enableEditing);
     (async () => {
       if (!id) {
         L('edit.skip.noId');
+        // 🔽 IDがない＝ドラフト時：バーはドラフトを表示、なければ表示を消す
         const draftBar = readBarDraft();
         if (draftBar) updateBarUI(draftBar); else updateBarUI('');
+        // 🔽 追加：バー色のドラフト適用
         const draftColor = readBarColorDraft();
         if (draftColor) applyBarColor(draftColor);
         return;
@@ -3371,11 +3269,13 @@ text.addEventListener('click', enableEditing);
         };
         Object.entries(fieldMap).forEach(([idKey, dataKey]) => setVal(idKey, data[dataKey]));
 
+        // 🔽 バー文字：Firebaseにあれば表示、なければバー表示だけ消す
         if (typeof data.barText === 'string' && data.barText.trim() !== '') {
           updateBarUI(data.barText);
         } else {
-          updateBarUI('');
+          updateBarUI(''); // ← 未保存なら表示だけ消す
         }
+        // 🔽 追加：バー色の復元（Firestore優先 → ドラフト）
         if (typeof data.barColor === 'string' && data.barColor.trim() !== '') {
           applyBarColor(data.barColor);
         } else {
@@ -3418,12 +3318,6 @@ text.addEventListener('click', enableEditing);
         // ★ デコ復元
         if (Array.isArray(data.decos) && stage) {
           data.decos.forEach(item => addDecoFromSaved(stage, item));
-        }
-
-        // ★ 既存データに nicheQna があれば反映（プレビュー描画はしない）
-        if (Array.isArray(data.nicheQna)) {
-          const arr = data.nicheQna.map(v => (typeof v?.a === 'string' ? v.a : ''));
-          if (arr.length === NICHE_QS.length) nicheAnswers = arr;
         }
       } catch (e) { E('edit.load.fail', e); }
     })();
@@ -3520,7 +3414,6 @@ text.addEventListener('click', enableEditing);
     });
 
     // ---- デコ：追加ボタン/入力
-    const MAX_DECO = 5;
     if (decoBtn && decoInput && stage) {
       decoBtn.addEventListener('click', () => {
         if (stage.querySelectorAll('.deco-wrapper').length >= MAX_DECO) {
@@ -3537,6 +3430,7 @@ text.addEventListener('click', enableEditing);
           alert(`デコ写真は最大 ${MAX_DECO} 枚までです`);
           return;
         }
+        // 透過PNGはそのまま、JPEGもそのまま保存
         addDecoWithFile(stage, file);
       });
     }
@@ -3579,14 +3473,11 @@ text.addEventListener('click', enableEditing);
 
       const linksDraft = readLinksDraft();
 
-      // デコをアップロードして配列化
+      // ★ デコをアップロードして配列化
       const decos = await serializeAndUploadDecos(targetId);
 
-      // 現在のバー色をCSS変数から取得
+      // ★ 追加：現在のバー色をCSS変数から取得
       const barColorNow = getComputedStyle(document.documentElement).getPropertyValue('--bar-color').trim();
-
-      // ニッチ質問（空欄含む）
-      const nicheArr = getNicheQnaArray();
 
       const data = {
         name: getVal("name"),
@@ -3599,12 +3490,11 @@ text.addEventListener('click', enableEditing);
         extraText: getVal("extra-text"),
         imageUrl: finalProfileURL,
         backgroundUrl: finalBackgroundURL,
-        barText: (document.getElementById('scroll-text-input')?.value || '').trim(),
-        barColor: barColorNow,
+        barText: (document.getElementById('scroll-text-input')?.value || '').trim(), // 🔽 追加：最終保存にも含める
+        barColor: barColorNow, // 🔽 追加：バー色も保存
         ...snsLinks,
         ...(linksDraft ? { links: linksDraft } : {}),
-        ...(decos.length ? { decos } : {}),
-        nicheQna: nicheArr
+        ...(decos.length ? { decos } : {})
       };
 
       try {
@@ -3612,7 +3502,7 @@ text.addEventListener('click', enableEditing);
         await setDoc(doc(db, "cards", targetId), data, { merge: true });
         L('save.firestore.OK');
 
-        // 保留削除を実行
+        // ★ Firestore 反映OK → 保留していた Storage を実削除
         try {
           if (__decoPendingDeletes.size) {
             const tasks = [...__decoPendingDeletes].map(p =>
@@ -3627,10 +3517,10 @@ text.addEventListener('click', enableEditing);
           W('deco.storage.delete.batch.FAIL', err);
         }
 
-        // ドラフト掃除
+        // ★ 保存成功後、この作業のドラフトだけ掃除
         localStorage.removeItem(LINKS_DRAFT_KEY);
-        localStorage.removeItem(BAR_DRAFT_KEY);
-        localStorage.removeItem(BAR_COLOR_DRAFT_KEY);
+        localStorage.removeItem(BAR_DRAFT_KEY); // 🔽 バードラフトも掃除
+        localStorage.removeItem(BAR_COLOR_DRAFT_KEY); // 🔽 追加：バー色ドラフトも掃除
 
         const next = `/preview?id=${targetId}`;
         L('save.redirect', next);
@@ -3641,7 +3531,7 @@ text.addEventListener('click', enableEditing);
       }
     }
 
-    // edit=1 のとき編集UI復元
+    // ★ edit=1 のとき編集UI復元
     if (isEditMode()) enableEditMode();
   });
 
@@ -3678,9 +3568,7 @@ text.addEventListener('click', enableEditing);
       '#diagnosis-wrapper',
       '#diagnosis-wrapper #diagnosis-button',
       '#self-pr-section',
-      '#self-pr-section button[onclick="analyzeSelfPR()"]',
-      /* ニッチ質問コーナー本体だけ表示 */
-      '#niche-qna-section'
+      '#self-pr-section button[onclick="analyzeSelfPR()"]'
     ];
     FORCE_SHOW.forEach(sel => {
       const el = document.querySelector(sel);
@@ -3757,55 +3645,6 @@ text.addEventListener('click', enableEditing);
   });
 
   window.pulseName = pulseName;
-})();
-</script>
-<!-- ✅ 質問コーナー：完成ページはボタンのみ表示で開始（追記用スニペット） -->
-<script>
-(function(){
-  // 既存ロジックを壊さないようにローカル関数で判定
-  function isViewPage(){
-    try{
-      const p = new URLSearchParams(location.search);
-      const hasId = p.has('id');
-      const path  = location.pathname || '';
-      return hasId && (path.startsWith('/preview') || path.startsWith('/user_cards'));
-    }catch(_){ return false; }
-  }
-  function isEditMode(){
-    try{ return new URLSearchParams(location.search).get('edit') === '1'; }
-    catch(_){ return false; }
-  }
-
-  window.addEventListener('DOMContentLoaded', function(){
-    if (!isViewPage() || isEditMode()) return;
-
-    var section = document.getElementById('niche-qna-section');
-    var box = document.getElementById('niche-qna-box');
-    var btn = document.getElementById('niche-qna-toggle');
-
-    // セクションは見えるように（他のコードが非表示にしていても復活）
-    if (section) section.style.display = 'block';
-
-    // 中身は必ず閉じスタート
-    if (box) {
-      box.style.display = 'none';
-      box.setAttribute('data-init-hide','1');
-    }
-
-    // ボタンは必ず表示・状態同期
-    if (btn) {
-      btn.style.display = 'block';
-      if (!btn.textContent.trim()) btn.textContent = '🔎 10個の質問コーナー！';
-      var sync = function(){
-        if (!box) return;
-        var opened = box.style.display !== 'none';
-        btn.setAttribute('aria-expanded', opened ? 'true' : 'false');
-      };
-      sync();
-      // 既存のクリックハンドラの後で状態を同期（邪魔しない）
-      btn.addEventListener('click', function(){ setTimeout(sync, 0); }, { passive: true });
-    }
-  });
 })();
 </script>
 
