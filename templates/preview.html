@@ -2433,8 +2433,8 @@ text.addEventListener('click', enableEditing);
     if (globalThis.crypto?.randomUUID) return crypto.randomUUID();
     const u8 = new Uint8Array(16);
     (globalThis.crypto?.getRandomValues ?? ((a)=>a.forEach((_,i)=>a[i]=Math.random()*256|0)))(u8);
-    u8[6] = (u8[6] & 0x0f) | 0x40;
-    u8[8] = (u8[8] & 0x3f) | 0x80;
+    u8[6 = (u8[6] & 0x0f) | 0x40];
+    u8[8 = (u8[8] & 0x3f) | 0x80];
     return [...u8].map((b,i)=>([4,6,8,10].includes(i)?'-':'')+b.toString(16).padStart(2,'0')).join('');
   };
   const pathFromUrl = (url) => {
@@ -2503,7 +2503,7 @@ text.addEventListener('click', enableEditing);
       ctx.clearRect(0, 0, w, h);
       ctx.drawImage(img, 0, 0, w, h);
 
-      // 透過の有無を簡易判定（小さめ領域でOK）
+      // 透過の有無を簡易判定
       let hasAlpha = false;
       try {
         const sw = Math.min(64, w), sh = Math.min(64, h);
@@ -2942,7 +2942,7 @@ text.addEventListener('click', enableEditing);
     wrap.dataset.rot = '0';
     wrap.dataset.mime = file.type || 'image/png';
     wrap.dataset.decoId = makeId();
-    wrap.dataset.id = wrap.dataset.decoId; // 安定ID
+    wrap.dataset.id = wrap.dataset.decoId;
     wrap.__blob = file;
 
     const img = document.createElement('img');
@@ -2955,16 +2955,10 @@ text.addEventListener('click', enableEditing);
     del.textContent = '×';
     del.addEventListener('click', (ev) => {
       ev.stopPropagation();
-
-      // すでにアップロード済みなら Storage パスを保留削除へ
       const remoteUrl = wrap.dataset.remoteUrl;
       const p = remoteUrl ? pathFromUrl(remoteUrl) : null;
       if (p) __decoPendingDeletes.add(p);
-
-      // 表示用URLを掃除
       try { URL.revokeObjectURL(url); } catch {}
-
-      // DOM から除去（保存時に decos からも除外される）
       stage.removeChild(wrap);
     });
 
@@ -3002,12 +2996,9 @@ text.addEventListener('click', enableEditing);
     del.textContent = '×';
     del.addEventListener('click', (ev) => {
       ev.stopPropagation();
-
-      // 復元アイテムは URL から Storage パスを抽出して保留削除へ
       const remoteUrl = wrap.dataset.remoteUrl || item.url;
       const p = remoteUrl ? pathFromUrl(remoteUrl) : null;
       if (p) __decoPendingDeletes.add(p);
-
       stage.removeChild(wrap);
     });
 
@@ -3038,7 +3029,6 @@ text.addEventListener('click', enableEditing);
     const url = await withRetry(() => getDownloadURL(fileRef));
     wrap.dataset.remoteUrl = url;
 
-    // ローカルURLの掃除
     try { URL.revokeObjectURL(wrap.querySelector('img')?.src || ''); } catch {}
     wrap.__blob = null;
 
@@ -3053,11 +3043,9 @@ text.addEventListener('click', enableEditing);
     const out = [];
     for (const wrap of nodes) {
       if (!wrap.isConnected) continue;
-
       const uploaded = await ensureDecoUploaded(cardId, wrap);
       const url = uploaded?.url || wrap.dataset.remoteUrl;
       if (!url) continue;
-
       out.push({
         id: wrap.dataset.id || makeId(),
         url,
@@ -3084,19 +3072,30 @@ text.addEventListener('click', enableEditing);
   });
 
   /***********************
-   *  💬 ニッチ質問コーナー（ここから追加）
+   *  ★ 文字数制限ユーティリティ（追加）
+   ***********************/
+  const SELFPR_MAX = 400;   // 自己PR
+  const NICHE_MAX  = 120;   // 10個の質問 各回答
+
+  function enforceMaxLen(el, max){
+    if (!el) return;
+    try { el.setAttribute('maxlength', String(max)); } catch {}
+    const clamp = () => {
+      if (!el.value) return;
+      if (el.value.length > max) el.value = el.value.slice(0, max);
+    };
+    el.addEventListener('input', clamp);
+    el.addEventListener('blur', clamp);
+    clamp();
+  }
+
+  /***********************
+   *  💬 ニッチ質問コーナー
    ***********************/
   const NICHE_QS = [
-    "① 最近ハマっていることは？",
-    "② 小さい頃から得意だったことは？",
-    "③ つい語りたくなるニッチ分野は？",
-    "④ 時間を忘れる作業は？",
-    "⑤ マイブームのツール/アプリは？",
-    "⑥ 周囲に理解されにくいけど好きなことは？",
-    "⑦ これだけは負けない豆知識は？",
-    "⑧ 休日の隠れルーティンは？",
-    "⑨ これから深掘りしたいテーマは？",
-    "⑩ 一言で言うと“あなたの沼”は？"
+    "① 最近ハマっていることは？","② 小さい頃から得意だったことは？","③ つい語りたくなるニッチ分野は？",
+    "④ 時間を忘れる作業は？","⑤ マイブームのツール/アプリは？","⑥ 周囲に理解されにくいけど好きなことは？",
+    "⑦ これだけは負けない豆知識は？","⑧ 休日の隠れルーティンは？","⑨ これから深掘りしたいテーマは？","⑩ 一言で言うと“あなたの沼”は？"
   ];
 
   const nicheToggleBtn = document.getElementById("niche-qna-toggle");
@@ -3124,17 +3123,9 @@ text.addEventListener('click', enableEditing);
         <label style="display:block; font-size:14px; font-weight:700; margin-bottom:6px;">${q}</label>
         <textarea rows="2" data-niche-index="${i}" placeholder="ここに入力"
           style="
-            display:block;
-            margin:0 auto;
-            width:92%;
-            max-width:520px;
-            padding:12px;
-            border:1px solid #ddd;
-            border-radius:12px;
-            font-size:14px;
-            box-sizing:border-box;
-            text-align:left;
-          "></textarea>
+            display:block; margin:0 auto; width:92%; max-width:520px;
+            padding:12px; border:1px solid #ddd; border-radius:12px;
+            font-size:14px; box-sizing:border-box; text-align:left;"></textarea>
       `;
       frag.appendChild(wrap);
     });
@@ -3142,6 +3133,7 @@ text.addEventListener('click', enableEditing);
     nicheList.querySelectorAll("textarea").forEach(ta => {
       const idx = Number(ta.dataset.nicheIndex);
       ta.value = nicheAnswers[idx] || "";
+      enforceMaxLen(ta, NICHE_MAX);          // ★ 文字数制限
       ta.addEventListener("input", (e) => {
         nicheAnswers[idx] = e.target.value;
         updateNichePreview();
@@ -3155,7 +3147,6 @@ text.addEventListener('click', enableEditing);
     const lines = [];
     NICHE_QS.forEach((q, i) => {
       const a = (nicheAnswers[i] || "").trim();
-      // 空欄でも質問を表示
       lines.push(`<div style="margin:6px 0;"><b>${q}</b><br>${escapeHtml(a)}</div>`);
     });
     nichePreviewBd.innerHTML = lines.join("");
@@ -3174,9 +3165,6 @@ text.addEventListener('click', enableEditing);
       nicheBox.style.display = "none";
     }
   });
-  /***********************
-   *  💬 ニッチ質問コーナー（追加ここまで）
-   ***********************/
 
   /***********************
    *  🚀 Main
@@ -3203,14 +3191,14 @@ text.addEventListener('click', enableEditing);
     const decoInput = document.getElementById('deco-photo-input');
     const stage     = document.getElementById(DECO_STAGE_ID);
 
-    // 🔽 追加: バー（スクロール文字）
+    // 🔽 バー（スクロール文字）
     const barInput   = document.getElementById('scroll-text-input');
     const barTextEl  = document.getElementById('scrolling-text');
     const BAR_DRAFT_KEY = `fureta_draft_bar_${__ID_FOR_DRAFT}`;
     const readBarDraft  = () => localStorage.getItem(BAR_DRAFT_KEY) ?? '';
     const writeBarDraft = (v) => localStorage.setItem(BAR_DRAFT_KEY, v ?? '');
 
-    // 🔽 追加: バー色のドラフトキー＆関数
+    // 🔽 バー色のドラフトキー＆関数
     const BAR_COLOR_DRAFT_KEY = `fureta_draft_barColor_${__ID_FOR_DRAFT}`;
     const readBarColorDraft  = () => localStorage.getItem(BAR_COLOR_DRAFT_KEY) ?? '';
     const writeBarColorDraft = (v) => localStorage.setItem(BAR_COLOR_DRAFT_KEY, v ?? '');
@@ -3219,7 +3207,7 @@ text.addEventListener('click', enableEditing);
       const v = (value || '').trim();
       if (!v) return;
       document.documentElement.style.setProperty('--bar-color', v);
-      const picker = document.getElementById('bar-color-picker') || document.getElementById('color-picker'); // ← フォールバック
+      const picker = document.getElementById('bar-color-picker') || document.getElementById('color-picker');
       if (picker && picker.value !== v) {
         try { picker.value = v; } catch(_) {}
       }
@@ -3351,14 +3339,9 @@ text.addEventListener('click', enableEditing);
 
         const setVal = (i, v) => { const el = document.getElementById(i); if (el) el.value = v || ''; };
         const fieldMap = {
-          name: 'name',
-          birthday: 'birthday',
-          age: 'age',
-          department: 'department',
-          birthplace: 'birthplace',
-          hobby: 'hobby',
-          'self-pr-textarea': 'selfPr',
-          'extra-text': 'extraText',
+          name: 'name', birthday: 'birthday', age: 'age',
+          department: 'department', birthplace: 'birthplace',
+          hobby: 'hobby', 'self-pr-textarea': 'selfPr', 'extra-text': 'extraText',
         };
         Object.entries(fieldMap).forEach(([idKey, dataKey]) => setVal(idKey, data[dataKey]));
 
@@ -3418,6 +3401,9 @@ text.addEventListener('click', enableEditing);
         }
       } catch (e) { E('edit.load.fail', e); }
     })();
+
+    // 自己PRテキストエリアの文字数制限を適用（存在すれば）
+    enforceMaxLen(document.getElementById('self-pr-textarea'), SELFPR_MAX);
 
     // ---- プロフィール画像
     profileInput?.addEventListener('change', async (e) => {
@@ -3572,7 +3558,7 @@ text.addEventListener('click', enableEditing);
       // ★ デコをアップロードして配列化
       const decos = await serializeAndUploadDecos(targetId);
 
-      // ★ 追加：現在のバー色をCSS変数から取得
+      // ★ 現在のバー色
       const barColorNow = getComputedStyle(document.documentElement).getPropertyValue('--bar-color').trim();
 
       // ★ ニッチ質問：常に配列化（空欄も含む）
@@ -3602,7 +3588,6 @@ text.addEventListener('click', enableEditing);
         await setDoc(doc(db, "cards", targetId), data, { merge: true });
         L('save.firestore.OK');
 
-        // ★ Firestore 反映OK → 保留していた Storage を実削除
         try {
           if (__decoPendingDeletes.size) {
             const tasks = [...__decoPendingDeletes].map(p =>
@@ -3617,7 +3602,6 @@ text.addEventListener('click', enableEditing);
           W('deco.storage.delete.batch.FAIL', err);
         }
 
-        // ★ 保存成功後、この作業のドラフトだけ掃除
         localStorage.removeItem(LINKS_DRAFT_KEY);
         localStorage.removeItem(BAR_DRAFT_KEY);
         localStorage.removeItem(BAR_COLOR_DRAFT_KEY);
@@ -3631,7 +3615,6 @@ text.addEventListener('click', enableEditing);
       }
     }
 
-    // ★ edit=1 のとき編集UI復元
     if (isEditMode()) enableEditMode();
   });
 
@@ -3641,34 +3624,23 @@ text.addEventListener('click', enableEditing);
     if (!isView || isEditMode()) return;
 
     const HIDE_SELECTORS = [
-      '.toolbar',
-      '.text-style-toolbar',
-      '.sns-delete-btn',
-      '.deco-delete-btn',
-      '.text-stamp-delete-btn',
-      '.youtube-section button',
-      '#spotify-section button',
-      '#youtube-url',
-      '#spotify-url',
-      '#sns-explain',
-      '#extra-text-wrapper .sns-delete-btn',
-      '#diagnosis-wrapper .sns-delete-btn',
-      '#external-link-section .sns-delete-btn',
-      '#self-pr-section .sns-delete-btn',
-      '#spotify-section .sns-delete-btn',
-      '#pr-template-buttons',
-      '.deletable-templates',
+      '.toolbar','.text-style-toolbar','.sns-delete-btn','.deco-delete-btn','.text-stamp-delete-btn',
+      '.youtube-section button','#spotify-section button','#youtube-url','#spotify-url','#sns-explain',
+      '#extra-text-wrapper .sns-delete-btn','#diagnosis-wrapper .sns-delete-btn','#external-link-section .sns-delete-btn',
+      '#self-pr-section .sns-delete-btn','#spotify-section .sns-delete-btn','#pr-template-buttons','.deletable-templates',
       '.self-pr-template-section'
     ];
-    document.querySelectorAll(HIDE_SELECTORS.join(',')).forEach(el => {
-      try { el.style.display = 'none'; } catch {}
-    });
+    document.querySelectorAll(HIDE_SELECTORS.join(',')).forEach(el => { try { el.style.display = 'none'; } catch {} });
 
     const FORCE_SHOW = [
       '#diagnosis-wrapper',
       '#diagnosis-wrapper #diagnosis-button',
       '#self-pr-section',
-      '#self-pr-section button[onclick="analyzeSelfPR()"]'
+      '#self-pr-section button[onclick="analyzeSelfPR()"]',
+      /* ▼ 追加：10個の質問コーナーをプレビューで常に表示 */
+      '#niche-qna-section',
+      '#niche-qna-toggle',
+      '#niche-qna-box'
     ];
     FORCE_SHOW.forEach(sel => {
       const el = document.querySelector(sel);
@@ -3677,9 +3649,7 @@ text.addEventListener('click', enableEditing);
 
     const diagWrap = document.getElementById('diagnosis-wrapper');
     const diagBtn  = document.getElementById('diagnosis-button');
-    if (diagWrap) {
-      diagWrap.style.textAlign = 'center';
-    }
+    if (diagWrap) { diagWrap.style.textAlign = 'center'; }
     if (diagBtn) {
       diagBtn.style.display = 'inline-block';
       diagBtn.style.margin  = '12px auto';
@@ -3704,18 +3674,10 @@ text.addEventListener('click', enableEditing);
     btn.type = 'button';
     btn.textContent = '再編集';
     Object.assign(btn.style, {
-      position: 'fixed',
-      right: '16px',
-      bottom: '16px',
-      zIndex: 10001,
-      padding: '10px 16px',
-      border: 'none',
-      borderRadius: '9999px',
-      background: '#ffd966',
-      boxShadow: '0 6px 16px rgba(0,0,0,0.2)',
-      fontSize: '14px',
-      fontWeight: 'bold',
-      cursor: 'pointer'
+      position: 'fixed', right: '16px', bottom: '16px', zIndex: 10001,
+      padding: '10px 16px', border: 'none', borderRadius: '9999px',
+      background: '#ffd966', boxShadow: '0 6px 16px rgba(0,0,0,0.2)',
+      fontSize: '14px', fontWeight: 'bold', cursor: 'pointer'
     });
     btn.addEventListener('click', () => gotoEditMode());
     document.body.appendChild(btn);
@@ -3747,6 +3709,7 @@ text.addEventListener('click', enableEditing);
   window.pulseName = pulseName;
 })();
 </script>
+
 
 
 </body>
