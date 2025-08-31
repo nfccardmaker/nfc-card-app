@@ -3564,14 +3564,13 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 
   const FORCE_SHOW = [
-    '#diagnosis-wrapper',
-    '#diagnosis-wrapper #diagnosis-button',
-    '#self-pr-section',
-    '#self-pr-section button[onclick="analyzeSelfPR()"]',
-    '#qna-area',   // 質問コーナーのボタン枠
-    '#qna-open',   // 質問コーナーボタン
-    '#qna-modal'   // モーダル本体（最初は非表示に戻す）
-  ];
+  '#diagnosis-wrapper',
+  '#diagnosis-wrapper #diagnosis-button',
+  '#self-pr-section',
+  '#self-pr-section button[onclick="analyzeSelfPR()"]',
+  '#qna-area',   // 質問コーナーのボタン枠
+  '#qna-open'    // 質問コーナーボタン
+];
 
   FORCE_SHOW.forEach(sel => {
     const el = document.querySelector(sel);
