@@ -3123,7 +3123,18 @@ text.addEventListener('click', enableEditing);
       wrap.innerHTML = `
         <label style="display:block; font-size:14px; font-weight:700; margin-bottom:6px;">${q}</label>
         <textarea rows="2" data-niche-index="${i}" placeholder="ここに入力"
-          style="width:100%; padding:10px; border:1px solid #ddd; border-radius:10px;"></textarea>
+          style="
+            display:block;
+            margin:0 auto;
+            width:92%;
+            max-width:520px;
+            padding:12px;
+            border:1px solid #ddd;
+            border-radius:12px;
+            font-size:14px;
+            box-sizing:border-box;
+            text-align:left;
+          "></textarea>
       `;
       frag.appendChild(wrap);
     });
@@ -3144,10 +3155,11 @@ text.addEventListener('click', enableEditing);
     const lines = [];
     NICHE_QS.forEach((q, i) => {
       const a = (nicheAnswers[i] || "").trim();
-      if (a) lines.push(`<div style="margin:6px 0;"><b>${q}</b><br>${escapeHtml(a)}</div>`);
+      // 空欄でも質問を表示
+      lines.push(`<div style="margin:6px 0;"><b>${q}</b><br>${escapeHtml(a)}</div>`);
     });
     nichePreviewBd.innerHTML = lines.join("");
-    nichePreview.style.display = lines.length ? "block" : "none";
+    nichePreview.style.display = "block";
   }
   function getNicheQnaArray(){
     return NICHE_QS.map((q, i) => ({ q, a: (nicheAnswers[i] || "").trim() }));
@@ -3171,6 +3183,9 @@ text.addEventListener('click', enableEditing);
    ***********************/
   window.addEventListener('DOMContentLoaded', () => {
     L('DOM ready');
+
+    // ★ 注意文を非表示に（存在すれば削除）
+    document.querySelector('#niche-qna-box > p')?.remove();
 
     const params = new URLSearchParams(window.location.search);
     const id = params.get('id');
@@ -3233,8 +3248,8 @@ text.addEventListener('click', enableEditing);
       }
       if (barInput) {
         barInput.value = v;
-        barInput.style.display = v ? 'none' : 'block'; // 入力→表示の既存挙動を踏襲
-        if (!v) { barInput.placeholder = ''; } // ★ 追加：未入力時は placeholder 文字だけ消す
+        barInput.style.display = v ? 'none' : 'block';
+        if (!v) { barInput.placeholder = ''; }
       }
     }
     async function saveBar(val){
@@ -3265,7 +3280,6 @@ text.addEventListener('click', enableEditing);
       });
     }
     if (barTextEl){
-      // 表示テキストをタップで再編集（既存の挙動と同じ体験）
       barTextEl.addEventListener('click', () => {
         if (barInput){
           barInput.style.display = 'block';
@@ -3275,10 +3289,8 @@ text.addEventListener('click', enableEditing);
       });
     }
 
-    // 🔽 追加: カラーピッカー（bar-color-picker が無ければ color-picker を使う）
     const barColorPicker = document.getElementById('bar-color-picker') || document.getElementById('color-picker');
     if (barColorPicker){
-      // 現在のCSS変数をピッカーに同期
       const currentCss = getComputedStyle(document.documentElement).getPropertyValue('--bar-color').trim();
       if (currentCss) {
         try { barColorPicker.value = currentCss; } catch(_) {}
@@ -3324,10 +3336,8 @@ text.addEventListener('click', enableEditing);
     (async () => {
       if (!id) {
         L('edit.skip.noId');
-        // 🔽 IDがない＝ドラフト時：バーはドラフトを表示、なければ表示を消す
         const draftBar = readBarDraft();
         if (draftBar) updateBarUI(draftBar); else updateBarUI('');
-        // 🔽 追加：バー色のドラフト適用
         const draftColor = readBarColorDraft();
         if (draftColor) applyBarColor(draftColor);
         return;
@@ -3352,13 +3362,11 @@ text.addEventListener('click', enableEditing);
         };
         Object.entries(fieldMap).forEach(([idKey, dataKey]) => setVal(idKey, data[dataKey]));
 
-        // 🔽 バー文字：Firebaseにあれば表示、なければバー表示だけ消す
         if (typeof data.barText === 'string' && data.barText.trim() !== '') {
           updateBarUI(data.barText);
         } else {
-          updateBarUI(''); // ← 未保存なら表示だけ消す
+          updateBarUI('');
         }
-        // 🔽 追加：バー色の復元（Firestore優先 → ドラフト）
         if (typeof data.barColor === 'string' && data.barColor.trim() !== '') {
           applyBarColor(data.barColor);
         } else {
@@ -3403,7 +3411,7 @@ text.addEventListener('click', enableEditing);
           data.decos.forEach(item => addDecoFromSaved(stage, item));
         }
 
-        // ★ 既存データに nicheQna があれば、モーダル生成時に反映されるよう一時配列へ
+        // ★ 既存データに nicheQna があれば反映
         if (Array.isArray(data.nicheQna)) {
           const arr = data.nicheQna.map(v => (typeof v?.a === 'string' ? v.a : ''));
           if (arr.length === NICHE_QS.length) nicheAnswers = arr;
@@ -3519,7 +3527,6 @@ text.addEventListener('click', enableEditing);
           alert(`デコ写真は最大 ${MAX_DECO} 枚までです`);
           return;
         }
-        // 透過PNGはそのまま、JPEGもそのまま保存
         addDecoWithFile(stage, file);
       });
     }
@@ -3568,9 +3575,8 @@ text.addEventListener('click', enableEditing);
       // ★ 追加：現在のバー色をCSS変数から取得
       const barColorNow = getComputedStyle(document.documentElement).getPropertyValue('--bar-color').trim();
 
-      // ★ ニッチ質問：空欄を除いた配列をチェック
+      // ★ ニッチ質問：常に配列化（空欄も含む）
       const nicheArr = (typeof getNicheQnaArray === 'function') ? getNicheQnaArray() : [];
-      const hasNiche = Array.isArray(nicheArr) && nicheArr.some(x => (x?.a || '').trim() !== '');
 
       const data = {
         name: getVal("name"),
@@ -3583,12 +3589,12 @@ text.addEventListener('click', enableEditing);
         extraText: getVal("extra-text"),
         imageUrl: finalProfileURL,
         backgroundUrl: finalBackgroundURL,
-        barText: (document.getElementById('scroll-text-input')?.value || '').trim(), // 🔽 追加：最終保存にも含める
-        barColor: barColorNow, // 🔽 追加：バー色も保存
+        barText: (document.getElementById('scroll-text-input')?.value || '').trim(),
+        barColor: barColorNow,
         ...snsLinks,
         ...(linksDraft ? { links: linksDraft } : {}),
         ...(decos.length ? { decos } : {}),
-        ...(hasNiche ? { nicheQna: nicheArr } : {})
+        nicheQna: nicheArr
       };
 
       try {
@@ -3613,8 +3619,8 @@ text.addEventListener('click', enableEditing);
 
         // ★ 保存成功後、この作業のドラフトだけ掃除
         localStorage.removeItem(LINKS_DRAFT_KEY);
-        localStorage.removeItem(BAR_DRAFT_KEY); // 🔽 バードラフトも掃除
-        localStorage.removeItem(BAR_COLOR_DRAFT_KEY); // 🔽 追加：バー色ドラフトも掃除
+        localStorage.removeItem(BAR_DRAFT_KEY);
+        localStorage.removeItem(BAR_COLOR_DRAFT_KEY);
 
         const next = `/preview?id=${targetId}`;
         L('save.redirect', next);
