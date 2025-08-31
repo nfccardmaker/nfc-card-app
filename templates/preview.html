@@ -3415,6 +3415,8 @@ text.addEventListener('click', enableEditing);
         if (Array.isArray(data.nicheQna)) {
           const arr = data.nicheQna.map(v => (typeof v?.a === 'string' ? v.a : ''));
           if (arr.length === NICHE_QS.length) nicheAnswers = arr;
+          /* ★ ここだけ追加：復元したら即プレビューへ反映 */
+          updateNichePreview();
         }
       } catch (e) { E('edit.load.fail', e); }
     })();
@@ -3668,7 +3670,9 @@ text.addEventListener('click', enableEditing);
       '#diagnosis-wrapper',
       '#diagnosis-wrapper #diagnosis-button',
       '#self-pr-section',
-      '#self-pr-section button[onclick="analyzeSelfPR()"]'
+      '#self-pr-section button[onclick="analyzeSelfPR()"]',
+      /* ★ ここだけ追加：プレビューを必ず表示 */
+      '#niche-qna-preview'
     ];
     FORCE_SHOW.forEach(sel => {
       const el = document.querySelector(sel);
