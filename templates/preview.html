@@ -3656,6 +3656,44 @@ text.addEventListener('click', enableEditing);
   window.pulseName = pulseName;
 })();
 </script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const QUESTIONS = [
+    "最近いちばんハマっていることは？",
+    "得意だと思うことは何？",
+    "周りからよく褒められるところは？",
+    "学生時代の頑張ったエピソードは？",
+    "将来やってみたいことは？"
+  ];
+
+  const $open   = document.getElementById('qna-open');
+  const $modal  = document.getElementById('qna-modal');
+  const $closeX = document.getElementById('qna-close');
+  const $next   = document.getElementById('qna-next');
+  const $hide   = document.getElementById('qna-hide');
+  const $q      = document.getElementById('qna-question');
+
+  if (!($open && $modal && $q)) return;
+
+  let last = -1;
+  const pick = () => {
+    let i = Math.floor(Math.random() * QUESTIONS.length);
+    if (QUESTIONS.length > 1 && i === last) i = (i + 1) % QUESTIONS.length;
+    last = i;
+    return QUESTIONS[i];
+  };
+
+  $open.addEventListener('click', () => {
+    $q.textContent = pick();
+    $modal.style.display = 'flex';
+  });
+
+  $next.addEventListener('click', () => { $q.textContent = pick(); });
+  $hide.addEventListener('click', () => { $modal.style.display = 'none'; });
+  $closeX.addEventListener('click', () => { $modal.style.display = 'none'; });
+  $modal.addEventListener('click', (e) => { if (e.target === $modal) $modal.style.display = 'none'; });
+});
+</script>
 
 </body>
 </html>
