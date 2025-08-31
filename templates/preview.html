@@ -3656,63 +3656,6 @@ text.addEventListener('click', enableEditing);
   window.pulseName = pulseName;
 })();
 </script>
-<script>
-/* ===== ランダム質問モーダル（保存なし） ===== */
-(function(){
-  const QUESTIONS = [
-    "最近いちばんハマっていることは？",
-    "得意だと思うことは何？",
-    "周りからよく褒められるところは？",
-    "学生時代の頑張ったエピソードは？",
-    "将来やってみたいことは？",
-    "尊敬している人と理由は？",
-    "休日はどう過ごす？",
-    "好きな本・映画・ゲームは？",
-    "こだわりの習慣ってある？",
-    "今チャレンジしていることは？",
-    "小さな自慢、ひとつ教えて！",
-    "最近買ってよかったものは？",
-    "気分転換にすることは？",
-    "子どもの頃の夢は？",
-    "自分を一言で表すと？"
-  ];
-
-  // 要素
-  const openBtn = document.getElementById('qna-open');
-  const modal   = document.getElementById('qna-modal');
-  const closeX  = document.getElementById('qna-close');
-  const hideBtn = document.getElementById('qna-hide');
-  const nextBtn = document.getElementById('qna-next');
-  const qText   = document.getElementById('qna-question');
-
-  if (!(openBtn && modal && qText)) return;
-
-  // ランダム取得（直前と被りにくく）
-  let lastIndex = -1;
-  function pickQuestion(){
-    if (!QUESTIONS.length) return "（質問がありません）";
-    let i = Math.floor(Math.random() * QUESTIONS.length);
-    if (QUESTIONS.length > 1 && i === lastIndex) {
-      i = (i + 1) % QUESTIONS.length;
-    }
-    lastIndex = i;
-    return QUESTIONS[i];
-  }
-
-  function showModal(){
-    qText.textContent = pickQuestion();
-    modal.style.display = 'flex';
-  }
-  function hideModal(){ modal.style.display = 'none'; }
-
-  openBtn.addEventListener('click', showModal);
-  nextBtn.addEventListener('click', () => { qText.textContent = pickQuestion(); });
-  hideBtn.addEventListener('click', hideModal);
-  closeX .addEventListener('click', hideModal);
-  modal  .addEventListener('click', (e) => { if (e.target === modal) hideModal(); }); // 背景タップで閉じる
-})();
-</script>
-
 
 </body>
 </html>
