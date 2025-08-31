@@ -3084,6 +3084,89 @@ text.addEventListener('click', enableEditing);
   });
 
   /***********************
+   *  💬 ニッチ質問コーナー（ここから追加）
+   ***********************/
+  const NICHE_QS = [
+    "① 最近ハマっていることは？",
+    "② 小さい頃から得意だったことは？",
+    "③ つい語りたくなるニッチ分野は？",
+    "④ 時間を忘れる作業は？",
+    "⑤ マイブームのツール/アプリは？",
+    "⑥ 周囲に理解されにくいけど好きなことは？",
+    "⑦ これだけは負けない豆知識は？",
+    "⑧ 休日の隠れルーティンは？",
+    "⑨ これから深掘りしたいテーマは？",
+    "⑩ 一言で言うと“あなたの沼”は？"
+  ];
+
+  const nicheToggleBtn = document.getElementById("niche-qna-toggle");
+  const nicheBox       = document.getElementById("niche-qna-box");
+  const nicheList      = document.getElementById("niche-qna-list");
+  const nichePreview   = document.getElementById("niche-qna-preview");
+  const nichePreviewBd = document.getElementById("niche-qna-preview-body");
+
+  let nicheAnswers = Array(NICHE_QS.length).fill("");
+  let nicheRendered = false;
+
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+  }
+  function renderNicheInputs(){
+    if (nicheRendered || !nicheList) return;
+    const frag = document.createDocumentFragment();
+    NICHE_QS.forEach((q, i) => {
+      const wrap = document.createElement("div");
+      wrap.style.background = "#fff";
+      wrap.style.border = "1px solid #eee";
+      wrap.style.borderRadius = "12px";
+      wrap.style.padding = "12px";
+      wrap.innerHTML = `
+        <label style="display:block; font-size:14px; font-weight:700; margin-bottom:6px;">${q}</label>
+        <textarea rows="2" data-niche-index="${i}" placeholder="ここに入力"
+          style="width:100%; padding:10px; border:1px solid #ddd; border-radius:10px;"></textarea>
+      `;
+      frag.appendChild(wrap);
+    });
+    nicheList.appendChild(frag);
+    nicheList.querySelectorAll("textarea").forEach(ta => {
+      const idx = Number(ta.dataset.nicheIndex);
+      ta.value = nicheAnswers[idx] || "";
+      ta.addEventListener("input", (e) => {
+        nicheAnswers[idx] = e.target.value;
+        updateNichePreview();
+      });
+    });
+    nicheRendered = true;
+    updateNichePreview();
+  }
+  function updateNichePreview(){
+    if (!nichePreview || !nichePreviewBd) return;
+    const lines = [];
+    NICHE_QS.forEach((q, i) => {
+      const a = (nicheAnswers[i] || "").trim();
+      if (a) lines.push(`<div style="margin:6px 0;"><b>${q}</b><br>${escapeHtml(a)}</div>`);
+    });
+    nichePreviewBd.innerHTML = lines.join("");
+    nichePreview.style.display = lines.length ? "block" : "none";
+  }
+  function getNicheQnaArray(){
+    return NICHE_QS.map((q, i) => ({ q, a: (nicheAnswers[i] || "").trim() }));
+  }
+
+  nicheToggleBtn?.addEventListener("click", () => {
+    if (!nicheBox) return;
+    if (nicheBox.style.display === "none") {
+      renderNicheInputs();
+      nicheBox.style.display = "block";
+    } else {
+      nicheBox.style.display = "none";
+    }
+  });
+  /***********************
+   *  💬 ニッチ質問コーナー（追加ここまで）
+   ***********************/
+
+  /***********************
    *  🚀 Main
    ***********************/
   window.addEventListener('DOMContentLoaded', () => {
@@ -3319,6 +3402,12 @@ text.addEventListener('click', enableEditing);
         if (Array.isArray(data.decos) && stage) {
           data.decos.forEach(item => addDecoFromSaved(stage, item));
         }
+
+        // ★ 既存データに nicheQna があれば、モーダル生成時に反映されるよう一時配列へ
+        if (Array.isArray(data.nicheQna)) {
+          const arr = data.nicheQna.map(v => (typeof v?.a === 'string' ? v.a : ''));
+          if (arr.length === NICHE_QS.length) nicheAnswers = arr;
+        }
       } catch (e) { E('edit.load.fail', e); }
     })();
 
@@ -3479,6 +3568,10 @@ text.addEventListener('click', enableEditing);
       // ★ 追加：現在のバー色をCSS変数から取得
       const barColorNow = getComputedStyle(document.documentElement).getPropertyValue('--bar-color').trim();
 
+      // ★ ニッチ質問：空欄を除いた配列をチェック
+      const nicheArr = (typeof getNicheQnaArray === 'function') ? getNicheQnaArray() : [];
+      const hasNiche = Array.isArray(nicheArr) && nicheArr.some(x => (x?.a || '').trim() !== '');
+
       const data = {
         name: getVal("name"),
         birthday: getVal("birthday"),
@@ -3494,7 +3587,8 @@ text.addEventListener('click', enableEditing);
         barColor: barColorNow, // 🔽 追加：バー色も保存
         ...snsLinks,
         ...(linksDraft ? { links: linksDraft } : {}),
-        ...(decos.length ? { decos } : {})
+        ...(decos.length ? { decos } : {}),
+        ...(hasNiche ? { nicheQna: nicheArr } : {})
       };
 
       try {
