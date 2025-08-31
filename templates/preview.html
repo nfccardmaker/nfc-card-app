@@ -3420,22 +3420,10 @@ text.addEventListener('click', enableEditing);
           data.decos.forEach(item => addDecoFromSaved(stage, item));
         }
 
-        // ★ 既存データに nicheQna があれば反映（他と同じ“DOMへの値流し込み”まで実施）
+        // ★ 既存データに nicheQna があれば反映（プレビュー描画はしない）
         if (Array.isArray(data.nicheQna)) {
           const arr = data.nicheQna.map(v => (typeof v?.a === 'string' ? v.a : ''));
-          if (arr.length === NICHE_QS.length) {
-            nicheAnswers = arr;
-            if (isViewPage() && !isEditMode()) {
-              // プレビュー/完成ページ：回答ビューを即構築
-              renderNicheView();
-            } else {
-              // 編集ページ：入力欄を生成して値を反映
-              renderNicheInputs();
-              nicheList?.querySelectorAll("textarea").forEach((ta, idx) => {
-                ta.value = nicheAnswers[idx] || "";
-              });
-            }
-          }
+          if (arr.length === NICHE_QS.length) nicheAnswers = arr;
         }
       } catch (e) { E('edit.load.fail', e); }
     })();
@@ -3771,6 +3759,56 @@ text.addEventListener('click', enableEditing);
   window.pulseName = pulseName;
 })();
 </script>
+<!-- ✅ 質問コーナー：完成ページはボタンのみ表示で開始（追記用スニペット） -->
+<script>
+(function(){
+  // 既存ロジックを壊さないようにローカル関数で判定
+  function isViewPage(){
+    try{
+      const p = new URLSearchParams(location.search);
+      const hasId = p.has('id');
+      const path  = location.pathname || '';
+      return hasId && (path.startsWith('/preview') || path.startsWith('/user_cards'));
+    }catch(_){ return false; }
+  }
+  function isEditMode(){
+    try{ return new URLSearchParams(location.search).get('edit') === '1'; }
+    catch(_){ return false; }
+  }
+
+  window.addEventListener('DOMContentLoaded', function(){
+    if (!isViewPage() || isEditMode()) return;
+
+    var section = document.getElementById('niche-qna-section');
+    var box = document.getElementById('niche-qna-box');
+    var btn = document.getElementById('niche-qna-toggle');
+
+    // セクションは見えるように（他のコードが非表示にしていても復活）
+    if (section) section.style.display = 'block';
+
+    // 中身は必ず閉じスタート
+    if (box) {
+      box.style.display = 'none';
+      box.setAttribute('data-init-hide','1');
+    }
+
+    // ボタンは必ず表示・状態同期
+    if (btn) {
+      btn.style.display = 'block';
+      if (!btn.textContent.trim()) btn.textContent = '🔎 10個の質問コーナー！';
+      var sync = function(){
+        if (!box) return;
+        var opened = box.style.display !== 'none';
+        btn.setAttribute('aria-expanded', opened ? 'true' : 'false');
+      };
+      sync();
+      // 既存のクリックハンドラの後で状態を同期（邪魔しない）
+      btn.addEventListener('click', function(){ setTimeout(sync, 0); }, { passive: true });
+    }
+  });
+})();
+</script>
+
 
 </body>
 </html>
