@@ -3420,10 +3420,22 @@ text.addEventListener('click', enableEditing);
           data.decos.forEach(item => addDecoFromSaved(stage, item));
         }
 
-        // ★ 既存データに nicheQna があれば反映（プレビュー描画はしない）
+        // ★ 既存データに nicheQna があれば反映（他と同じ“DOMへの値流し込み”まで実施）
         if (Array.isArray(data.nicheQna)) {
           const arr = data.nicheQna.map(v => (typeof v?.a === 'string' ? v.a : ''));
-          if (arr.length === NICHE_QS.length) nicheAnswers = arr;
+          if (arr.length === NICHE_QS.length) {
+            nicheAnswers = arr;
+            if (isViewPage() && !isEditMode()) {
+              // プレビュー/完成ページ：回答ビューを即構築
+              renderNicheView();
+            } else {
+              // 編集ページ：入力欄を生成して値を反映
+              renderNicheInputs();
+              nicheList?.querySelectorAll("textarea").forEach((ta, idx) => {
+                ta.value = nicheAnswers[idx] || "";
+              });
+            }
+          }
         }
       } catch (e) { E('edit.load.fail', e); }
     })();
@@ -3759,7 +3771,6 @@ text.addEventListener('click', enableEditing);
   window.pulseName = pulseName;
 })();
 </script>
-
 
 </body>
 </html>
