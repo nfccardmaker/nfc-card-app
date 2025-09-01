@@ -3687,14 +3687,12 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // 開く
-  $open.addEventListener('click', () => {
-    $q.textContent = pick();
+   $open.addEventListener('click', () => {
+  $q.innerHTML = pick();              // ← ここを innerHTML に
     $modal.style.display = 'flex';
   });
 
-  // 次の質問
-  $next.addEventListener('click', () => { $q.textContent = pick(); });
-
+  $next.addEventListener('click', () => { $q.innerHTML = pick(); }); // ← ここも
   // 閉じる
   const hide = () => { $modal.style.display = 'none'; };
   $hide.addEventListener('click', hide);
