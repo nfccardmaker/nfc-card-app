@@ -2441,6 +2441,9 @@ text.addEventListener('click', enableEditing);
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
   import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
   import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
+  /* 🔐 追加：Auth & Functions */
+  import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+  import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-functions.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBCnMBQjzoxViJPv3YqpZDD_PXQEe2QTsA",
@@ -2453,6 +2456,18 @@ text.addEventListener('click', enableEditing);
   const app = initializeApp(firebaseConfig);
   const db  = getFirestore(app);
   const storage = getStorage(app, "gs://nfc-card-app-79464");
+  /* 🔐 追加：Auth & Functions 初期化 */
+  const auth = getAuth(app);
+  const functions = getFunctions(app);
+  // 未ログインなら匿名ログイン
+  onAuthStateChanged(auth, (u) => {
+    if (!u) {
+      signInAnonymously(auth).catch(e => W('auth.anonymous.fail', e));
+    } else {
+      L('AUTH', { uid: u.uid, isAnonymous: u.isAnonymous });
+    }
+  });
+
   L('BOOT', 'Firebase initialized');
 
   /***********************
@@ -3497,6 +3512,7 @@ text.addEventListener('click', enableEditing);
         return;
       }
 
+      const isNew = !id;
       const targetId = id || (globalThis.crypto?.randomUUID?.() ?? makeId());
       const getVal = (i) => document.getElementById(i)?.value || "";
 
@@ -3508,7 +3524,7 @@ text.addEventListener('click', enableEditing);
       // ★ 追加：現在のバー色をCSS変数から取得
       const barColorNow = getComputedStyle(document.documentElement).getPropertyValue('--bar-color').trim();
 
-      const data = {
+      const baseData = {
         name: getVal("name"),
         birthday: getVal("birthday"),
         age: getVal("age"),
@@ -3526,9 +3542,12 @@ text.addEventListener('click', enableEditing);
         ...(decos.length ? { decos } : {})
       };
 
+      // 🔐 新規作成時は owner を付与
+      const ownerField = (!id && auth.currentUser) ? { owner: auth.currentUser.uid } : {};
+
       try {
-        L('save.firestore.start', { targetId, data });
-        await setDoc(doc(db, "cards", targetId), data, { merge: true });
+        L('save.firestore.start', { targetId, isNew, data: { ...baseData, ...ownerField } });
+        await setDoc(doc(db, "cards", targetId), { ...baseData, ...ownerField }, { merge: true });
         L('save.firestore.OK');
 
         // ★ Firestore 反映OK → 保留していた Storage を実削除
@@ -3548,8 +3567,25 @@ text.addEventListener('click', enableEditing);
 
         // ★ 保存成功後、この作業のドラフトだけ掃除
         localStorage.removeItem(LINKS_DRAFT_KEY);
-        localStorage.removeItem(BAR_DRAFT_KEY); // 🔽 バードラフトも掃除
-        localStorage.removeItem(BAR_COLOR_DRAFT_KEY); // 🔽 追加：バー色ドラフトも掃除
+        localStorage.removeItem(BAR_DRAFT_KEY);
+        localStorage.removeItem(BAR_COLOR_DRAFT_KEY);
+
+        // 🔐 新規作成のときはパスワードを設定してからプレビューへ
+        if (isNew) {
+          try {
+            const pw = prompt("編集パスワードを設定してください（6文字以上）：")?.trim() || "";
+            if (pw.length < 6) {
+              alert("6文字以上で設定してください。後から設定画面でも変更できます。");
+            } else {
+              const setPw = httpsCallable(functions, "setEditPassword");
+              await setPw({ cardId: targetId, newPassword: pw });
+              L('setPassword.OK');
+            }
+          } catch (e) {
+            W('setPassword.FAIL', e);
+            alert("パスワード設定に失敗しました。後から設定し直してください。");
+          }
+        }
 
         const next = `/preview?id=${targetId}`;
         L('save.redirect', next);
@@ -3646,7 +3682,7 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 
-  // ★ プレビュー時に右下へ「再編集」ボタンを表示
+  // ★ プレビュー時に右下へ「再編集」ボタンを表示（パスワード必須に変更）
   window.addEventListener('DOMContentLoaded', () => {
     if (!isViewPage() || isEditMode()) return;
 
@@ -3668,9 +3704,39 @@ window.addEventListener('DOMContentLoaded', () => {
       fontWeight: 'bold',
       cursor: 'pointer'
     });
-    btn.addEventListener('click', () => gotoEditMode());
+    btn.addEventListener('click', async () => {
+      try {
+        const params = new URLSearchParams(location.search);
+        const cardId = params.get('id');
+        if (!cardId) return;
+
+        // 未ログインなら匿名ログイン（保険）
+        if (!firebaseAuthReady()) {
+          try { await signInAnonymously(getAuth()); } catch(e){ /* ignore */ }
+        }
+
+        const pass = prompt("再編集パスワードを入力してください：")?.trim() || "";
+        if (!pass) return;
+
+        const grant = httpsCallable(getFunctions(), "grantEditAccess");
+        await grant({ cardId, password: pass });
+
+        // 付与成功 → 編集モードへ
+        gotoEditMode();
+      } catch (e) {
+        alert((e && e.message) ? e.message : "パスワードが違います。");
+      }
+    });
     document.body.appendChild(btn);
   });
+
+  // 小さなユーティリティ：Authが準備できているか
+  function firebaseAuthReady(){
+    try {
+      const a = getAuth();
+      return !!a.currentUser;
+    } catch { return false; }
+  }
 </script>
 
 <script>
@@ -3744,6 +3810,7 @@ document.addEventListener('DOMContentLoaded', () => {
   $modal.addEventListener('click', (e) => { if (e.target === $modal) hide(); });
 });
 </script>
+
 
 </body>
 </html>
