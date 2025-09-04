@@ -1227,27 +1227,28 @@ function insertTemplate(type) {
   const textarea = document.getElementById("extra-text");
   let template = "";
 
-  switch(type) {
-    case 'club':
-      template = "高校のときは〇〇部やってて、放課後はだいたい部活にいたかも。まあまあガチでやってたから、体力とか気合いはそれなりにある…はず！先輩後輩とのノリとか、地味にコミュ力鍛えられた気もする笑";
-      break;
+switch(type) {
+  case 'club':
+    template = "高校では〇〇部に所属していました。放課後は部活中心の生活で、良い経験になったと思います。";
+    break;
 
-    case 'study':
-      template = "〇〇系を勉強してるけど、内容はわりとニッチでおもしろいかも。課題はエグい時あるけど、締切には一応ちゃんと間に合わせてる笑わりと計画立ててコツコツやるタイプです、多分。";
-      break;
+  case 'study':
+    template = "大学では〇〇を学んでいます。課題はありますが、興味を持って取り組んでいます。";
+    break;
 
-    case 'circle':
-      template = "〇〇系のサークル入ってて、イベントとかで騒いでること多いかも。飲みとか合宿とか、エモい思い出いろいろできてる！ガチよりエンジョイ派だけど、人と関わるのはわりと好き。";
-      break;
+  case 'circle':
+    template = "〇〇系のサークルに参加しています。イベントや活動を通じて、友人と楽しく過ごしています。";
+    break;
 
-    case 'parttime':
-      template = "〇〇のバイトしてるんだけど、接客とか慣れると意外と楽しい。最初は緊張してたけど、今はお客さんと軽く雑談とかもしてる笑責任とか時間とか、ちょっとは大人になった気がする。";
-      break;
+  case 'parttime':
+    template = "〇〇でアルバイトをしています。接客や仕事を通じて、学ぶことも多いと感じています。";
+    break;
 
-    case 'hobby':
-      template = "〇〇が趣味で、スキあらばやってるかも。ひとりの時間にハマれるのが最高なんよ〜！同じ趣味の人と話せたらめっちゃ盛り上がるタイプ。たぶん、めっちゃ語る笑";
-      break;
-  }
+  case 'hobby':
+    template = "趣味は〇〇で、空いた時間によく楽しんでいます。同じ趣味の人と話すのも好きです。";
+    break;
+}
+
 
   // textareaに反映
   textarea.value = template + '\n\n⸻\n\n';
