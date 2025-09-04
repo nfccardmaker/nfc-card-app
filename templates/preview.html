@@ -439,7 +439,7 @@ button:active {
 /* box.png（トグルボタン）は常に最前面に残す */
 .box-toggle{
   position: fixed;
-  left: 12px;
+  left: 4px;
   bottom: calc(env(safe-area-inset-bottom, 0px) + 12px); /* ← iPhoneのホームバー対策 */
   width: 40px; height: 40px;
   z-index: 10002;       /* ここが一番上 */
@@ -466,11 +466,13 @@ body.background-only #box-toggle { display: block; }
   <!-- 👇 前面にかぶせる背景レイヤー -->
   <img id="background-img" alt="" aria-hidden="true" />
 
-  <!-- 👇 トグル用の box.png（常に最前面で見える） -->
-  <img id="box-toggle" src="/static/box.png" alt="背景だけ表示" class="box-toggle">
+  <!-- 👇 トグル専用のラッパーを用意 -->
+  <div id="box-wrapper">
+    <img id="box-toggle" src="/static/box.png" alt="背景だけ表示" class="box-toggle">
+  </div>
 
+  <!-- 👇 通常のUI -->
   <div id="page-wrapper">
-
   <div class="main-wrapper">
   <div class="card">
    <div class="header-bar" id="header-bar">
