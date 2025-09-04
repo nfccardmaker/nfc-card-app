@@ -427,6 +427,10 @@ button:active {
   display: block;
 }
 
+/* 背景だけモード時に隠す */
+.hide-when-background-only {
+  display: none !important;
+}
 
 
 
@@ -3744,6 +3748,85 @@ document.addEventListener('DOMContentLoaded', () => {
   $closeX.addEventListener('click', hide);
   $modal.addEventListener('click', (e) => { if (e.target === $modal) hide(); });
 });
+</script>
+<!-- 背景だけモード切替（常に残す／ページ最下部） -->
+<div style="text-align:center; margin:32px 0 24px;">
+  <button id="bg-only-toggle" type="button" style="
+    padding: 10px 16px;
+    border: none;
+    border-radius: 12px;
+    background: #ffe08a;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    cursor: pointer;
+    font-size: 15px;">
+    背景だけモード
+  </button>
+</div>
+<script>
+(function(){
+  // 背景だけモードで隠す対象（必要ならここに追加・削除）
+  const HIDE_SELECTORS = [
+    /* 上部カード領域 */
+    '.header-bar',
+    '.student-id',
+
+    /* SNSまわり */
+    '.sns-icon-bar',
+    '#sns-explain',
+    '.sns-inputs',
+
+    /* YouTube / Spotify */
+    '.youtube-section',
+    '#spotify-section',
+
+    /* 質問・診断・自己PR系 */
+    '#diagnosis-wrapper',
+    '#diagnosis-modal',
+    '#quick-qna',
+    '#qna-modal',
+    '#extra-text-wrapper',
+    '#template-buttons',
+    '.deletable-templates',
+    '#self-pr-section',
+    '#pr-template-buttons',
+    '#self-pr-modal',
+
+    /* ツールバーや浮遊系 */
+    '#toolbar',
+    '#finish-button',
+    '#return-toggle',
+    '#text-tools',
+    '#bg-template-list',
+    'canvas#draw-canvas',
+
+    /* デコ画像や追加テキスト */
+    '.deco-wrapper',
+    '.text-sticker'
+  ];
+
+  const toggleBtn = document.getElementById('bg-only-toggle');
+  if (!toggleBtn) return;
+
+  let backgroundOnly = false;
+
+  toggleBtn.addEventListener('click', () => {
+    backgroundOnly = !backgroundOnly;
+
+    // 対象を一括トグル
+    HIDE_SELECTORS.forEach(sel => {
+      document.querySelectorAll(sel).forEach(el => {
+        if (backgroundOnly) {
+          el.classList.add('hide-when-background-only');
+        } else {
+          el.classList.remove('hide-when-background-only');
+        }
+      });
+    });
+
+    // ボタンの表示文言切り替え
+    toggleBtn.textContent = backgroundOnly ? '元に戻す' : '背景だけモード';
+  });
+})();
 </script>
 
 </body>
