@@ -426,12 +426,49 @@ button:active {
 .deco-wrapper.active .deco-del{
   display: block;
 }
+/* 画面全面の背景オーバーレイ */
+#background-img{
+  position: fixed; inset: 0;
+  width: 100vw; height: 100vh;
+  object-fit: cover;
+  z-index: 9990;        /* 最前面一歩手前 */
+  display: none;        /* トグルONで表示 */
+  pointer-events: auto; /* 裏のUIを操作できないようにする */
+}
+
+/* box.png（トグルボタン）は常に最前面に残す */
+.box-toggle{
+  position: fixed;
+  top: 12px; right: 12px;
+  width: 40px; height: 40px;
+  z-index: 10002;       /* ここが一番上 */
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* 背景だけ表示モード（bodyにクラス付与） */
+body.background-only #background-img { display: block; }
+
+/* 背景以外のUIを一括で隠す（page-wrapperごと消すから楽） */
+body.background-only #page-wrapper { display: none !important; }
+
+/* トグルボタンは常に見せる（保険） */
+body.background-only #box-toggle { display: block; }
 
 
   </style>
 </head>
+</head>
 <body>
+  <!-- 👇 前面にかぶせる背景レイヤー -->
+  <img id="background-img" alt="" aria-hidden="true" />
+
+  <!-- 👇 トグル用の box.png（常に最前面で見える） -->
+  <img id="box-toggle" src="box.png" alt="背景だけ表示" class="box-toggle">
+
   <div id="page-wrapper">
+
   <div class="main-wrapper">
   <div class="card">
    <div class="header-bar" id="header-bar">
@@ -3742,6 +3779,15 @@ document.addEventListener('DOMContentLoaded', () => {
   $closeX.addEventListener('click', hide);
   $modal.addEventListener('click', (e) => { if (e.target === $modal) hide(); });
 });
+</script>
+<script>
+  (function(){
+    const btn = document.getElementById('box-toggle');
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+      document.body.classList.toggle('background-only');
+    });
+  })();
 </script>
 
 </body>
