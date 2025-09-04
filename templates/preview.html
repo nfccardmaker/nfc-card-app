@@ -439,13 +439,15 @@ button:active {
 /* box.png（トグルボタン）は常に最前面に残す */
 .box-toggle{
   position: fixed;
-  top: 12px; right: 12px;
+  left: 12px;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 12px); /* ← iPhoneのホームバー対策 */
   width: 40px; height: 40px;
   z-index: 10002;       /* ここが一番上 */
   cursor: pointer;
   user-select: none;
   -webkit-user-drag: none;
 }
+
 
 /* 背景だけ表示モード（bodyにクラス付与） */
 body.background-only #background-img { display: block; }
