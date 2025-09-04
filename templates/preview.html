@@ -428,9 +428,16 @@ button:active {
 }
 
 /* 背景だけモード時に隠す */
-.hide-when-background-only {
-  display: none !important;
+.hide-when-background-only{ display:none!important; }
+
+/* 非常口ボタン：背景だけモードの時だけ出す */
+#bg-only-return{
+  position:fixed; right:16px; bottom:16px; z-index:99999;
+  padding:10px 14px; border:none; border-radius:12px;
+  background:#ffe08a; box-shadow:0 2px 8px rgba(0,0,0,.2);
+  font-size:14px; display:none;
 }
+
 
 
 
@@ -3749,85 +3756,60 @@ document.addEventListener('DOMContentLoaded', () => {
   $modal.addEventListener('click', (e) => { if (e.target === $modal) hide(); });
 });
 </script>
-<!-- 背景だけモード切替（常に残す／ページ最下部） -->
-<div style="text-align:center; margin:32px 0 24px;">
+<!-- 背景だけモード：メイン切替（ページ最下部・スクロール追従しない） -->
+<div id="bg-only-controls" style="text-align:center; margin:32px 0 24px;">
   <button id="bg-only-toggle" type="button" style="
-    padding: 10px 16px;
-    border: none;
-    border-radius: 12px;
-    background: #ffe08a;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    cursor: pointer;
-    font-size: 15px;">
+    padding:10px 16px; border:none; border-radius:12px;
+    background:#ffe08a; box-shadow:0 2px 8px rgba(0,0,0,.2); cursor:pointer;">
     背景だけモード
   </button>
 </div>
+
+<!-- 非常口（背景だけモード中だけ右下に出る） -->
+<button id="bg-only-return" type="button">元に戻す</button>
 <script>
 (function(){
-  // 背景だけモードで隠す対象（必要ならここに追加・削除）
+  // ← ここに「隠す対象」を列挙（既存のものと同じでOK）
   const HIDE_SELECTORS = [
-    /* 上部カード領域 */
-    '.header-bar',
-    '.student-id',
-
-    /* SNSまわり */
-    '.sns-icon-bar',
-    '#sns-explain',
-    '.sns-inputs',
-
-    /* YouTube / Spotify */
-    '.youtube-section',
-    '#spotify-section',
-
-    /* 質問・診断・自己PR系 */
-    '#diagnosis-wrapper',
-    '#diagnosis-modal',
-    '#quick-qna',
-    '#qna-modal',
-    '#extra-text-wrapper',
-    '#template-buttons',
-    '.deletable-templates',
-    '#self-pr-section',
-    '#pr-template-buttons',
-    '#self-pr-modal',
-
-    /* ツールバーや浮遊系 */
-    '#toolbar',
-    '#finish-button',
-    '#return-toggle',
-    '#text-tools',
-    '#bg-template-list',
-    'canvas#draw-canvas',
-
-    /* デコ画像や追加テキスト */
-    '.deco-wrapper',
-    '.text-sticker'
-  ];
+    '.header-bar','.student-id','.sns-icon-bar','#sns-explain','.sns-inputs',
+    '.youtube-section','#spotify-section','#diagnosis-wrapper','#diagnosis-modal',
+    '#quick-qna','#qna-modal','#extra-text-wrapper','#template-buttons',
+    '.deletable-templates','#self-pr-section','#pr-template-buttons','#self-pr-modal',
+    '#toolbar','#finish-button','#return-toggle','#text-tools','#bg-template-list',
+    'canvas#draw-canvas','.deco-wrapper','.text-sticker'
+  ]; // 例：上はあなたの画面に存在する要素群:contentReference[oaicite:1]{index=1}
 
   const toggleBtn = document.getElementById('bg-only-toggle');
-  if (!toggleBtn) return;
+  const returnBtn = document.getElementById('bg-only-return');
+  if(!toggleBtn || !returnBtn) return;
 
   let backgroundOnly = false;
 
-  toggleBtn.addEventListener('click', () => {
-    backgroundOnly = !backgroundOnly;
-
-    // 対象を一括トグル
-    HIDE_SELECTORS.forEach(sel => {
-      document.querySelectorAll(sel).forEach(el => {
-        if (backgroundOnly) {
-          el.classList.add('hide-when-background-only');
-        } else {
-          el.classList.remove('hide-when-background-only');
-        }
+  function applyMode(on){
+    HIDE_SELECTORS.forEach(sel=>{
+      document.querySelectorAll(sel).forEach(el=>{
+        // ← ここで自分自身は絶対に隠さない
+        if(el.closest('#bg-only-controls')) return;
+        el.classList.toggle('hide-when-background-only', on);
       });
     });
+    toggleBtn.textContent = on ? '元に戻す' : '背景だけモード';
+    returnBtn.style.display = on ? 'block' : 'none';
+  }
 
-    // ボタンの表示文言切り替え
-    toggleBtn.textContent = backgroundOnly ? '元に戻す' : '背景だけモード';
+  toggleBtn.addEventListener('click', ()=>{
+    backgroundOnly = !backgroundOnly;
+    applyMode(backgroundOnly);
+  });
+
+  // 非常口（右下）
+  returnBtn.addEventListener('click', ()=>{
+    backgroundOnly = false;
+    applyMode(false);
   });
 })();
 </script>
+
 
 </body>
 </html>
