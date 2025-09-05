@@ -457,13 +457,14 @@ body.background-only #box-toggle { display: block; }
 </head>
 </head>
 <body>
-    <img id="background-img" alt="" aria-hidden="true" />
+  <!-- 👇 前面にかぶせる背景レイヤー -->
+  <img id="background-img" alt="" aria-hidden="true" />
 
+  <!-- 👇 トグル専用のラッパーを用意 -->
   <div id="box-wrapper">
     <img id="box-toggle" src="/static/box.png" alt="背景だけ表示" class="box-toggle">
   </div>
 
-  <div id="page-wrapper"> … </div>
   <!-- 👇 通常のUI -->
   <div id="page-wrapper">
   <div class="main-wrapper">
