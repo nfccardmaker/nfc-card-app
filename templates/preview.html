@@ -102,20 +102,21 @@ body {
 }
 
     .toolbar {
-      position: fixed;
-      bottom: 5px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: white;
-      padding: 10px 16px;
-      border-radius: 16px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      display: flex;
-      gap: 16px;
-      z-index: 1000;
-      align-items: center;
-      
-    }
+  position: fixed;
+  bottom: 0; 
+  left: 0; 
+  right: 0;
+  height: 60px;
+  background: white;
+  border-top: 1px solid #ddd;   /* 上に薄い区切り線 */
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 1000;
+  padding: 0;                  /* ←余白を消す */
+  border-radius: 0;            /* ←角丸を消す */
+  box-shadow: none;            /* ←影も消す */
+}
 
     .toolbar img {
       width: 32px;
