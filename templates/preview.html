@@ -426,36 +426,30 @@ button:active {
 .deco-wrapper.active .deco-del{
   display: block;
 }
-/* 画面全面の背景オーバーレイ */
-#background-img{
-  position: fixed; inset: 0;
-  width: 100vw; height: 100vh;
-  object-fit: cover;
-  z-index: 9990;        /* 最前面一歩手前 */
-  display: none;        /* トグルONで表示 */
-  pointer-events: auto; /* 裏のUIを操作できないようにする */
-}
-
-/* box.png（トグルボタン）は常に最前面に残す */
+/* ← 既存の .box-toggle はこの形に置き換え */
 .box-toggle{
-  position: fixed;
-  left: 4px;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 12px); /* ← iPhoneのホームバー対策 */
-  width: 40px; height: 40px;
-  z-index: 10002;       /* ここが一番上 */
+  position: static;             /* ← ラッパーに固定を任せる */
+  width: 40px;
+  height: 40px;
   cursor: pointer;
   user-select: none;
   -webkit-user-drag: none;
 }
 
+/* ← これを新しく追記（body直下の #box-wrapper を固定） */
+#box-wrapper{
+  position: fixed;
+  left: 4px;                    /* さらに左に寄せるなら 0〜4px で調整 */
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 96px); 
+  /* ↑ツールバーの高さを避ける。重ねたいなら 12px に下げる */
+  z-index: 10002;
+  pointer-events: none;         /* ラッパーは透過 */
+}
+#box-wrapper .box-toggle{
+  pointer-events: auto;         /* 画像でクリックを受ける */
+}
 
-/* 背景だけ表示モード（bodyにクラス付与） */
-body.background-only #background-img { display: block; }
-
-/* 背景以外のUIを一括で隠す（page-wrapperごと消すから楽） */
-body.background-only #page-wrapper { display: none !important; }
-
-/* トグルボタンは常に見せる（保険） */
+/* そのほかはそのままでOK */
 body.background-only #box-toggle { display: block; }
 
 
@@ -463,14 +457,13 @@ body.background-only #box-toggle { display: block; }
 </head>
 </head>
 <body>
-  <!-- 👇 前面にかぶせる背景レイヤー -->
-  <img id="background-img" alt="" aria-hidden="true" />
+    <img id="background-img" alt="" aria-hidden="true" />
 
-  <!-- 👇 トグル専用のラッパーを用意 -->
   <div id="box-wrapper">
     <img id="box-toggle" src="/static/box.png" alt="背景だけ表示" class="box-toggle">
   </div>
 
+  <div id="page-wrapper"> … </div>
   <!-- 👇 通常のUI -->
   <div id="page-wrapper">
   <div class="main-wrapper">
